@@ -17,9 +17,11 @@ package com.googlesource.gerrit.plugins.importer;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Strings;
+import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
+import com.google.inject.Inject;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
@@ -48,12 +50,19 @@ public class ProjectCommand extends SshCommand {
       usage = "name of project to be imported")
   private List<String> projects;
 
+  @Inject
+  private ProjectRestEndpoint projectRestEndpoint;
+
   @Override
   protected void run() throws OrmException, IOException, UnloggedFailure {
-    String password = readPassword();
+    ProjectRestEndpoint.Input input = new ProjectRestEndpoint.Input();
+    input.from = url;
+    input.user = user;
+    input.pass = readPassword();
+    input.projects = projects;
 
-    // TODO
-    stdout.println("TODO");
+    String res = projectRestEndpoint.apply(new ConfigResource(), input);
+    stdout.println(res);
   }
 
   private String readPassword() throws UnsupportedEncodingException,
