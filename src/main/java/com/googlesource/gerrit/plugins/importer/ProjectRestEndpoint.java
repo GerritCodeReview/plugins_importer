@@ -16,11 +16,17 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static java.lang.String.format;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.git.WorkQueue;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -39,11 +45,13 @@ import org.eclipse.jgit.util.FS;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiresCapability(ImportCapability.ID)
 @Singleton
-class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
+class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
+    LifecycleListener {
   public static class Input {
     public String from;
     public String user;
@@ -53,70 +61,123 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
 
   private static final String IMPORT = "IMPORT";
 
-  private final GitRepositoryManager git;
+  private static class ImportProjectTask implements Runnable  {
 
-  @Inject
-  ProjectRestEndpoint(GitRepositoryManager git) {
-    this.git = git;
-  }
+    private final GitRepositoryManager git;
+    private final Project.NameKey name;
+    private final CredentialsProvider cp;
+    private final String fromGerrit;
+    private final StringBuffer logger;
 
-  @Override
-  public String apply(ConfigResource rsrc, Input input) {
-
-    StringBuilder result = new StringBuilder();
-    CredentialsProvider cp =
-        new UsernamePasswordCredentialsProvider(input.user, input.pass);
-
-    for(String projectName : input.projects) {
-      Project.NameKey name = new Project.NameKey(projectName);
+    ImportProjectTask(GitRepositoryManager git, Project.NameKey name,
+      CredentialsProvider cp, String fromGerrit,
+      StringBuffer logger) {
+      this.git = git;
+      this.name = name;
+      this.cp = cp;
+      this.fromGerrit = fromGerrit;
+      this.logger = logger;
+    }
+    @Override
+    public void run() {
       try {
         git.openRepository(name);
-        result.append(format("Repository %s already exists", projectName));
-        continue;
+        logger.append(format("Repository %s already exists.", name.get()));
+        return;
       } catch (RepositoryNotFoundException e) {
         // Ideal, project doesn't exist
       } catch (IOException e) {
-        result.append(e.getMessage());
-        continue;
+        logger.append(e.getMessage());
+        return;
       }
 
       Repository repo;
       try {
         repo = git.createRepository(name);
-      } catch (IOException e) {
-        result.append(format("Error: %s, skipping project %s", e, projectName));
-        continue;
+      } catch(IOException e) {
+        logger.append(format("Error: %s, skipping project %s", e, name.get()));
+        return;
       }
-
+      LockFile importing = getLockFile(repo);
       try {
-        LockFile importing = getLockFile(repo);
         if (!importing.lock()) {
-          result.append(format("Project %s is being imported from another session"
-              + ", skipping", projectName));
-          continue;
+          logger.append(format("Project %s is being imported from another session"
+              + ", skipping", name.get()));
+          return;
         }
 
         try {
-          setupProjectConfiguration(input.from, projectName, repo.getConfig());
+          setupProjectConfiguration(fromGerrit, name.get(), repo.getConfig());
           FetchResult fetchResult = Git.wrap(repo).fetch()
               .setCredentialsProvider(cp)
               .setRemote("origin")
               .call();
-          result.append(format("[INFO] Project '%s' imported: %s",
-              projectName, fetchResult.getMessages()));
+          logger.append(format("[INFO] Project '%s' imported: %s",
+              name.get(), fetchResult.getMessages()));
         } finally {
           importing.unlock();
           importing.commit();
         }
       } catch(IOException | GitAPIException e) {
-        result.append(format("[ERROR] Unable to transfere project '%s' from"
+        logger.append(format("[ERROR] Unable to transfere project '%s' from"
             + " source gerrit host '%s': %s",
-            projectName, input.from, e.getMessage()));
+            name.get(), fromGerrit, e.getMessage()));
       } finally {
         repo.close();
       }
     }
+  }
+
+  // TODO: this should go into the plugin configuration.
+  private final static int maxNumberOfImporterThreads = 20;
+
+  private final GitRepositoryManager git;
+  private final WorkQueue queue;
+
+  private WorkQueue.Executor executor;
+  private ListeningExecutorService pool;
+
+  @Inject
+  ProjectRestEndpoint(GitRepositoryManager git, WorkQueue queue) {
+    this.git = git;
+    this.queue = queue;
+  }
+
+  @Override
+  public String apply(ConfigResource rsrc, Input input) {
+
+    long startTime = System.currentTimeMillis();
+    StringBuffer result = new StringBuffer();
+    CredentialsProvider cp =
+        new UsernamePasswordCredentialsProvider(input.user, input.pass);
+
+    List<ListenableFuture<?>> tasks = new ArrayList<>();
+    for(String projectName : input.projects) {
+      Project.NameKey name = new Project.NameKey(projectName);
+      Runnable task = new ImportProjectTask(git, name, cp, input.from, result);
+      tasks.add(pool.submit(task));
+    }
+    Futures.getUnchecked(Futures.allAsList(tasks));
+    // TODO: the log message below does not take the failed imports into account.
+    result.append(format("[INFO] %d projects imported in %d milliseconds.%n",
+        input.projects.size(), (System.currentTimeMillis() - startTime)));
     return result.toString();
+  }
+
+  @Override
+  public void start() {
+    executor = queue.createQueue(maxNumberOfImporterThreads, "ProjectImporter");
+    pool = MoreExecutors.listeningDecorator(executor);
+  }
+
+  @Override
+  public void stop() {
+    if (executor != null) {
+      executor.shutdown();
+      executor.unregisterWorkQueue();
+      executor = null;
+      pool = null;
+    }
   }
 
   private static void setupProjectConfiguration(String sourceGerritServerUrl,
@@ -129,7 +190,7 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
     config.save();
   }
 
-  private LockFile getLockFile(Repository repo) {
+  private static LockFile getLockFile(Repository repo) {
    File importStatus = new File(repo.getDirectory(), IMPORT);
    return new LockFile(importStatus, FS.DETECTED);
   }

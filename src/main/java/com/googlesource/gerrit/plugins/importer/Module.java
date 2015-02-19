@@ -18,8 +18,10 @@ import static com.google.gerrit.server.config.ConfigResource.CONFIG_KIND;
 
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
+import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.inject.AbstractModule;
+import com.google.inject.internal.UniqueAnnotations;
 
 class Module extends AbstractModule {
   @Override
@@ -33,5 +35,8 @@ class Module extends AbstractModule {
         post(CONFIG_KIND, "project").to(ProjectRestEndpoint.class);
       }
     });
+    bind(LifecycleListener.class)
+      .annotatedWith(UniqueAnnotations.create())
+      .to(ProjectRestEndpoint.class);
   }
 }
