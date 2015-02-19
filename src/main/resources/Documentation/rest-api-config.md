@@ -18,6 +18,10 @@ Imports a project.
 The information about which project should be imported must be provided
 in the request body as a [ProjectInput](#project-input) entity.
 
+Caller must be a member of a group that is granted the 'Import'
+capability (provided by this plugin) or the 'Administrate Server'
+capability.
+
 #### Request
 
 ```

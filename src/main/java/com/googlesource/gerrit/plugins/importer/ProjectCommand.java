@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Strings;
+import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
@@ -32,6 +33,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+@RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "project", description = "Imports a project")
 public class ProjectCommand extends SshCommand {
   @Option(name = "--from", aliases = {"-f"}, required = true, metaVar = "URL",

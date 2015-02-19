@@ -21,7 +21,9 @@ Imports a project.
 
 ACCESS
 ------
-TODO
+Caller must be a member of a group that is granted the 'Import'
+capability (provided by this plugin) or the 'Administrate Server'
+capability.
 
 SCRIPTING
 ---------

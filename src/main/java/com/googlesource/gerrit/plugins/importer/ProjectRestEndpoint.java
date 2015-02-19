@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.inject.Singleton;
@@ -22,6 +23,7 @@ import com.googlesource.gerrit.plugins.importer.ProjectRestEndpoint.Input;
 
 import java.util.List;
 
+@RequiresCapability(ImportCapability.ID)
 @Singleton
 class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
   public static class Input {
