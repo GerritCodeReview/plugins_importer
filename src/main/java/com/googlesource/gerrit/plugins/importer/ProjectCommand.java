@@ -68,12 +68,12 @@ public class ProjectCommand extends SshCommand {
   }
 
   private String readPassword() throws UnsupportedEncodingException,
-      IOException {
+      IOException, UnloggedFailure {
     if ("-".equals(pass)) {
       BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF_8));
       pass = Strings.nullToEmpty(br.readLine());
       if (br.readLine() != null) {
-        die("multi-line password not allowed");
+        throw die("multi-line password not allowed");
       }
     }
     return pass;
