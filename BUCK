@@ -1,5 +1,15 @@
 include_defs('//bucklets/gerrit_plugin.bucklet')
 
+# TODO: support standalone Buck build with 2.11
+#if STANDALONE_MODE:
+#  HTTP_LIB = '//lib/http:http_lib'
+#  GSON = '//lib/gson:gson'
+#else:
+#  HTTP_LIB = '//plugins/importer/lib/http:http_lib'
+#  GSON = '//plugins/importer/lib/gson:gson'
+HTTP_LIB = '//plugins/importer/lib/http:http_lib'
+GSON = '//plugins/importer/lib/gson:gson'
+
 gerrit_plugin(
   name = 'importer',
   srcs = glob(['src/main/java/**/*.java']),
@@ -10,6 +20,10 @@ gerrit_plugin(
     'Gerrit-ApiVersion: 2.10',
     'Gerrit-Module: com.googlesource.gerrit.plugins.importer.Module',
     'Gerrit-SshModule: com.googlesource.gerrit.plugins.importer.SshModule',
+  ],
+  deps = [
+    HTTP_LIB,
+    GSON,
   ],
 )
 
