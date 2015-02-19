@@ -14,13 +14,28 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static java.lang.String.format;
+
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import com.googlesource.gerrit.plugins.importer.ProjectRestEndpoint.Input;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+
+import java.io.IOException;
 import java.util.List;
 
 @RequiresCapability(ImportCapability.ID)
@@ -33,8 +48,56 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
     public List<String> projects;
   }
 
+  private final GitRepositoryManager git;
+
+  @Inject
+  ProjectRestEndpoint(GitRepositoryManager git) {
+    this.git = git;
+  }
+
   @Override
   public String apply(ConfigResource rsrc, Input input) {
-    return "TODO";
+
+    StringBuilder result = new StringBuilder();
+    CredentialsProvider cp =
+        new UsernamePasswordCredentialsProvider(input.user, input.pass);
+
+    for(String projectName : input.projects) {
+      Project.NameKey name = new Project.NameKey(projectName);
+      try {
+        git.openRepository(name);
+        result.append(format("Repository %s already exists", projectName));
+      } catch (RepositoryNotFoundException e) {
+        // Ideal, project doesn't exist
+      } catch (IOException e) {
+        result.append(e.getMessage());
+        continue;
+      }
+      try {
+        Repository repo = git.createRepository(name);
+        setupProjectConfiguration(input.from, projectName, repo.getConfig());
+        FetchResult fetchResult = Git.wrap(repo).fetch()
+            .setCredentialsProvider(cp)
+            .setRemote("origin")
+            .call();
+        result.append(format("[INFO] Project '%s' imported: %s",
+            projectName, fetchResult.getMessages()));
+      } catch(IOException | GitAPIException e) {
+        result.append(format("[ERROR] Unable to transfere project '%s' from"
+            + " source gerrit host '%s': %s",
+            projectName, input.from, e.getMessage()));
+      }
+    }
+    return result.toString();
+  }
+
+  private static void setupProjectConfiguration(String sourceGerritServerUrl,
+      String projectName, StoredConfig config) throws IOException {
+    config.setString("remote", "origin", "url", sourceGerritServerUrl
+        .concat("/")
+        .concat(projectName));
+    config.setString("remote", "origin", "fetch", "+refs/*:refs/*");
+    config.setString("http", null, "sslVerify", Boolean.FALSE.toString());
+    config.save();
   }
 }
