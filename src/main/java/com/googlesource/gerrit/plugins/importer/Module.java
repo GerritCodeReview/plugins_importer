@@ -14,11 +14,19 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.google.gerrit.server.config.ConfigResource.CONFIG_KIND;
+
+import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.inject.AbstractModule;
 
 class Module extends AbstractModule {
   @Override
   protected void configure() {
-    // TODO
+    install(new RestApiModule() {
+      @Override
+      protected void configure() {
+        post(CONFIG_KIND, "project").to(ProjectRestEndpoint.class);
+      }
+    });
   }
 }
