@@ -67,6 +67,7 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
       try {
         git.openRepository(name);
         result.append(format("Repository %s already exists", projectName));
+        continue;
       } catch (RepositoryNotFoundException e) {
         // Ideal, project doesn't exist
       } catch (IOException e) {
