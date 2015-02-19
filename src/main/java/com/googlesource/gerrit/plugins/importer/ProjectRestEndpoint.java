@@ -74,8 +74,16 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
         result.append(e.getMessage());
         continue;
       }
+
+      Repository repo;
       try {
-        Repository repo = git.createRepository(name);
+        repo = git.createRepository(name);
+      } catch (IOException e) {
+        result.append(format("Error: %s, skipping project %s", e, projectName));
+        continue;
+      }
+
+      try {
         setupProjectConfiguration(input.from, projectName, repo.getConfig());
         FetchResult fetchResult = Git.wrap(repo).fetch()
             .setCredentialsProvider(cp)
@@ -87,6 +95,8 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
         result.append(format("[ERROR] Unable to transfere project '%s' from"
             + " source gerrit host '%s': %s",
             projectName, input.from, e.getMessage()));
+      } finally {
+        repo.close();
       }
     }
     return result.toString();
