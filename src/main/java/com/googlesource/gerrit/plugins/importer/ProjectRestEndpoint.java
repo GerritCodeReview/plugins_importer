@@ -29,12 +29,15 @@ import com.googlesource.gerrit.plugins.importer.ProjectRestEndpoint.Input;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
+import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.util.FS;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -47,6 +50,8 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
     public String pass;
     public List<String> projects;
   }
+
+  private static final String IMPORT = "IMPORT";
 
   private final GitRepositoryManager git;
 
@@ -84,13 +89,24 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
       }
 
       try {
-        setupProjectConfiguration(input.from, projectName, repo.getConfig());
-        FetchResult fetchResult = Git.wrap(repo).fetch()
-            .setCredentialsProvider(cp)
-            .setRemote("origin")
-            .call();
-        result.append(format("[INFO] Project '%s' imported: %s",
-            projectName, fetchResult.getMessages()));
+        LockFile importing = getLockFile(repo);
+        if (!importing.lock()) {
+          result.append(format("Project %s is being imported from another session"
+              + ", skipping", projectName));
+          continue;
+        }
+
+        try {
+          setupProjectConfiguration(input.from, projectName, repo.getConfig());
+          FetchResult fetchResult = Git.wrap(repo).fetch()
+              .setCredentialsProvider(cp)
+              .setRemote("origin")
+              .call();
+          result.append(format("[INFO] Project '%s' imported: %s",
+              projectName, fetchResult.getMessages()));
+        } finally {
+          importing.commit();
+        }
       } catch(IOException | GitAPIException e) {
         result.append(format("[ERROR] Unable to transfere project '%s' from"
             + " source gerrit host '%s': %s",
@@ -110,5 +126,10 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
     config.setString("remote", "origin", "fetch", "+refs/*:refs/*");
     config.setString("http", null, "sslVerify", Boolean.FALSE.toString());
     config.save();
+  }
+
+  private LockFile getLockFile(Repository repo) {
+   File importStatus = new File(repo.getDirectory(), IMPORT);
+   return new LockFile(importStatus, FS.DETECTED);
   }
 }
