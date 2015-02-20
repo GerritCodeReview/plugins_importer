@@ -20,11 +20,23 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
 import java.net.URI;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class HttpSession {
 
@@ -44,19 +56,75 @@ public class HttpSession {
     return new HttpResponse(getClient().execute(get));
   }
 
-  protected HttpClient getClient() {
+  protected HttpClient getClient() throws IOException {
     if (client == null) {
       URI uri = URI.create(url);
       BasicCredentialsProvider creds = new BasicCredentialsProvider();
       creds.setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
           new UsernamePasswordCredentials(user, pass));
-      client = HttpClientBuilder
-          .create()
+
+      SSLContext context;
+      try {
+        final TrustManager[] trustAllCerts =
+            new TrustManager[] {new DummyX509TrustManager()};
+        context = SSLContext.getInstance("TLS");
+        context.init(null, trustAllCerts, null);
+      } catch (KeyManagementException e) {
+        throw new IOException(e.getMessage());
+      } catch (NoSuchAlgorithmException e) {
+        throw new IOException(e.getMessage());
+      }
+
+      SSLConnectionSocketFactory sf;
+      sf = new SSLConnectionSocketFactory(context, new DummyHostnameVerifier());
+      client = HttpClients
+          .custom()
+          .setSSLSocketFactory(sf)
           .setDefaultCredentialsProvider(creds)
           .setMaxConnPerRoute(10)
           .setMaxConnTotal(1024)
           .build();
+
     }
     return client;
   }
+
+  private static class DummyX509TrustManager implements X509TrustManager {
+    public X509Certificate[] getAcceptedIssuers() {
+      return null;
+    }
+
+    public void checkClientTrusted(X509Certificate[] certs, String authType) {
+      // no check
+    }
+
+    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+      // no check
+    }
+  }
+
+  private static class DummyHostnameVerifier implements X509HostnameVerifier {
+    @Override
+    public boolean verify(String hostname, SSLSession session) {
+      // always accept
+      return true;
+    }
+
+    @Override
+    public void verify(String host, SSLSocket ssl) throws IOException {
+      // no check
+    }
+
+    @Override
+    public void verify(String host, X509Certificate cert) throws SSLException {
+      // no check
+    }
+
+    @Override
+    public void verify(String host, String[] cns, String[] subjectAlts)
+        throws SSLException {
+      // no check
+    }
+  }
+
 }
