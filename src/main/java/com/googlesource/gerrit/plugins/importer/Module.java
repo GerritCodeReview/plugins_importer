@@ -21,6 +21,7 @@ import com.google.gerrit.extensions.config.CapabilityDefinition;
 import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.inject.AbstractModule;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.internal.UniqueAnnotations;
 
 class Module extends AbstractModule {
@@ -38,5 +39,6 @@ class Module extends AbstractModule {
     bind(LifecycleListener.class)
       .annotatedWith(UniqueAnnotations.create())
       .to(ProjectRestEndpoint.class);
+    install(new FactoryModuleBuilder().build(ImportProjectTask.Factory.class));
   }
 }
