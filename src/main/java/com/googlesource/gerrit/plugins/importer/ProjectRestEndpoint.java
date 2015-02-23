@@ -82,29 +82,28 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
 
     @Override
     public void run() {
-      try {
-        git.openRepository(name);
-        logger.append(format("Repository %s already exists.", name.get()));
-        return;
-      } catch (RepositoryNotFoundException e) {
-        // Ideal, project doesn't exist
-      } catch (IOException e) {
-        logger.append(e.getMessage());
+      LockFile importing = lockForImport(name);
+      if (importing == null) {
         return;
       }
 
-      Repository repo;
       try {
-        repo = git.createRepository(name);
-      } catch(IOException e) {
-        logger.append(format("Error: %s, skipping project %s", e, name.get()));
-        return;
-      }
-      LockFile importing = getLockFile(name);
-      try {
-        if (!importing.lock()) {
-          logger.append(format("Project %s is being imported from another session"
-              + ", skipping", name.get()));
+        try {
+          git.openRepository(name);
+          logger.append(format("Repository %s already exists.", name.get()));
+          return;
+        } catch (RepositoryNotFoundException e) {
+          // Ideal, project doesn't exist
+        } catch (IOException e) {
+          logger.append(e.getMessage());
+          return;
+        }
+
+        Repository repo;
+        try {
+          repo = git.createRepository(name);
+        } catch(IOException e) {
+          logger.append(format("Error: %s, skipping project %s", e, name.get()));
           return;
         }
 
@@ -116,22 +115,36 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
               .call();
           logger.append(format("[INFO] Project '%s' imported: %s",
               name.get(), fetchResult.getMessages()));
+        } catch(IOException | GitAPIException e) {
+          logger.append(format("[ERROR] Unable to transfere project '%s' from"
+              + " source gerrit host '%s': %s",
+              name.get(), fromGerrit, e.getMessage()));
         } finally {
-          importing.unlock();
-          importing.commit();
+          repo.close();
         }
-      } catch(IOException | GitAPIException e) {
-        logger.append(format("[ERROR] Unable to transfere project '%s' from"
-            + " source gerrit host '%s': %s",
-            name.get(), fromGerrit, e.getMessage()));
+
       } finally {
-        repo.close();
+        importing.unlock();
+        importing.commit();
       }
     }
 
-    private LockFile getLockFile(Project.NameKey project) {
+    private LockFile lockForImport(Project.NameKey project) {
       File importStatus = new File(lockRoot, project.get());
-      return new LockFile(importStatus, FS.DETECTED);
+      LockFile lockFile = new LockFile(importStatus, FS.DETECTED);
+      try {
+        if (lockFile.lock()) {
+          return lockFile;
+        } else {
+          logger.append(format("Project %s is being imported from another session"
+              + ", skipping", name.get()));
+          return null;
+        }
+      } catch (IOException e1) {
+        logger.append(format(
+            "Error while trying to lock the project %s for import", name.get()));
+        return null;
+      }
     }
   }
 
