@@ -105,6 +105,7 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input> {
           result.append(format("[INFO] Project '%s' imported: %s",
               projectName, fetchResult.getMessages()));
         } finally {
+          importing.unlock();
           importing.commit();
         }
       } catch(IOException | GitAPIException e) {
