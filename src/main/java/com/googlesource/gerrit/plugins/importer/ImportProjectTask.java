@@ -74,40 +74,21 @@ class ImportProjectTask implements Runnable {
     }
 
     try {
-      try {
-        git.openRepository(name);
-        logger.append(format("Repository %s already exists.", name.get()));
-        return;
-      } catch (RepositoryNotFoundException e) {
-        // Ideal, project doesn't exist
-      } catch (IOException e) {
-        logger.append(e.getMessage());
-        return;
-      }
-
-      try {
-        repo = git.createRepository(name);
-      } catch(IOException e) {
-        logger.append(format("Error: %s, skipping project %s", e, name.get()));
+      repo = openRepository();
+      if (repo == null) {
         return;
       }
 
       try {
         setupProjectConfiguration();
-        FetchResult fetchResult = Git.wrap(repo).fetch()
-            .setCredentialsProvider(cp)
-            .setRemote("origin")
-            .call();
-        logger.append(format("[INFO] Project '%s' imported: %s",
-            name.get(), fetchResult.getMessages()));
+        gitFetch();
       } catch(IOException | GitAPIException e) {
-        logger.append(format("[ERROR] Unable to transfere project '%s' from"
+        logger.append(format("[ERROR] Unable to transfer project '%s' from"
             + " source gerrit host '%s': %s",
             name.get(), fromGerrit, e.getMessage()));
       } finally {
         repo.close();
       }
-
     } finally {
       importing.unlock();
       importing.commit();
@@ -132,6 +113,26 @@ class ImportProjectTask implements Runnable {
     }
   }
 
+  private Repository openRepository() {
+    try {
+      git.openRepository(name);
+      logger.append(format("Repository %s already exists.", name.get()));
+      return null;
+    } catch (RepositoryNotFoundException e) {
+      // Project doesn't exist
+    } catch (IOException e) {
+      logger.append(e.getMessage());
+      return null;
+    }
+
+    try {
+      return git.createRepository(name);
+    } catch(IOException e) {
+      logger.append(format("Error: %s, skipping project %s", e, name.get()));
+      return null;
+    }
+  }
+
   private void setupProjectConfiguration() throws IOException {
     StoredConfig config = repo.getConfig();
     config.setString("remote", "origin", "url", fromGerrit
@@ -140,5 +141,15 @@ class ImportProjectTask implements Runnable {
     config.setString("remote", "origin", "fetch", "+refs/*:refs/*");
     config.setString("http", null, "sslVerify", Boolean.FALSE.toString());
     config.save();
+  }
+
+  private void gitFetch() throws GitAPIException {
+    FetchResult fetchResult;
+    fetchResult = Git.wrap(repo).fetch()
+          .setCredentialsProvider(cp)
+          .setRemote("origin")
+          .call();
+    logger.append(format("[INFO] Project '%s' fetched: %s",
+        name.get(), fetchResult.getMessages()));
   }
 }
