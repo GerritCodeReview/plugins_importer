@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.restapi.RestModifyView;
@@ -59,25 +60,26 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
     public List<String> projects;
   }
 
-  private static final String IMPORT = "IMPORT";
-
   private static class ImportProjectTask implements Runnable  {
 
     private final GitRepositoryManager git;
+    private final File lockRoot;
     private final Project.NameKey name;
     private final CredentialsProvider cp;
     private final String fromGerrit;
     private final StringBuffer logger;
 
-    ImportProjectTask(GitRepositoryManager git, Project.NameKey name,
-      CredentialsProvider cp, String fromGerrit,
+    ImportProjectTask(GitRepositoryManager git, File lockRoot,
+        Project.NameKey name, CredentialsProvider cp, String fromGerrit,
       StringBuffer logger) {
       this.git = git;
+      this.lockRoot = lockRoot;
       this.name = name;
       this.cp = cp;
       this.fromGerrit = fromGerrit;
       this.logger = logger;
     }
+
     @Override
     public void run() {
       try {
@@ -98,7 +100,7 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
         logger.append(format("Error: %s, skipping project %s", e, name.get()));
         return;
       }
-      LockFile importing = getLockFile(repo);
+      LockFile importing = getLockFile(name);
       try {
         if (!importing.lock()) {
           logger.append(format("Project %s is being imported from another session"
@@ -126,6 +128,11 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
         repo.close();
       }
     }
+
+    private LockFile getLockFile(Project.NameKey project) {
+      File importStatus = new File(lockRoot, project.get());
+      return new LockFile(importStatus, FS.DETECTED);
+    }
   }
 
   // TODO: this should go into the plugin configuration.
@@ -133,14 +140,17 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
 
   private final GitRepositoryManager git;
   private final WorkQueue queue;
+  private final File data;
 
   private WorkQueue.Executor executor;
   private ListeningExecutorService pool;
 
   @Inject
-  ProjectRestEndpoint(GitRepositoryManager git, WorkQueue queue) {
+  ProjectRestEndpoint(GitRepositoryManager git, WorkQueue queue,
+      @PluginData File data) {
     this.git = git;
     this.queue = queue;
+    this.data = data;
   }
 
   @Override
@@ -154,7 +164,8 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
     List<ListenableFuture<?>> tasks = new ArrayList<>();
     for(String projectName : input.projects) {
       Project.NameKey name = new Project.NameKey(projectName);
-      Runnable task = new ImportProjectTask(git, name, cp, input.from, result);
+      Runnable task = new ImportProjectTask(
+          git, data, name, cp, input.from, result);
       tasks.add(pool.submit(task));
     }
     Futures.getUnchecked(Futures.allAsList(tasks));
@@ -188,10 +199,5 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
     config.setString("remote", "origin", "fetch", "+refs/*:refs/*");
     config.setString("http", null, "sslVerify", Boolean.FALSE.toString());
     config.save();
-  }
-
-  private static LockFile getLockFile(Repository repo) {
-   File importStatus = new File(repo.getDirectory(), IMPORT);
-   return new LockFile(importStatus, FS.DETECTED);
   }
 }
