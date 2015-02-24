@@ -17,7 +17,7 @@ gerrit_plugin(
   manifest_entries = [
     'Gerrit-PluginName: importer',
     'Gerrit-ApiType: plugin',
-    'Gerrit-ApiVersion: 2.10',
+    'Gerrit-ApiVersion: 2.11-SNAPSHOT',
     'Gerrit-Module: com.googlesource.gerrit.plugins.importer.Module',
     'Gerrit-SshModule: com.googlesource.gerrit.plugins.importer.SshModule',
   ],

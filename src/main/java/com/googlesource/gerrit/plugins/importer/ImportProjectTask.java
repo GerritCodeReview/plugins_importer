@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static java.lang.String.format;
 
+import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.common.AccountInfo;
@@ -37,14 +38,12 @@ import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.AccountState;
-import com.google.gerrit.server.api.changes.ChangeInfoMapper;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.index.ChangeIndexer;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchSetInfoFactory;
 import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
-import com.google.gerrit.server.util.TimeUtil;
 import com.google.gwtorm.server.OrmException;
 import com.google.gwtorm.server.SchemaFactory;
 import com.google.inject.Inject;
@@ -266,7 +265,6 @@ class ImportProjectTask implements Runnable {
     replayMessages(db, change, c);
 
     // TODO add approvals
-    // TODO check mergeability
 
     insertLinkToOriginalChange(db, change, c);
 
@@ -281,9 +279,8 @@ class ImportProjectTask implements Runnable {
         new Change(new Change.Key(c.changeId), changeId, resolveUser(c.owner),
             new Branch.NameKey(new Project.NameKey(c.project),
             fullName(c.branch)), c.created);
-    change.setStatus(ChangeInfoMapper.changeStatus2Status(c.status));
+    change.setStatus(Change.Status.forChangeStatus(c.status));
     change.setTopic(c.topic);
-    ChangeUtil.computeSortKey(change);
     return change;
   }
 
@@ -308,7 +305,7 @@ class ImportProjectTask implements Runnable {
     db.changes().beginTransaction(change.getId());
     try {
       for (RevisionInfo r : revisions) {
-        String origRef = new PatchSet.Id(new Change.Id(c._number), r._number).toRefName();
+        String origRef = r.ref;
         ObjectId id = repo.resolve(origRef);
         if (id == null) {
           // already replayed?
