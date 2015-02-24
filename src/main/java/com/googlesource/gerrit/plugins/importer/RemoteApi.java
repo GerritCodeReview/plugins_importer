@@ -16,19 +16,22 @@ package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
+import com.google.gerrit.server.OutputFormat;
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
 
-public class ChangeQuery extends RemoteQuery {
+public class RemoteApi {
+  private final RestSession restSession;
 
-  ChangeQuery(String url, String user, String pass) {
-    super(url, user, pass);
+  RemoteApi(String url, String user, String pass) {
+    restSession = new RestSession(url, user, pass);
   }
 
-  public List<ChangeInfo> query(String projectName) throws IOException {
+  public List<ChangeInfo> queryChanges(String projectName) throws IOException {
     String endPoint =
         "/changes/?q=project:" + projectName +
         "&O=" + Integer.toHexString(ListChangesOption.toBits(
@@ -38,10 +41,14 @@ public class ChangeQuery extends RemoteQuery {
                 ListChangesOption.MESSAGES,
                 ListChangesOption.CURRENT_REVISION,
                 ListChangesOption.ALL_REVISIONS)));
-    RestResponse r = getRestSession().get(endPoint);
+    RestResponse r = restSession.get(endPoint);
     List<ChangeInfo> result =
         newGson().fromJson(r.getReader(),
             new TypeToken<List<ChangeInfo>>() {}.getType());
     return result;
+  }
+
+  private static Gson newGson() {
+    return OutputFormat.JSON_COMPACT.newGson();
   }
 }

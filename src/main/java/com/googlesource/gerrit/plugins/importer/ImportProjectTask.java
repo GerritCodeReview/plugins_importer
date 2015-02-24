@@ -247,7 +247,7 @@ class ImportProjectTask implements Runnable {
   private void replayChanges() throws IOException, OrmException,
       NoSuchAccountException, NoSuchChangeException {
     List<ChangeInfo> changes =
-        new ChangeQuery(fromGerrit, user, password).query(name.get());
+        new RemoteApi(fromGerrit, user, password).queryChanges(name.get());
     ReviewDb db = schemaFactory.open();
     RevWalk rw = new RevWalk(repo);
     try {
