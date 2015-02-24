@@ -16,16 +16,23 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static java.lang.String.format;
 
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Table;
+import com.google.common.collect.TreeBasedTable;
 import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
+import com.google.gerrit.extensions.api.changes.ReviewInput;
+import com.google.gerrit.extensions.api.changes.ReviewInput.NotifyHandling;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeMessageInfo;
+import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.common.LabelInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
@@ -42,6 +49,9 @@ import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.AccountState;
+import com.google.gerrit.server.change.ChangeResource;
+import com.google.gerrit.server.change.PostReview;
+import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.index.ChangeIndexer;
 import com.google.gerrit.server.notedb.ChangeUpdate;
@@ -49,7 +59,6 @@ import com.google.gerrit.server.patch.PatchSetInfoFactory;
 import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
-import com.google.gwtorm.server.SchemaFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
@@ -78,7 +87,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
@@ -97,12 +108,13 @@ class ImportProjectTask implements Runnable {
 
   private final GitRepositoryManager git;
   private final File lockRoot;
-  private final SchemaFactory<ReviewDb> schemaFactory;
+  private final ReviewDb db;
   private final AccountCache accountCache;
   private final CurrentUser currentUser;
   private final IdentifiedUser.GenericFactory genericUserFactory;
   private final ChangeControl.GenericFactory changeControlFactory;
   private final PatchSetInfoFactory patchSetInfoFactory;
+  private final Provider<PostReview> postReview;
   private final ChangeUpdate.Factory updateFactory;
   private final ChangeMessagesUtil cmUtil;
   private final ChangeIndexer indexer;
@@ -111,6 +123,7 @@ class ImportProjectTask implements Runnable {
   private final Project.NameKey name;
   private final String user;
   private final String password;
+  private final RemoteApi api;
   private final StringBuffer messages;
 
   private Repository repo;
@@ -118,12 +131,13 @@ class ImportProjectTask implements Runnable {
   @Inject
   ImportProjectTask(GitRepositoryManager git,
       @PluginData File data,
-      SchemaFactory<ReviewDb> schemaFactory,
+      ReviewDb db,
       AccountCache accountCache,
-      Provider<CurrentUser> currentUser,
+      CurrentUser currentUser,
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
       PatchSetInfoFactory patchSetInfoFactory,
+      Provider<PostReview> postReview,
       ChangeUpdate.Factory updateFactory,
       ChangeMessagesUtil cmUtil,
       ChangeIndexer indexer,
@@ -134,12 +148,13 @@ class ImportProjectTask implements Runnable {
       @Assisted StringBuffer messages) {
     this.git = git;
     this.lockRoot = data;
-    this.schemaFactory = schemaFactory;
+    this.db = db;
     this.accountCache = accountCache;
-    this.currentUser = currentUser.get();
+    this.currentUser = currentUser;
     this.genericUserFactory = genericUserFactory;
     this.changeControlFactory = changeControlFactory;
     this.patchSetInfoFactory = patchSetInfoFactory;
+    this.postReview = postReview;
     this.updateFactory = updateFactory;
     this.cmUtil = cmUtil;
     this.indexer = indexer;
@@ -149,6 +164,7 @@ class ImportProjectTask implements Runnable {
     this.user = user;
     this.password = password;
     this.messages = messages;
+    this.api = new RemoteApi(fromGerrit, user, password);
   }
 
   @Override
@@ -169,7 +185,7 @@ class ImportProjectTask implements Runnable {
         gitFetch();
         replayChanges();
       } catch (IOException | GitAPIException | OrmException
-          | NoSuchAccountException | NoSuchChangeException e) {
+          | NoSuchAccountException | NoSuchChangeException | RestApiException e) {
           messages.append(format("Unable to transfer project '%s' from"
             + " source gerrit host '%s': %s. Check log for details.",
             name.get(), fromGerrit, e.getMessage()));
@@ -245,37 +261,36 @@ class ImportProjectTask implements Runnable {
   }
 
   private void replayChanges() throws IOException, OrmException,
-      NoSuchAccountException, NoSuchChangeException {
-    List<ChangeInfo> changes =
+      NoSuchAccountException, NoSuchChangeException, RestApiException {
         new RemoteApi(fromGerrit, user, password).queryChanges(name.get());
-    ReviewDb db = schemaFactory.open();
+    List<ChangeInfo> changes = api.queryChanges(name.get());
     RevWalk rw = new RevWalk(repo);
     try {
       for (ChangeInfo c : changes) {
-        replayChange(rw, db, c);
+        replayChange(rw, c);
       }
     } finally {
       rw.release();
-      db.close();
     }
   }
 
-  private void replayChange(RevWalk rw, ReviewDb db, ChangeInfo c)
+  private void replayChange(RevWalk rw, ChangeInfo c)
       throws IOException, OrmException, NoSuchAccountException,
-      NoSuchChangeException {
-    Change change = createChange(db, c);
-    replayRevisions(db, rw, change, c);
+      NoSuchChangeException, RestApiException {
+    Change change = createChange(c);
+    replayRevisions(rw, change, c);
     db.changes().insert(Collections.singleton(change));
 
-    replayMessages(db, change, c);
-    addApprovals(db, change, c);
+    replayInlineComments(change, c);
+    replayMessages(change, c);
+    addApprovals(change, c);
 
-    insertLinkToOriginalChange(db, change, c);
+    insertLinkToOriginalChange(change, c);
 
     indexer.index(db, change);
   }
 
-  private Change createChange(ReviewDb db, ChangeInfo c) throws OrmException,
+  private Change createChange(ChangeInfo c) throws OrmException,
       NoSuchAccountException {
     Change.Id changeId = new Change.Id(db.nextChangeId());
 
@@ -300,7 +315,7 @@ class ImportProjectTask implements Runnable {
   /**
    * @return the current patch set for the given change
    */
-  private void replayRevisions(ReviewDb db, RevWalk rw, Change change,
+  private void replayRevisions(RevWalk rw, Change change,
       ChangeInfo c) throws IOException, OrmException, NoSuchAccountException {
     List<RevisionInfo> revisions = new ArrayList<>(c.revisions.values());
     sortRevisionInfoByNumber(revisions);
@@ -332,10 +347,6 @@ class ImportProjectTask implements Runnable {
 
         ChangeUtil.insertAncestors(db, ps.getId(), commit);
 
-        // TODO fetch comments:
-        // GET /changes/{change-id}/revisions/{revision-id}/comments/'
-        // TODO replay comments
-
         createRef(repo, ps);
         deleteRef(repo, ps, origRef);
       }
@@ -355,6 +366,71 @@ class ImportProjectTask implements Runnable {
       }
     });
   }
+
+  private void replayInlineComments(Change change, ChangeInfo c) throws OrmException,
+      RestApiException, IOException, NoSuchChangeException,
+      NoSuchAccountException {
+    for (PatchSet ps : db.patchSets().byChange(change.getId())) {
+      Iterable<CommentInfo> comments = api.getComments(
+          c._number, ps.getRevision().get());
+
+      Table<Timestamp, Account.Id, List<CommentInfo>> t = TreeBasedTable.create(
+          Ordering.natural(), new Comparator<Account.Id>() {
+            @Override
+            public int compare(Account.Id a1, Account.Id a2) {
+              return a1.get() - a2.get();
+            }}
+          );
+
+      for (CommentInfo comment : comments) {
+        Account.Id id  = resolveUser(comment.author);
+        List<CommentInfo> ci = t.get(comment.updated, id);
+        if (ci == null) {
+          ci = new ArrayList<>();
+          t.put(comment.updated, id, ci);
+        }
+        ci.add(comment);
+      }
+
+      for (Timestamp ts : t.rowKeySet()) {
+        for (Map.Entry<Account.Id, List<CommentInfo>> e : t.row(ts).entrySet()) {
+          postComments(change, ps, e.getValue(), e.getKey(), ts);
+        }
+      }
+    }
+  }
+
+  private void postComments(Change change, PatchSet ps,
+      List<CommentInfo> comments, Account.Id author, Timestamp ts)
+      throws RestApiException, OrmException, IOException, NoSuchChangeException {
+    ReviewInput input = new ReviewInput();
+    input.notify = NotifyHandling.NONE;
+    input.comments = new HashMap<>();
+
+    for (CommentInfo comment : comments) {
+      if (!input.comments.containsKey(comment.path)) {
+        input.comments.put(comment.path,
+            new ArrayList<ReviewInput.CommentInput>());
+      }
+
+      ReviewInput.CommentInput commentInput = new ReviewInput.CommentInput();
+      commentInput.id = comment.id;
+      commentInput.inReplyTo = comment.inReplyTo;
+      commentInput.line = comment.line;
+      commentInput.message = comment.message;
+      commentInput.path = comment.path;
+      commentInput.range = comment.range;
+      commentInput.side = comment.side;
+      commentInput.updated = comment.updated;
+
+      input.comments.get(comment.path).add(commentInput);
+    }
+
+    postReview.get().apply(
+        new RevisionResource(new ChangeResource(control(change, author)), ps),
+        input, ts);
+  }
+
 
   private void createRef(Repository repo, PatchSet ps) throws IOException {
     String ref = ps.getId().toRefName();
@@ -402,7 +478,7 @@ class ImportProjectTask implements Runnable {
     return a.getAccount().getId();
   }
 
-  private void replayMessages(ReviewDb db, Change change, ChangeInfo c)
+  private void replayMessages(Change change, ChangeInfo c)
       throws IOException, NoSuchChangeException, OrmException,
       NoSuchAccountException {
     for (ChangeMessageInfo msg : c.messages) {
@@ -418,7 +494,7 @@ class ImportProjectTask implements Runnable {
     }
   }
 
-  private void addApprovals(ReviewDb db, Change change, ChangeInfo c)
+  private void addApprovals(Change change, ChangeInfo c)
       throws OrmException, NoSuchChangeException, IOException,
       NoSuchAccountException {
     List<PatchSetApproval> approvals = new ArrayList<>();
@@ -439,12 +515,12 @@ class ImportProjectTask implements Runnable {
         }
       }
     }
-    db.patchSetApprovals().insert(approvals);
+    db.patchSetApprovals().upsert(approvals);
   }
 
-  private void insertLinkToOriginalChange(ReviewDb db, Change change,
+  private void insertLinkToOriginalChange(Change change,
       ChangeInfo c) throws NoSuchChangeException, OrmException, IOException {
-    insertMessage(db, change, "Imported from " + changeUrl(c));
+    insertMessage(change, "Imported from " + changeUrl(c));
   }
 
   private String changeUrl(ChangeInfo c) {
@@ -453,7 +529,7 @@ class ImportProjectTask implements Runnable {
     return url.toString();
   }
 
-  private void insertMessage(ReviewDb db, Change change, String message)
+  private void insertMessage(Change change, String message)
       throws NoSuchChangeException, OrmException, IOException {
     Account.Id userId = ((IdentifiedUser) currentUser).getAccountId();
     ChangeUpdate update = updateFactory.create(control(change, userId));

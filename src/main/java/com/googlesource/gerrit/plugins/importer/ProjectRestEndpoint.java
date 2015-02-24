@@ -24,9 +24,16 @@ import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.git.WorkQueue;
+import com.google.gerrit.server.util.RequestContext;
+import com.google.gerrit.server.util.ThreadLocalRequestContext;
+import com.google.gwtorm.server.OrmException;
+import com.google.gwtorm.server.SchemaFactory;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import com.googlesource.gerrit.plugins.importer.ProjectRestEndpoint.Input;
@@ -50,19 +57,28 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
 
   private final WorkQueue queue;
   private final ImportProjectTask.Factory importFactory;
+  private final ThreadLocalRequestContext tl;
+  private final CurrentUser user;
+  private final SchemaFactory<ReviewDb> schemaFactory;
 
   private WorkQueue.Executor executor;
   private ListeningExecutorService pool;
 
   @Inject
   ProjectRestEndpoint(WorkQueue queue,
-      ImportProjectTask.Factory importFactory) {
+      ImportProjectTask.Factory importFactory,
+      ThreadLocalRequestContext tl,
+      CurrentUser user,
+      SchemaFactory<ReviewDb> schemaFactory) {
     this.queue = queue;
     this.importFactory = importFactory;
+    this.tl = tl;
+    this.user = user;
+    this.schemaFactory = schemaFactory;
   }
 
   @Override
-  public String apply(ConfigResource rsrc, Input input) {
+  public String apply(ConfigResource rsrc, Input input) throws OrmException {
     long startTime = System.currentTimeMillis();
     StringBuffer result = new StringBuffer();
 
@@ -71,7 +87,7 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
       Project.NameKey name = new Project.NameKey(projectName);
       Runnable task = importFactory.create(input.from, name, input.user,
           input.pass, result);
-      tasks.add(pool.submit(task));
+      tasks.add(pool.submit(withRequestContext(task)));
     }
     Futures.getUnchecked(Futures.allAsList(tasks));
     // TODO: the log message below does not take the failed imports into account.
@@ -94,5 +110,37 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
       executor = null;
       pool = null;
     }
+  }
+
+  private Runnable withRequestContext(final Runnable task) throws OrmException {
+    final ReviewDb db = schemaFactory.open();
+    return new Runnable() {
+      @Override
+      public void run() {
+        RequestContext old = tl.setContext(new RequestContext() {
+          @Override
+
+          public CurrentUser getCurrentUser() {
+            return user;
+          }
+
+          @Override
+          public Provider<ReviewDb> getReviewDbProvider() {
+            return new Provider<ReviewDb>() {
+              @Override
+              public ReviewDb get() {
+                return db;
+              }
+            };
+          }
+        });
+        try {
+          task.run();
+        } finally {
+          tl.setContext(old);
+          db.close();
+        }
+      }
+    };
   }
 }

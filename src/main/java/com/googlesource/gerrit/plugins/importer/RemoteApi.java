@@ -14,8 +14,11 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.common.collect.Iterables;
 import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
+import com.google.gerrit.extensions.common.CommentInfo;
+import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.server.OutputFormat;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -23,6 +26,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 
 public class RemoteApi {
   private final RestSession restSession;
@@ -40,12 +44,35 @@ public class RemoteApi {
                 ListChangesOption.DETAILED_ACCOUNTS,
                 ListChangesOption.MESSAGES,
                 ListChangesOption.CURRENT_REVISION,
-                ListChangesOption.ALL_REVISIONS)));
+                ListChangesOption.ALL_REVISIONS,
+                ListChangesOption.ALL_COMMITS)));
     RestResponse r = restSession.get(endPoint);
     List<ChangeInfo> result =
         newGson().fromJson(r.getReader(),
             new TypeToken<List<ChangeInfo>>() {}.getType());
+
+    for (ChangeInfo c : result) {
+      for (Map.Entry<String, RevisionInfo> e : c.revisions.entrySet()) {
+        e.getValue().commit.commit = e.getKey();
+      }
+    }
+
     return result;
+  }
+
+  public Iterable<CommentInfo> getComments(int changeId, String rev)
+      throws IOException {
+    String endPoint = "/changes/" + changeId + "/revisions/" + rev + "/comments";
+    RestResponse r = restSession.get(endPoint);
+    Map<String, List<CommentInfo>> result =
+        newGson().fromJson(r.getReader(),
+            new TypeToken<Map<String, List<CommentInfo>>>() {}.getType());
+    for (Map.Entry<String, List<CommentInfo>> e : result.entrySet()) {
+      for (CommentInfo i : e.getValue()) {
+        i.path = e.getKey();
+      }
+    }
+    return Iterables.concat(result.values());
   }
 
   private static Gson newGson() {
