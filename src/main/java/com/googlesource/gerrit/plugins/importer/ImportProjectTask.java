@@ -17,17 +17,21 @@ package com.googlesource.gerrit.plugins.importer;
 import static java.lang.String.format;
 
 import com.google.gerrit.common.TimeUtil;
+import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.common.AccountInfo;
+import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeMessageInfo;
+import com.google.gerrit.extensions.common.LabelInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.ChangeMessage;
 import com.google.gerrit.reviewdb.client.PatchSet;
+import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.reviewdb.client.PatchSetInfo;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RevId;
@@ -75,6 +79,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 class ImportProjectTask implements Runnable {
@@ -263,8 +268,7 @@ class ImportProjectTask implements Runnable {
     db.changes().insert(Collections.singleton(change));
 
     replayMessages(db, change, c);
-
-    // TODO add approvals
+    addApprovals(db, change, c);
 
     insertLinkToOriginalChange(db, change, c);
 
@@ -418,6 +422,30 @@ class ImportProjectTask implements Runnable {
     }
   }
 
+  private void addApprovals(ReviewDb db, Change change, ChangeInfo c)
+      throws OrmException, NoSuchChangeException, IOException,
+      NoSuchAccountException {
+    List<PatchSetApproval> approvals = new ArrayList<>();
+    for (Entry<String, LabelInfo> e : c.labels.entrySet()) {
+      String labelName = e.getKey();
+      LabelInfo label = e.getValue();
+      if (label.all != null) {
+        for (ApprovalInfo a : label.all) {
+          Account.Id user = resolveUser(a);
+          ChangeControl ctrl = control(change, a);
+          LabelType labelType = ctrl.getLabelTypes().byLabel(labelName);
+          approvals.add(new PatchSetApproval(
+              new PatchSetApproval.Key(change.currentPatchSetId(), user,
+                  labelType.getLabelId()), a.value.shortValue(), a.date));
+          ChangeUpdate update = updateFactory.create(ctrl);
+          update.putApproval(labelName, a.value.shortValue());
+          update.commit();
+        }
+      }
+    }
+    db.patchSetApprovals().insert(approvals);
+  }
+
   private void insertLinkToOriginalChange(ReviewDb db, Change change,
       ChangeInfo c) throws NoSuchChangeException, OrmException, IOException {
     insertMessage(db, change, "Imported from " + changeUrl(c));
@@ -440,6 +468,11 @@ class ImportProjectTask implements Runnable {
     cmsg.setMessage(message);
     cmUtil.addChangeMessage(db, update, cmsg);
     update.commit();
+  }
+
+  private ChangeControl control(Change change, AccountInfo acc)
+      throws NoSuchChangeException {
+    return control(change, new Account.Id(acc._accountId));
   }
 
   private ChangeControl control(Change change, Account.Id id)
