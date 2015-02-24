@@ -31,9 +31,6 @@ import com.google.inject.Singleton;
 
 import com.googlesource.gerrit.plugins.importer.ProjectRestEndpoint.Input;
 
-import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,16 +63,14 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
 
   @Override
   public String apply(ConfigResource rsrc, Input input) {
-
     long startTime = System.currentTimeMillis();
     StringBuffer result = new StringBuffer();
-    CredentialsProvider cp =
-        new UsernamePasswordCredentialsProvider(input.user, input.pass);
 
     List<ListenableFuture<?>> tasks = new ArrayList<>();
     for(String projectName : input.projects) {
       Project.NameKey name = new Project.NameKey(projectName);
-      Runnable task = importFactory.create(input.from, name, cp, result);
+      Runnable task = importFactory.create(input.from, name, input.user,
+          input.pass, result);
       tasks.add(pool.submit(task));
     }
     Futures.getUnchecked(Futures.allAsList(tasks));

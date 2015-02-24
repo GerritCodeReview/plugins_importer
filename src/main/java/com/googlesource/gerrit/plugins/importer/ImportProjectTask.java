@@ -30,6 +30,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 
 import java.io.File;
@@ -38,15 +39,20 @@ import java.io.IOException;
 class ImportProjectTask implements Runnable {
 
   interface Factory {
-    ImportProjectTask create(String from, Project.NameKey name,
-        CredentialsProvider cp, StringBuffer result);
+    ImportProjectTask create(
+        @Assisted("from") String from,
+        @Assisted Project.NameKey name,
+        @Assisted("user") String user,
+        @Assisted("password") String password,
+        @Assisted StringBuffer result);
   }
 
   private final GitRepositoryManager git;
   private final File lockRoot;
-  private final Project.NameKey name;
-  private final CredentialsProvider cp;
   private final String fromGerrit;
+  private final Project.NameKey name;
+  private final String user;
+  private final String password;
   private final StringBuffer logger;
 
   private Repository repo;
@@ -54,15 +60,17 @@ class ImportProjectTask implements Runnable {
   @Inject
   ImportProjectTask(GitRepositoryManager git,
       @PluginData File data,
-      @Assisted String fromGerrit,
+      @Assisted("from") String fromGerrit,
       @Assisted Project.NameKey name,
-      @Assisted CredentialsProvider cp,
+      @Assisted("user") String user,
+      @Assisted("password") String password,
       @Assisted StringBuffer logger) {
     this.git = git;
     this.lockRoot = data;
-    this.name = name;
-    this.cp = cp;
     this.fromGerrit = fromGerrit;
+    this.name = name;
+    this.user = user;
+    this.password = password;
     this.logger = logger;
   }
 
@@ -144,8 +152,9 @@ class ImportProjectTask implements Runnable {
   }
 
   private void gitFetch() throws GitAPIException {
-    FetchResult fetchResult;
-    fetchResult = Git.wrap(repo).fetch()
+    CredentialsProvider cp =
+        new UsernamePasswordCredentialsProvider(user, password);
+    FetchResult fetchResult = Git.wrap(repo).fetch()
           .setCredentialsProvider(cp)
           .setRemote("origin")
           .call();
