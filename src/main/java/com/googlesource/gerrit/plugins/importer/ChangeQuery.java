@@ -14,7 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import com.google.gerrit.server.change.ChangeJson.ChangeInfo;
+import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
