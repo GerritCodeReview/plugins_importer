@@ -24,7 +24,8 @@ public class ChangeQuery extends RemoteQuery {
 
   private final String QUERY_PREFIX = "?q=";
   private final String DETAIL_SUFFIX =
-      "&o=DETAILED_LABELS&o=DETAILED_ACCOUNTS&o=MESSAGES";
+      "&o=DETAILED_LABELS&o=DETAILED_ACCOUNTS&o=MESSAGES"
+      + "&o=CURRENT_REVISION&o=ALL_REVISIONS";
 
   ChangeQuery(String url, String user, String pass) {
     super(url, user, pass);
