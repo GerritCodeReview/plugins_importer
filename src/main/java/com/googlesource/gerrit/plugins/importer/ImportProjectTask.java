@@ -24,11 +24,13 @@ import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
+import com.google.gerrit.reviewdb.client.ChangeMessage;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.PatchSetInfo;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.ChangeMessagesUtil;
 import com.google.gerrit.server.ChangeUtil;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
@@ -37,7 +39,10 @@ import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.api.changes.ChangeInfoMapper;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.index.ChangeIndexer;
+import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchSetInfoFactory;
+import com.google.gerrit.server.project.ChangeControl;
+import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.util.TimeUtil;
 import com.google.gwtorm.server.OrmException;
 import com.google.gwtorm.server.SchemaFactory;
@@ -89,7 +94,11 @@ class ImportProjectTask implements Runnable {
   private final SchemaFactory<ReviewDb> schemaFactory;
   private final AccountCache accountCache;
   private final CurrentUser currentUser;
+  private final IdentifiedUser.GenericFactory genericUserFactory;
+  private final ChangeControl.GenericFactory changeControlFactory;
   private final PatchSetInfoFactory patchSetInfoFactory;
+  private final ChangeUpdate.Factory updateFactory;
+  private final ChangeMessagesUtil cmUtil;
   private final ChangeIndexer indexer;
 
   private final String fromGerrit;
@@ -106,7 +115,11 @@ class ImportProjectTask implements Runnable {
       SchemaFactory<ReviewDb> schemaFactory,
       AccountCache accountCache,
       Provider<CurrentUser> currentUser,
+      IdentifiedUser.GenericFactory genericUserFactory,
+      ChangeControl.GenericFactory changeControlFactory,
       PatchSetInfoFactory patchSetInfoFactory,
+      ChangeUpdate.Factory updateFactory,
+      ChangeMessagesUtil cmUtil,
       ChangeIndexer indexer,
       @Assisted("from") String fromGerrit,
       @Assisted Project.NameKey name,
@@ -117,8 +130,12 @@ class ImportProjectTask implements Runnable {
     this.lockRoot = data;
     this.schemaFactory = schemaFactory;
     this.accountCache = accountCache;
-    this.patchSetInfoFactory = patchSetInfoFactory;
     this.currentUser = currentUser.get();
+    this.genericUserFactory = genericUserFactory;
+    this.changeControlFactory = changeControlFactory;
+    this.patchSetInfoFactory = patchSetInfoFactory;
+    this.updateFactory = updateFactory;
+    this.cmUtil = cmUtil;
     this.indexer = indexer;
 
     this.fromGerrit = fromGerrit;
@@ -146,14 +163,14 @@ class ImportProjectTask implements Runnable {
         gitFetch();
         replayChanges();
       } catch (IOException | GitAPIException | OrmException
-          | NoSuchAccountException e) {
+          | NoSuchAccountException | NoSuchChangeException e) {
           messages.append(format("Unable to transfer project '%s' from"
             + " source gerrit host '%s': %s. Check log for details.",
             name.get(), fromGerrit, e.getMessage()));
           log.error(format("Unable to transfer project '%s' from"
             + " source gerrit host '%s'.",
             name.get(), fromGerrit), e);
-        } finally {
+      } finally {
         repo.close();
       }
     } finally {
@@ -222,7 +239,7 @@ class ImportProjectTask implements Runnable {
   }
 
   private void replayChanges() throws IOException, OrmException,
-      NoSuchAccountException {
+      NoSuchAccountException, NoSuchChangeException {
     List<ChangeInfo> changes =
         new ChangeQuery(fromGerrit, user, password).query(name.get());
     ReviewDb db = schemaFactory.open();
@@ -238,7 +255,8 @@ class ImportProjectTask implements Runnable {
   }
 
   private void replayChange(RevWalk rw, ReviewDb db, ChangeInfo c)
-      throws IOException, OrmException, NoSuchAccountException {
+      throws IOException, OrmException, NoSuchAccountException,
+      NoSuchChangeException {
     Change change = createChange(db, c);
     replayRevisions(db, rw, change, c);
     db.changes().insert(Collections.singleton(change));
@@ -246,7 +264,8 @@ class ImportProjectTask implements Runnable {
     // TODO replay messages
     // TODO add approvals
     // TODO check mergeability
-    // TODO insert link to original change
+
+    insertLinkToOriginalChange(db, change, c);
 
     indexer.index(db, change);
   }
@@ -381,5 +400,42 @@ class ImportProjectTask implements Runnable {
           acc.username, acc.email, a.getAccount().getPreferredEmail()));
     }
     return a.getAccount().getId();
+  }
+
+  private void insertLinkToOriginalChange(ReviewDb db, Change change,
+      ChangeInfo c) throws NoSuchChangeException, OrmException, IOException {
+    insertMessage(db, change, "Imported from " + changeUrl(c));
+  }
+
+  private String changeUrl(ChangeInfo c) {
+    StringBuilder url = new StringBuilder();
+    url.append(ensureSlash(fromGerrit)).append(c._number);
+    return url.toString();
+  }
+
+  private void insertMessage(ReviewDb db, Change change, String message)
+      throws NoSuchChangeException, OrmException, IOException {
+    Account.Id userId = ((IdentifiedUser) currentUser).getAccountId();
+    ChangeUpdate update = updateFactory.create(control(change, userId));
+    ChangeMessage cmsg =
+        new ChangeMessage(new ChangeMessage.Key(change.getId(),
+            ChangeUtil.messageUUID(db)), userId, TimeUtil.nowTs(),
+            change.currentPatchSetId());
+    cmsg.setMessage(message);
+    cmUtil.addChangeMessage(db, update, cmsg);
+    update.commit();
+  }
+
+  private ChangeControl control(Change change, Account.Id id)
+      throws NoSuchChangeException {
+    return changeControlFactory.controlFor(change,
+        genericUserFactory.create(id));
+  }
+
+  private static String ensureSlash(String in) {
+    if (in != null && !in.endsWith("/")) {
+      return in + "/";
+    }
+    return in;
   }
 }
