@@ -20,6 +20,7 @@ import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
+import com.google.gerrit.extensions.common.ChangeMessageInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Branch;
@@ -70,6 +71,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -261,7 +263,8 @@ class ImportProjectTask implements Runnable {
     replayRevisions(db, rw, change, c);
     db.changes().insert(Collections.singleton(change));
 
-    // TODO replay messages
+    replayMessages(db, change, c);
+
     // TODO add approvals
     // TODO check mergeability
 
@@ -400,6 +403,22 @@ class ImportProjectTask implements Runnable {
           acc.username, acc.email, a.getAccount().getPreferredEmail()));
     }
     return a.getAccount().getId();
+  }
+
+  private void replayMessages(ReviewDb db, Change change, ChangeInfo c)
+      throws IOException, NoSuchChangeException, OrmException,
+      NoSuchAccountException {
+    for (ChangeMessageInfo msg : c.messages) {
+      Account.Id userId = resolveUser(msg.author);
+      Timestamp ts = msg.date;
+      ChangeUpdate update = updateFactory.create(control(change, userId), ts);
+      ChangeMessage cmsg =
+          new ChangeMessage(new ChangeMessage.Key(change.getId(), msg.id),
+              userId, ts, new PatchSet.Id(change.getId(), msg._revisionNumber));
+      cmsg.setMessage(msg.message);
+      cmUtil.addChangeMessage(db, update, cmsg);
+      update.commit();
+    }
   }
 
   private void insertLinkToOriginalChange(ReviewDb db, Change change,
