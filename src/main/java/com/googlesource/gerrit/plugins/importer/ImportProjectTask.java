@@ -301,7 +301,7 @@ class ImportProjectTask implements Runnable {
    * @return the current patch set for the given change
    */
   private void replayRevisions(ReviewDb db, RevWalk rw, Change change,
-      ChangeInfo c) throws IOException, OrmException {
+      ChangeInfo c) throws IOException, OrmException, NoSuchAccountException {
     List<RevisionInfo> revisions = new ArrayList<>(c.revisions.values());
     sortRevisionInfoByNumber(revisions);
     List<PatchSet> patchSets = new ArrayList<>();
@@ -320,12 +320,8 @@ class ImportProjectTask implements Runnable {
         PatchSet ps = new PatchSet(new PatchSet.Id(change.getId(), r._number));
         patchSets.add(ps);
 
-        // TODO set original uploader (not available in RevisionInfo yet)
-        ps.setUploader(((IdentifiedUser) currentUser).getAccountId());
-
-        // TODO set historic creation timestamp (not available in RevisionInfo yet)
-        ps.setCreatedOn(TimeUtil.nowTs());
-
+        ps.setUploader(resolveUser(r.uploader));
+        ps.setCreatedOn(r.created);
         ps.setRevision(new RevId(commit.name()));
         ps.setDraft(r.draft != null && r.draft);
 
