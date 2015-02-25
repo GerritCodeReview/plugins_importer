@@ -23,6 +23,7 @@ import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
+import com.google.gerrit.extensions.api.changes.HashtagsInput;
 import com.google.gerrit.extensions.api.changes.ReviewInput;
 import com.google.gerrit.extensions.api.changes.ReviewInput.NotifyHandling;
 import com.google.gerrit.extensions.common.AccountInfo;
@@ -32,6 +33,7 @@ import com.google.gerrit.extensions.common.ChangeMessageInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.common.LabelInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
+import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Branch;
@@ -50,6 +52,7 @@ import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.change.ChangeResource;
+import com.google.gerrit.server.change.HashtagsUtil;
 import com.google.gerrit.server.change.PostReview;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.git.GitRepositoryManager;
@@ -58,6 +61,7 @@ import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchSetInfoFactory;
 import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -88,6 +92,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -117,6 +122,7 @@ class ImportProjectTask implements Runnable {
   private final Provider<PostReview> postReview;
   private final ChangeUpdate.Factory updateFactory;
   private final ChangeMessagesUtil cmUtil;
+  private final HashtagsUtil hashtagsUtil;
   private final ChangeIndexer indexer;
 
   private final String fromGerrit;
@@ -140,6 +146,7 @@ class ImportProjectTask implements Runnable {
       Provider<PostReview> postReview,
       ChangeUpdate.Factory updateFactory,
       ChangeMessagesUtil cmUtil,
+      HashtagsUtil hashtagsUtil,
       ChangeIndexer indexer,
       @Assisted("from") String fromGerrit,
       @Assisted Project.NameKey name,
@@ -157,6 +164,7 @@ class ImportProjectTask implements Runnable {
     this.postReview = postReview;
     this.updateFactory = updateFactory;
     this.cmUtil = cmUtil;
+    this.hashtagsUtil = hashtagsUtil;
     this.indexer = indexer;
 
     this.fromGerrit = fromGerrit;
@@ -185,7 +193,8 @@ class ImportProjectTask implements Runnable {
         gitFetch();
         replayChanges();
       } catch (IOException | GitAPIException | OrmException
-          | NoSuchAccountException | NoSuchChangeException | RestApiException e) {
+          | NoSuchAccountException | NoSuchChangeException | RestApiException
+          | ValidationException e) {
           messages.append(format("Unable to transfer project '%s' from"
             + " source gerrit host '%s': %s. Check log for details.",
             name.get(), fromGerrit, e.getMessage()));
@@ -261,8 +270,8 @@ class ImportProjectTask implements Runnable {
   }
 
   private void replayChanges() throws IOException, OrmException,
-      NoSuchAccountException, NoSuchChangeException, RestApiException {
-        new RemoteApi(fromGerrit, user, password).queryChanges(name.get());
+      NoSuchAccountException, NoSuchChangeException, RestApiException,
+      ValidationException {
     List<ChangeInfo> changes = api.queryChanges(name.get());
     RevWalk rw = new RevWalk(repo);
     try {
@@ -276,7 +285,7 @@ class ImportProjectTask implements Runnable {
 
   private void replayChange(RevWalk rw, ChangeInfo c)
       throws IOException, OrmException, NoSuchAccountException,
-      NoSuchChangeException, RestApiException {
+      NoSuchChangeException, RestApiException, ValidationException {
     Change change = createChange(c);
     replayRevisions(rw, change, c);
     db.changes().insert(Collections.singleton(change));
@@ -284,6 +293,7 @@ class ImportProjectTask implements Runnable {
     replayInlineComments(change, c);
     replayMessages(change, c);
     addApprovals(change, c);
+    addHashtags(change, c);
 
     insertLinkToOriginalChange(change, c);
 
@@ -516,6 +526,13 @@ class ImportProjectTask implements Runnable {
       }
     }
     db.patchSetApprovals().upsert(approvals);
+  }
+
+  private void addHashtags(Change change, ChangeInfo c) throws AuthException,
+      IOException, ValidationException, OrmException, NoSuchChangeException {
+    HashtagsInput input = new HashtagsInput();
+    input.add = new HashSet<>(c.hashtags);
+    hashtagsUtil.setHashtags(control(change, c.owner), input, false, false);
   }
 
   private void insertLinkToOriginalChange(Change change,
