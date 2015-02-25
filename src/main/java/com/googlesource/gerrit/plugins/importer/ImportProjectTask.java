@@ -36,6 +36,7 @@ import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.AuthType;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.ChangeMessage;
@@ -50,11 +51,15 @@ import com.google.gerrit.server.ChangeUtil;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountCache;
+import com.google.gerrit.server.account.AccountException;
+import com.google.gerrit.server.account.AccountManager;
 import com.google.gerrit.server.account.AccountState;
+import com.google.gerrit.server.account.AuthRequest;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.HashtagsUtil;
 import com.google.gerrit.server.change.PostReview;
 import com.google.gerrit.server.change.RevisionResource;
+import com.google.gerrit.server.config.AuthConfig;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.index.ChangeIndexer;
 import com.google.gerrit.server.notedb.ChangeUpdate;
@@ -115,6 +120,8 @@ class ImportProjectTask implements Runnable {
   private final File lockRoot;
   private final ReviewDb db;
   private final AccountCache accountCache;
+  private final AccountManager accountManager;
+  private final AuthType authType;
   private final CurrentUser currentUser;
   private final IdentifiedUser.GenericFactory genericUserFactory;
   private final ChangeControl.GenericFactory changeControlFactory;
@@ -139,6 +146,8 @@ class ImportProjectTask implements Runnable {
       @PluginData File data,
       ReviewDb db,
       AccountCache accountCache,
+      AccountManager accountManager,
+      AuthConfig authConfig,
       CurrentUser currentUser,
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
@@ -157,6 +166,8 @@ class ImportProjectTask implements Runnable {
     this.lockRoot = data;
     this.db = db;
     this.accountCache = accountCache;
+    this.accountManager = accountManager;
+    this.authType = authConfig.getAuthType();
     this.currentUser = currentUser;
     this.genericUserFactory = genericUserFactory;
     this.changeControlFactory = changeControlFactory;
@@ -477,8 +488,15 @@ class ImportProjectTask implements Runnable {
   private Account.Id resolveUser(AccountInfo acc) throws NoSuchAccountException {
     AccountState a = accountCache.getByUsername(acc.username);
     if (a == null) {
-      throw new NoSuchAccountException(String.format("User %s not found",
-          acc.username));
+      switch (authType) {
+        case HTTP_LDAP:
+        case CLIENT_SSL_CERT_LDAP:
+        case LDAP:
+          return createAccountByLdap(acc.username);
+        default:
+          throw new NoSuchAccountException(String.format("User %s not found",
+              acc.username));
+      }
     }
     if (!Objects.equals(a.getAccount().getPreferredEmail(), acc.email)) {
       throw new NoSuchAccountException(String.format(
@@ -486,6 +504,21 @@ class ImportProjectTask implements Runnable {
           acc.username, acc.email, a.getAccount().getPreferredEmail()));
     }
     return a.getAccount().getId();
+  }
+
+  private Account.Id createAccountByLdap(String user)
+      throws NoSuchAccountException {
+    if (!user.matches(Account.USER_NAME_PATTERN)) {
+      throw new NoSuchAccountException(String.format("User %s not found", user));
+    }
+
+    try {
+      AuthRequest req = AuthRequest.forUser(user);
+      req.setSkipAuthentication(true);
+      return accountManager.authenticate(req).getAccountId();
+    } catch (AccountException e) {
+      throw new NoSuchAccountException(String.format("User %s not found", user));
+    }
   }
 
   private void replayMessages(Change change, ChangeInfo c)
