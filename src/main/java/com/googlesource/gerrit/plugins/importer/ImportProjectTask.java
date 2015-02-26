@@ -32,11 +32,15 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 
 class ImportProjectTask implements Runnable {
+
+  private static Logger log = LoggerFactory.getLogger(ImportProjectTask.class);
 
   interface Factory {
     ImportProjectTask create(
@@ -53,7 +57,7 @@ class ImportProjectTask implements Runnable {
   private final Project.NameKey name;
   private final String user;
   private final String password;
-  private final StringBuffer logger;
+  private final StringBuffer messages;
 
   private Repository repo;
 
@@ -64,14 +68,14 @@ class ImportProjectTask implements Runnable {
       @Assisted Project.NameKey name,
       @Assisted("user") String user,
       @Assisted("password") String password,
-      @Assisted StringBuffer logger) {
+      @Assisted StringBuffer messages) {
     this.git = git;
     this.lockRoot = data;
     this.fromGerrit = fromGerrit;
     this.name = name;
     this.user = user;
     this.password = password;
-    this.logger = logger;
+    this.messages = messages;
   }
 
   @Override
@@ -91,9 +95,12 @@ class ImportProjectTask implements Runnable {
         setupProjectConfiguration();
         gitFetch();
       } catch(IOException | GitAPIException e) {
-        logger.append(format("[ERROR] Unable to transfer project '%s' from"
-            + " source gerrit host '%s': %s",
+          messages.append(format("Unable to transfer project '%s' from"
+            + " source gerrit host '%s': %s. Check log for details.",
             name.get(), fromGerrit, e.getMessage()));
+          log.error(format("Unable to transfer project '%s' from"
+            + " source gerrit host '%s'.",
+            name.get(), fromGerrit), e);
       } finally {
         repo.close();
       }
@@ -110,12 +117,12 @@ class ImportProjectTask implements Runnable {
       if (lockFile.lock()) {
         return lockFile;
       } else {
-        logger.append(format("Project %s is being imported from another session"
+        messages.append(format("Project %s is being imported from another session"
             + ", skipping", name.get()));
         return null;
       }
     } catch (IOException e1) {
-      logger.append(format(
+      messages.append(format(
           "Error while trying to lock the project %s for import", name.get()));
       return null;
     }
@@ -124,19 +131,19 @@ class ImportProjectTask implements Runnable {
   private Repository openRepository() {
     try {
       git.openRepository(name);
-      logger.append(format("Repository %s already exists.", name.get()));
+      messages.append(format("Repository %s already exists.", name.get()));
       return null;
     } catch (RepositoryNotFoundException e) {
       // Project doesn't exist
     } catch (IOException e) {
-      logger.append(e.getMessage());
+      messages.append(e.getMessage());
       return null;
     }
 
     try {
       return git.createRepository(name);
     } catch(IOException e) {
-      logger.append(format("Error: %s, skipping project %s", e, name.get()));
+      messages.append(format("Error: %s, skipping project %s", e, name.get()));
       return null;
     }
   }
@@ -158,7 +165,7 @@ class ImportProjectTask implements Runnable {
           .setCredentialsProvider(cp)
           .setRemote("origin")
           .call();
-    logger.append(format("[INFO] Project '%s' fetched: %s",
+    messages.append(format("[INFO] Project '%s' fetched: %s",
         name.get(), fetchResult.getMessages()));
   }
 }
