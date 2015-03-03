@@ -368,8 +368,7 @@ class ImportProjectTask implements Runnable {
 
         ChangeUtil.insertAncestors(db, ps.getId(), commit);
 
-        createRef(repo, ps);
-        deleteRef(repo, ps, origRef);
+        renameRef(repo, origRef, ps);
       }
 
       db.patchSets().insert(patchSets);
@@ -452,6 +451,16 @@ class ImportProjectTask implements Runnable {
         input, ts);
   }
 
+  private void renameRef(Repository repo, String origRef, PatchSet ps)
+      throws IOException {
+    String ref = ps.getId().toRefName();
+    if (ref.equals(origRef)) {
+      return;
+    }
+
+    createRef(repo, ps);
+    deleteRef(repo, ps, origRef);
+  }
 
   private void createRef(Repository repo, PatchSet ps) throws IOException {
     String ref = ps.getId().toRefName();
