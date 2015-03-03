@@ -47,6 +47,7 @@ public class RemoteApi {
                 ListChangesOption.ALL_REVISIONS,
                 ListChangesOption.ALL_COMMITS)));
     RestResponse r = restSession.get(endPoint);
+    assertOK(r);
     List<ChangeInfo> result =
         newGson().fromJson(r.getReader(),
             new TypeToken<List<ChangeInfo>>() {}.getType());
@@ -64,6 +65,7 @@ public class RemoteApi {
       throws IOException {
     String endPoint = "/changes/" + changeId + "/revisions/" + rev + "/comments";
     RestResponse r = restSession.get(endPoint);
+    assertOK(r);
     Map<String, List<CommentInfo>> result =
         newGson().fromJson(r.getReader(),
             new TypeToken<Map<String, List<CommentInfo>>>() {}.getType());
@@ -77,5 +79,11 @@ public class RemoteApi {
 
   private static Gson newGson() {
     return OutputFormat.JSON_COMPACT.newGson();
+  }
+
+  private static void assertOK(RestResponse r) throws IOException {
+    if (r.getStatusCode() < 200 || 300 <= r.getStatusCode()) {
+      throw new IOException("Unexpected response code: " + r.getStatusCode());
+    }
   }
 }
