@@ -71,7 +71,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Constants;
@@ -80,9 +79,6 @@ import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,6 +111,7 @@ class ImportProjectTask implements Runnable {
 
   private final OpenRepositoryStep openRepoStep;
   private final ConfigureRepositoryStep configRepoStep;
+  private final GitFetchStep gitFetchStep;
   private final File lockRoot;
   private final ReviewDb db;
   private final AccountCache accountCache;
@@ -142,6 +139,7 @@ class ImportProjectTask implements Runnable {
   @Inject
   ImportProjectTask(OpenRepositoryStep openRepoStep,
       ConfigureRepositoryStep configRepoStep,
+      GitFetchStep gitFetchStep,
       @PluginData File data,
       ReviewDb db,
       AccountCache accountCache,
@@ -163,6 +161,7 @@ class ImportProjectTask implements Runnable {
       @Assisted StringBuffer messages) {
     this.openRepoStep = openRepoStep;
     this.configRepoStep = configRepoStep;
+    this.gitFetchStep = gitFetchStep;
     this.lockRoot = data;
     this.db = db;
     this.accountCache = accountCache;
@@ -201,7 +200,7 @@ class ImportProjectTask implements Runnable {
 
       try {
         configRepoStep.configure(repo, name, fromGerrit);
-        gitFetch();
+        gitFetchStep.fetch(user, password, repo, name, messages);
         replayChanges();
       } catch (IOException | GitAPIException | OrmException
           | NoSuchAccountException | NoSuchChangeException | RestApiException
@@ -237,17 +236,6 @@ class ImportProjectTask implements Runnable {
           "Error while trying to lock the project %s for import", name.get()));
       return null;
     }
-  }
-
-  private void gitFetch() throws GitAPIException {
-    CredentialsProvider cp =
-        new UsernamePasswordCredentialsProvider(user, password);
-    FetchResult fetchResult = Git.wrap(repo).fetch()
-          .setCredentialsProvider(cp)
-          .setRemote("origin")
-          .call();
-    messages.append(format("[INFO] Project '%s' fetched: %s",
-        name.get(), fetchResult.getMessages()));
   }
 
   private void replayChanges() throws IOException, OrmException,
