@@ -29,7 +29,6 @@ import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeMessageInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.common.LabelInfo;
-import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Account;
@@ -38,9 +37,7 @@ import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.ChangeMessage;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
-import com.google.gerrit.reviewdb.client.PatchSetInfo;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.ChangeMessagesUtil;
 import com.google.gerrit.server.ChangeUtil;
@@ -52,7 +49,6 @@ import com.google.gerrit.server.change.PostReview;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.index.ChangeIndexer;
 import com.google.gerrit.server.notedb.ChangeUpdate;
-import com.google.gerrit.server.patch.PatchSetInfoFactory;
 import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.validators.ValidationException;
@@ -62,10 +58,7 @@ import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.IOException;
@@ -90,10 +83,10 @@ class ReplayChangesStep {
         Project.NameKey name);
   }
 
+  private final ReplayRevisionsStep.Factory replayRevisionsFactory;
   private final AccountUtil accountUtil;
   private final ReviewDb db;
   private final ChangeIndexer indexer;
-  private final PatchSetInfoFactory patchSetInfoFactory;
   private final Provider<PostReview> postReview;
   private final ChangeUpdate.Factory updateFactory;
   private final ChangeMessagesUtil cmUtil;
@@ -108,10 +101,10 @@ class ReplayChangesStep {
 
   @Inject
   ReplayChangesStep(
+      ReplayRevisionsStep.Factory replayRevisionsFactory,
       AccountUtil accountUtil,
       ReviewDb db,
       ChangeIndexer indexer,
-      PatchSetInfoFactory patchSetInfoFactory,
       Provider<PostReview> postReview,
       ChangeUpdate.Factory updateFactory,
       ChangeMessagesUtil cmUtil,
@@ -124,10 +117,10 @@ class ReplayChangesStep {
       @Assisted("password") String password,
       @Assisted Repository repo,
       @Assisted Project.NameKey name) {
+    this.replayRevisionsFactory = replayRevisionsFactory;
     this.accountUtil = accountUtil;
     this.db = db;
     this.indexer = indexer;
-    this.patchSetInfoFactory = patchSetInfoFactory;
     this.postReview = postReview;
     this.updateFactory = updateFactory;
     this.cmUtil = cmUtil;
@@ -159,7 +152,7 @@ class ReplayChangesStep {
       throws IOException, OrmException, NoSuchAccountException,
       NoSuchChangeException, RestApiException, ValidationException {
     Change change = createChange(c);
-    replayRevisions(rw, change, c);
+    replayRevisionsFactory.create(repo, rw, change, c).replay();
     db.changes().insert(Collections.singleton(change));
 
     replayInlineComments(change, c);
@@ -191,57 +184,6 @@ class ReplayChangesStep {
     } else {
       return Constants.R_HEADS + branch;
     }
-  }
-
-  private void replayRevisions(RevWalk rw, Change change,
-      ChangeInfo c) throws IOException, OrmException, NoSuchAccountException {
-    List<RevisionInfo> revisions = new ArrayList<>(c.revisions.values());
-    sortRevisionInfoByNumber(revisions);
-    List<PatchSet> patchSets = new ArrayList<>();
-
-    db.changes().beginTransaction(change.getId());
-    try {
-      for (RevisionInfo r : revisions) {
-        String origRef = r.ref;
-        ObjectId id = repo.resolve(origRef);
-        if (id == null) {
-          // already replayed?
-          continue;
-        }
-        RevCommit commit = rw.parseCommit(id);
-
-        PatchSet ps = new PatchSet(new PatchSet.Id(change.getId(), r._number));
-        patchSets.add(ps);
-
-        ps.setUploader(accountUtil.resolveUser(r.uploader));
-        ps.setCreatedOn(r.created);
-        ps.setRevision(new RevId(commit.name()));
-        ps.setDraft(r.draft != null && r.draft);
-
-        PatchSetInfo info = patchSetInfoFactory.get(commit, ps.getId());
-        if (c.currentRevision.equals(info.getRevId())) {
-          change.setCurrentPatchSet(info);
-        }
-
-        ChangeUtil.insertAncestors(db, ps.getId(), commit);
-
-        renameRef(repo, origRef, ps);
-      }
-
-      db.patchSets().insert(patchSets);
-      db.commit();
-    } finally {
-      db.rollback();
-    }
-  }
-
-  private static void sortRevisionInfoByNumber(List<RevisionInfo> list) {
-    Collections.sort(list, new Comparator<RevisionInfo>() {
-      @Override
-      public int compare(RevisionInfo a, RevisionInfo b) {
-        return a._number - b._number;
-      }
-    });
   }
 
   private void replayInlineComments(Change change, ChangeInfo c) throws OrmException,
@@ -306,49 +248,6 @@ class ReplayChangesStep {
     postReview.get().apply(
         new RevisionResource(new ChangeResource(control(change, author)), ps),
         input, ts);
-  }
-
-  private void renameRef(Repository repo, String origRef, PatchSet ps)
-      throws IOException {
-    String ref = ps.getId().toRefName();
-    if (ref.equals(origRef)) {
-      return;
-    }
-
-    createRef(repo, ps);
-    deleteRef(repo, ps, origRef);
-  }
-
-  private void createRef(Repository repo, PatchSet ps) throws IOException {
-    String ref = ps.getId().toRefName();
-    RefUpdate ru = repo.updateRef(ref);
-    ru.setForceUpdate(true);
-    ru.setExpectedOldObjectId(ObjectId.zeroId());
-    ru.setNewObjectId(ObjectId.fromString(ps.getRevision().get()));
-    RefUpdate.Result result = ru.update();
-    switch (result) {
-      case NEW:
-      case FORCED:
-      case FAST_FORWARD:
-        return;
-      default:
-        throw new IOException(String.format("Failed to create ref %s", ref));
-    }
-  }
-
-  private void deleteRef(Repository repo, PatchSet ps, String ref)
-      throws IOException {
-    RefUpdate ru = repo.updateRef(ref);
-    ru.setForceUpdate(true);
-    ru.setExpectedOldObjectId(ObjectId.fromString(ps.getRevision().get()));
-    ru.setNewObjectId(ObjectId.zeroId());
-    RefUpdate.Result result = ru.update();
-    switch (result) {
-      case FORCED:
-        return;
-      default:
-        throw new IOException(String.format("Failed to delete ref %s", ref));
-    }
   }
 
   private void replayMessages(Change change, ChangeInfo c)

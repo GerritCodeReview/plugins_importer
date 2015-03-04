@@ -45,5 +45,6 @@ class Module extends AbstractModule {
     bind(GitFetchStep.class);
     bind(AccountUtil.class);
     install(new FactoryModuleBuilder().build(ReplayChangesStep.Factory.class));
+    install(new FactoryModuleBuilder().build(ReplayRevisionsStep.Factory.class));
   }
 }
