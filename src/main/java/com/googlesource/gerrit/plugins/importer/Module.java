@@ -50,5 +50,6 @@ class Module extends AbstractModule {
     install(new FactoryModuleBuilder().build(ReplayMessagesStep.Factory.class));
     install(new FactoryModuleBuilder().build(AddApprovalsStep.Factory.class));
     install(new FactoryModuleBuilder().build(AddHashtagsStep.Factory.class));
+    install(new FactoryModuleBuilder().build(InsertLinkToOriginalChangeStep.Factory.class));
   }
 }
