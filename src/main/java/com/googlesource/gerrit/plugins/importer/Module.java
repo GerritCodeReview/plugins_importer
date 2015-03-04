@@ -41,5 +41,6 @@ class Module extends AbstractModule {
       .to(ProjectRestEndpoint.class);
     install(new FactoryModuleBuilder().build(ImportProjectTask.Factory.class));
     bind(OpenRepositoryStep.class);
+    bind(ConfigureRepositoryStep.class);
   }
 }

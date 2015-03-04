@@ -78,7 +78,6 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.CredentialsProvider;
@@ -115,6 +114,7 @@ class ImportProjectTask implements Runnable {
   }
 
   private final OpenRepositoryStep openRepoStep;
+  private final ConfigureRepositoryStep configRepoStep;
   private final File lockRoot;
   private final ReviewDb db;
   private final AccountCache accountCache;
@@ -141,6 +141,7 @@ class ImportProjectTask implements Runnable {
 
   @Inject
   ImportProjectTask(OpenRepositoryStep openRepoStep,
+      ConfigureRepositoryStep configRepoStep,
       @PluginData File data,
       ReviewDb db,
       AccountCache accountCache,
@@ -161,6 +162,7 @@ class ImportProjectTask implements Runnable {
       @Assisted("password") String password,
       @Assisted StringBuffer messages) {
     this.openRepoStep = openRepoStep;
+    this.configRepoStep = configRepoStep;
     this.lockRoot = data;
     this.db = db;
     this.accountCache = accountCache;
@@ -198,7 +200,7 @@ class ImportProjectTask implements Runnable {
       }
 
       try {
-        setupProjectConfiguration();
+        configRepoStep.configure(repo, name, fromGerrit);
         gitFetch();
         replayChanges();
       } catch (IOException | GitAPIException | OrmException
@@ -235,16 +237,6 @@ class ImportProjectTask implements Runnable {
           "Error while trying to lock the project %s for import", name.get()));
       return null;
     }
-  }
-
-  private void setupProjectConfiguration() throws IOException {
-    StoredConfig config = repo.getConfig();
-    config.setString("remote", "origin", "url", fromGerrit
-        .concat("/")
-        .concat(name.get()));
-    config.setString("remote", "origin", "fetch", "+refs/*:refs/*");
-    config.setString("http", null, "sslVerify", Boolean.FALSE.toString());
-    config.save();
   }
 
   private void gitFetch() throws GitAPIException {
