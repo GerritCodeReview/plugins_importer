@@ -46,5 +46,6 @@ class Module extends AbstractModule {
     bind(AccountUtil.class);
     install(new FactoryModuleBuilder().build(ReplayChangesStep.Factory.class));
     install(new FactoryModuleBuilder().build(ReplayRevisionsStep.Factory.class));
+    install(new FactoryModuleBuilder().build(ReplayInlineCommentsStep.Factory.class));
   }
 }

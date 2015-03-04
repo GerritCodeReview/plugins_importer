@@ -14,20 +14,14 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Table;
-import com.google.common.collect.TreeBasedTable;
 import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.api.changes.HashtagsInput;
-import com.google.gerrit.extensions.api.changes.ReviewInput;
-import com.google.gerrit.extensions.api.changes.ReviewInput.NotifyHandling;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeMessageInfo;
-import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.common.LabelInfo;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -43,10 +37,7 @@ import com.google.gerrit.server.ChangeMessagesUtil;
 import com.google.gerrit.server.ChangeUtil;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
-import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.HashtagsUtil;
-import com.google.gerrit.server.change.PostReview;
-import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.index.ChangeIndexer;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.project.ChangeControl;
@@ -54,7 +45,6 @@ import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 import org.eclipse.jgit.lib.Constants;
@@ -65,11 +55,8 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 class ReplayChangesStep {
@@ -84,10 +71,10 @@ class ReplayChangesStep {
   }
 
   private final ReplayRevisionsStep.Factory replayRevisionsFactory;
+  private final ReplayInlineCommentsStep.Factory replayInlineCommentsFactory;
   private final AccountUtil accountUtil;
   private final ReviewDb db;
   private final ChangeIndexer indexer;
-  private final Provider<PostReview> postReview;
   private final ChangeUpdate.Factory updateFactory;
   private final ChangeMessagesUtil cmUtil;
   private final HashtagsUtil hashtagsUtil;
@@ -102,10 +89,10 @@ class ReplayChangesStep {
   @Inject
   ReplayChangesStep(
       ReplayRevisionsStep.Factory replayRevisionsFactory,
+      ReplayInlineCommentsStep.Factory replayInlineCommentsFactory,
       AccountUtil accountUtil,
       ReviewDb db,
       ChangeIndexer indexer,
-      Provider<PostReview> postReview,
       ChangeUpdate.Factory updateFactory,
       ChangeMessagesUtil cmUtil,
       HashtagsUtil hashtagsUtil,
@@ -118,10 +105,10 @@ class ReplayChangesStep {
       @Assisted Repository repo,
       @Assisted Project.NameKey name) {
     this.replayRevisionsFactory = replayRevisionsFactory;
+    this.replayInlineCommentsFactory = replayInlineCommentsFactory;
     this.accountUtil = accountUtil;
     this.db = db;
     this.indexer = indexer;
-    this.postReview = postReview;
     this.updateFactory = updateFactory;
     this.cmUtil = cmUtil;
     this.hashtagsUtil = hashtagsUtil;
@@ -155,7 +142,7 @@ class ReplayChangesStep {
     replayRevisionsFactory.create(repo, rw, change, c).replay();
     db.changes().insert(Collections.singleton(change));
 
-    replayInlineComments(change, c);
+    replayInlineCommentsFactory.create(change, c, api).replay();
     replayMessages(change, c);
     addApprovals(change, c);
     addHashtags(change, c);
@@ -184,70 +171,6 @@ class ReplayChangesStep {
     } else {
       return Constants.R_HEADS + branch;
     }
-  }
-
-  private void replayInlineComments(Change change, ChangeInfo c) throws OrmException,
-      RestApiException, IOException, NoSuchChangeException,
-      NoSuchAccountException {
-    for (PatchSet ps : db.patchSets().byChange(change.getId())) {
-      Iterable<CommentInfo> comments = api.getComments(
-          c._number, ps.getRevision().get());
-
-      Table<Timestamp, Account.Id, List<CommentInfo>> t = TreeBasedTable.create(
-          Ordering.natural(), new Comparator<Account.Id>() {
-            @Override
-            public int compare(Account.Id a1, Account.Id a2) {
-              return a1.get() - a2.get();
-            }}
-          );
-
-      for (CommentInfo comment : comments) {
-        Account.Id id  = accountUtil.resolveUser(comment.author);
-        List<CommentInfo> ci = t.get(comment.updated, id);
-        if (ci == null) {
-          ci = new ArrayList<>();
-          t.put(comment.updated, id, ci);
-        }
-        ci.add(comment);
-      }
-
-      for (Timestamp ts : t.rowKeySet()) {
-        for (Map.Entry<Account.Id, List<CommentInfo>> e : t.row(ts).entrySet()) {
-          postComments(change, ps, e.getValue(), e.getKey(), ts);
-        }
-      }
-    }
-  }
-
-  private void postComments(Change change, PatchSet ps,
-      List<CommentInfo> comments, Account.Id author, Timestamp ts)
-      throws RestApiException, OrmException, IOException, NoSuchChangeException {
-    ReviewInput input = new ReviewInput();
-    input.notify = NotifyHandling.NONE;
-    input.comments = new HashMap<>();
-
-    for (CommentInfo comment : comments) {
-      if (!input.comments.containsKey(comment.path)) {
-        input.comments.put(comment.path,
-            new ArrayList<ReviewInput.CommentInput>());
-      }
-
-      ReviewInput.CommentInput commentInput = new ReviewInput.CommentInput();
-      commentInput.id = comment.id;
-      commentInput.inReplyTo = comment.inReplyTo;
-      commentInput.line = comment.line;
-      commentInput.message = comment.message;
-      commentInput.path = comment.path;
-      commentInput.range = comment.range;
-      commentInput.side = comment.side;
-      commentInput.updated = comment.updated;
-
-      input.comments.get(comment.path).add(commentInput);
-    }
-
-    postReview.get().apply(
-        new RevisionResource(new ChangeResource(control(change, author)), ps),
-        input, ts);
   }
 
   private void replayMessages(Change change, ChangeInfo c)
