@@ -40,5 +40,6 @@ class Module extends AbstractModule {
       .annotatedWith(UniqueAnnotations.create())
       .to(ProjectRestEndpoint.class);
     install(new FactoryModuleBuilder().build(ImportProjectTask.Factory.class));
+    bind(OpenRepositoryStep.class);
   }
 }

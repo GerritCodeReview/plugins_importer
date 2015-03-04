@@ -60,7 +60,6 @@ import com.google.gerrit.server.change.HashtagsUtil;
 import com.google.gerrit.server.change.PostReview;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.config.AuthConfig;
-import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.index.ChangeIndexer;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchSetInfoFactory;
@@ -74,7 +73,6 @@ import com.google.inject.assistedinject.Assisted;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -116,7 +114,7 @@ class ImportProjectTask implements Runnable {
         @Assisted StringBuffer result);
   }
 
-  private final GitRepositoryManager git;
+  private final OpenRepositoryStep openRepoStep;
   private final File lockRoot;
   private final ReviewDb db;
   private final AccountCache accountCache;
@@ -142,7 +140,7 @@ class ImportProjectTask implements Runnable {
   private Repository repo;
 
   @Inject
-  ImportProjectTask(GitRepositoryManager git,
+  ImportProjectTask(OpenRepositoryStep openRepoStep,
       @PluginData File data,
       ReviewDb db,
       AccountCache accountCache,
@@ -162,7 +160,7 @@ class ImportProjectTask implements Runnable {
       @Assisted("user") String user,
       @Assisted("password") String password,
       @Assisted StringBuffer messages) {
-    this.git = git;
+    this.openRepoStep = openRepoStep;
     this.lockRoot = data;
     this.db = db;
     this.accountCache = accountCache;
@@ -194,7 +192,7 @@ class ImportProjectTask implements Runnable {
     }
 
     try {
-      repo = openRepository();
+      repo = openRepoStep.open(name, messages);
       if (repo == null) {
         return;
       }
@@ -235,26 +233,6 @@ class ImportProjectTask implements Runnable {
     } catch (IOException e1) {
       messages.append(format(
           "Error while trying to lock the project %s for import", name.get()));
-      return null;
-    }
-  }
-
-  private Repository openRepository() {
-    try {
-      git.openRepository(name);
-      messages.append(format("Repository %s already exists.", name.get()));
-      return null;
-    } catch (RepositoryNotFoundException e) {
-      // Project doesn't exist
-    } catch (IOException e) {
-      messages.append(e.getMessage());
-      return null;
-    }
-
-    try {
-      return git.createRepository(name);
-    } catch(IOException e) {
-      messages.append(format("Error: %s, skipping project %s", e, name.get()));
       return null;
     }
   }
