@@ -58,7 +58,7 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
   private final WorkQueue queue;
   private final ImportProjectTask.Factory importFactory;
   private final ThreadLocalRequestContext tl;
-  private final CurrentUser user;
+  private final Provider<CurrentUser> currentUser;
   private final SchemaFactory<ReviewDb> schemaFactory;
 
   private WorkQueue.Executor executor;
@@ -68,12 +68,12 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
   ProjectRestEndpoint(WorkQueue queue,
       ImportProjectTask.Factory importFactory,
       ThreadLocalRequestContext tl,
-      CurrentUser user,
+      Provider<CurrentUser> currentUser,
       SchemaFactory<ReviewDb> schemaFactory) {
     this.queue = queue;
     this.importFactory = importFactory;
     this.tl = tl;
-    this.user = user;
+    this.currentUser = currentUser;
     this.schemaFactory = schemaFactory;
   }
 
@@ -112,8 +112,10 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
     }
   }
 
-  private Runnable withRequestContext(final Runnable task) throws OrmException {
+  private Runnable withRequestContext(final Runnable task)
+      throws OrmException {
     final ReviewDb db = schemaFactory.open();
+    final CurrentUser user = currentUser.get();
     return new Runnable() {
       @Override
       public void run() {
