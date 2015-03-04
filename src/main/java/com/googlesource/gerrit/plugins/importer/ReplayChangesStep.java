@@ -21,7 +21,6 @@ import com.google.gerrit.extensions.api.changes.HashtagsInput;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
-import com.google.gerrit.extensions.common.ChangeMessageInfo;
 import com.google.gerrit.extensions.common.LabelInfo;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -29,7 +28,6 @@ import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.ChangeMessage;
-import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.server.ReviewDb;
@@ -52,7 +50,6 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -72,6 +69,7 @@ class ReplayChangesStep {
 
   private final ReplayRevisionsStep.Factory replayRevisionsFactory;
   private final ReplayInlineCommentsStep.Factory replayInlineCommentsFactory;
+  private final ReplayMessagesStep.Factory replayMessagesFactory;
   private final AccountUtil accountUtil;
   private final ReviewDb db;
   private final ChangeIndexer indexer;
@@ -90,6 +88,7 @@ class ReplayChangesStep {
   ReplayChangesStep(
       ReplayRevisionsStep.Factory replayRevisionsFactory,
       ReplayInlineCommentsStep.Factory replayInlineCommentsFactory,
+      ReplayMessagesStep.Factory replayMessagesFactory,
       AccountUtil accountUtil,
       ReviewDb db,
       ChangeIndexer indexer,
@@ -106,6 +105,7 @@ class ReplayChangesStep {
       @Assisted Project.NameKey name) {
     this.replayRevisionsFactory = replayRevisionsFactory;
     this.replayInlineCommentsFactory = replayInlineCommentsFactory;
+    this.replayMessagesFactory = replayMessagesFactory;
     this.accountUtil = accountUtil;
     this.db = db;
     this.indexer = indexer;
@@ -143,7 +143,7 @@ class ReplayChangesStep {
     db.changes().insert(Collections.singleton(change));
 
     replayInlineCommentsFactory.create(change, c, api).replay();
-    replayMessages(change, c);
+    replayMessagesFactory.create(change, c).replay();
     addApprovals(change, c);
     addHashtags(change, c);
 
@@ -170,22 +170,6 @@ class ReplayChangesStep {
       return branch;
     } else {
       return Constants.R_HEADS + branch;
-    }
-  }
-
-  private void replayMessages(Change change, ChangeInfo c)
-      throws IOException, NoSuchChangeException, OrmException,
-      NoSuchAccountException {
-    for (ChangeMessageInfo msg : c.messages) {
-      Account.Id userId = accountUtil.resolveUser(msg.author);
-      Timestamp ts = msg.date;
-      ChangeUpdate update = updateFactory.create(control(change, userId), ts);
-      ChangeMessage cmsg =
-          new ChangeMessage(new ChangeMessage.Key(change.getId(), msg.id),
-              userId, ts, new PatchSet.Id(change.getId(), msg._revisionNumber));
-      cmsg.setMessage(msg.message);
-      cmUtil.addChangeMessage(db, update, cmsg);
-      update.commit();
     }
   }
 
