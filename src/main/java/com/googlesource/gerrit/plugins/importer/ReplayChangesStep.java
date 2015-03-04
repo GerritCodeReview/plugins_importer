@@ -15,20 +15,16 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.common.TimeUtil;
-import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.api.changes.HashtagsInput;
 import com.google.gerrit.extensions.common.AccountInfo;
-import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
-import com.google.gerrit.extensions.common.LabelInfo;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.ChangeMessage;
-import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.ChangeMessagesUtil;
@@ -50,11 +46,9 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 
 class ReplayChangesStep {
 
@@ -70,6 +64,7 @@ class ReplayChangesStep {
   private final ReplayRevisionsStep.Factory replayRevisionsFactory;
   private final ReplayInlineCommentsStep.Factory replayInlineCommentsFactory;
   private final ReplayMessagesStep.Factory replayMessagesFactory;
+  private final AddApprovalsStep.Factory addApprovalsFactory;
   private final AccountUtil accountUtil;
   private final ReviewDb db;
   private final ChangeIndexer indexer;
@@ -89,6 +84,7 @@ class ReplayChangesStep {
       ReplayRevisionsStep.Factory replayRevisionsFactory,
       ReplayInlineCommentsStep.Factory replayInlineCommentsFactory,
       ReplayMessagesStep.Factory replayMessagesFactory,
+      AddApprovalsStep.Factory addApprovalsFactory,
       AccountUtil accountUtil,
       ReviewDb db,
       ChangeIndexer indexer,
@@ -106,6 +102,7 @@ class ReplayChangesStep {
     this.replayRevisionsFactory = replayRevisionsFactory;
     this.replayInlineCommentsFactory = replayInlineCommentsFactory;
     this.replayMessagesFactory = replayMessagesFactory;
+    this.addApprovalsFactory = addApprovalsFactory;
     this.accountUtil = accountUtil;
     this.db = db;
     this.indexer = indexer;
@@ -144,7 +141,7 @@ class ReplayChangesStep {
 
     replayInlineCommentsFactory.create(change, c, api).replay();
     replayMessagesFactory.create(change, c).replay();
-    addApprovals(change, c);
+    addApprovalsFactory.create(change, c).add();
     addHashtags(change, c);
 
     insertLinkToOriginalChange(change, c);
@@ -171,30 +168,6 @@ class ReplayChangesStep {
     } else {
       return Constants.R_HEADS + branch;
     }
-  }
-
-  private void addApprovals(Change change, ChangeInfo c)
-      throws OrmException, NoSuchChangeException, IOException,
-      NoSuchAccountException {
-    List<PatchSetApproval> approvals = new ArrayList<>();
-    for (Entry<String, LabelInfo> e : c.labels.entrySet()) {
-      String labelName = e.getKey();
-      LabelInfo label = e.getValue();
-      if (label.all != null) {
-        for (ApprovalInfo a : label.all) {
-          Account.Id user = accountUtil.resolveUser(a);
-          ChangeControl ctrl = control(change, a);
-          LabelType labelType = ctrl.getLabelTypes().byLabel(labelName);
-          approvals.add(new PatchSetApproval(
-              new PatchSetApproval.Key(change.currentPatchSetId(), user,
-                  labelType.getLabelId()), a.value.shortValue(), a.date));
-          ChangeUpdate update = updateFactory.create(ctrl);
-          update.putApproval(labelName, a.value.shortValue());
-          update.commit();
-        }
-      }
-    }
-    db.patchSetApprovals().upsert(approvals);
   }
 
   private void addHashtags(Change change, ChangeInfo c) throws AuthException,
