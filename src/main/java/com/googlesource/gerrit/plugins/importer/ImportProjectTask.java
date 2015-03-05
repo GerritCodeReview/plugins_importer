@@ -16,11 +16,13 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static java.lang.String.format;
 
+import com.google.common.base.Charsets;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.OutputFormat;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 
 class ImportProjectTask implements Runnable {
 
@@ -61,6 +64,8 @@ class ImportProjectTask implements Runnable {
   private final String user;
   private final String password;
   private final StringBuffer messages;
+
+  private LockFile lockFile;
 
   @Inject
   ImportProjectTask(OpenRepositoryStep openRepoStep,
@@ -88,8 +93,8 @@ class ImportProjectTask implements Runnable {
 
   @Override
   public void run() {
-    LockFile importing = lockForImport(name);
-    if (importing == null) {
+    lockFile = lockForImport(name);
+    if (lockFile == null) {
       return;
     }
 
@@ -100,6 +105,7 @@ class ImportProjectTask implements Runnable {
       }
 
       try {
+        persistParams();
         configRepoStep.configure(repo, name, fromGerrit);
         gitFetchStep.fetch(user, password, repo, name, messages);
         replayChangesFactory.create(fromGerrit, user, password, repo, name)
@@ -114,8 +120,30 @@ class ImportProjectTask implements Runnable {
     } catch (ResourceConflictException e) {
       handleError(e);
     } finally {
-      importing.unlock();
-      importing.commit();
+      try {
+        lockFile.commit();
+      } finally {
+        lockFile.unlock();
+      }
+    }
+  }
+
+  static class Params {
+    String from;
+    String user;
+    String project;
+  }
+
+  private void persistParams() throws IOException {
+    Params p = new Params();
+    p.from = fromGerrit;
+    p.user = user;
+    p.project = name.get();
+
+    String s = OutputFormat.JSON_COMPACT.newGson().toJson(p);
+    try (OutputStream out = lockFile.getOutputStream()) {
+      out.write(s.getBytes(Charsets.UTF_8));
+      out.write('\n');
     }
   }
 
