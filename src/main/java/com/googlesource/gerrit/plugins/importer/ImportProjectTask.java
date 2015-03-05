@@ -18,6 +18,7 @@ import static java.lang.String.format;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.project.NoSuchChangeException;
@@ -106,19 +107,25 @@ class ImportProjectTask implements Runnable {
       } catch (IOException | GitAPIException | OrmException
           | NoSuchAccountException | NoSuchChangeException | RestApiException
           | ValidationException e) {
-          messages.append(format("Unable to transfer project '%s' from"
-            + " source gerrit host '%s': %s. Check log for details.",
-            name.get(), fromGerrit, e.getMessage()));
-          log.error(format("Unable to transfer project '%s' from"
-            + " source gerrit host '%s'.",
-            name.get(), fromGerrit), e);
+        handleError(e);
       } finally {
         repo.close();
       }
+    } catch (ResourceConflictException e) {
+      handleError(e);
     } finally {
       importing.unlock();
       importing.commit();
     }
+  }
+
+  private void handleError(Exception e) {
+    messages.append(format("Unable to transfer project '%s' from"
+        + " source gerrit host '%s': %s. Check log for details.",
+        name.get(), fromGerrit, e.getMessage()));
+    log.error(format("Unable to transfer project '%s' from"
+        + " source gerrit host '%s'.",
+        name.get(), fromGerrit), e);
   }
 
   private LockFile lockForImport(Project.NameKey project) {

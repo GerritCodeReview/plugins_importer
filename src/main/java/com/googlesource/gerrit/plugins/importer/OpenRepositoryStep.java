@@ -16,8 +16,14 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static java.lang.String.format;
 
+import com.google.gerrit.extensions.registration.DynamicSet;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.project.CreateProjectArgs;
+import com.google.gerrit.server.project.ProjectCache;
+import com.google.gerrit.server.validators.ProjectCreationValidationListener;
+import com.google.gerrit.server.validators.ValidationException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -30,13 +36,21 @@ import java.io.IOException;
 class OpenRepositoryStep {
 
   private final GitRepositoryManager git;
+  private final ProjectCache projectCache;
+  private final DynamicSet<ProjectCreationValidationListener>
+      projectCreationValidationListeners;
 
   @Inject
-  OpenRepositoryStep(GitRepositoryManager git) {
+  OpenRepositoryStep(GitRepositoryManager git,
+      ProjectCache projectCache,
+      DynamicSet<ProjectCreationValidationListener> projectCreationValidationListeners) {
     this.git = git;
+    this.projectCache = projectCache;
+    this.projectCreationValidationListeners = projectCreationValidationListeners;
   }
 
-  Repository open(Project.NameKey name, StringBuffer out) {
+  Repository open(Project.NameKey name, StringBuffer out)
+      throws ResourceConflictException {
     try {
       git.openRepository(name);
       out.append(format("Repository %s already exists.", name.get()));
@@ -49,10 +63,30 @@ class OpenRepositoryStep {
     }
 
     try {
-      return git.createRepository(name);
+      beforeCreateProject(name);
+      Repository repo = git.createRepository(name);
+      onProjectCreated(name);
+      return repo;
     } catch(IOException e) {
       out.append(format("Error: %s, skipping project %s", e, name.get()));
       return null;
     }
+  }
+
+  private void beforeCreateProject(Project.NameKey name)
+      throws ResourceConflictException {
+    CreateProjectArgs args = new CreateProjectArgs();
+    args.setProjectName(name);
+    for (ProjectCreationValidationListener l : projectCreationValidationListeners) {
+      try {
+        l.validateNewProject(args);
+      } catch (ValidationException e) {
+        throw new ResourceConflictException(e.getMessage(), e);
+      }
+    }
+  }
+
+  private void onProjectCreated(Project.NameKey name) {
+    projectCache.onCreateProject(name);
   }
 }
