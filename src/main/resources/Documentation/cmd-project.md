@@ -8,11 +8,11 @@ NAME
 SYNOPSIS
 --------
 ```
-ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ project
-  --from <URL> | -f <URL>
-  --user <USER> | -u <USER>
-  --pass - | <PASS>
-  [--parent <NAME>]
+ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ project \
+  --from <URL> | -f <URL> \
+  --user <USER> | -u <USER> \
+  --pass - | <PASS> \
+  [--parent <NAME>] \
   <NAME> ...
 ```
 
@@ -51,5 +51,6 @@ EXAMPLES
 Import two projects:
 
 ```
-  $ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ project --from https://some-gerrit-server:8080 --pass myPassword --user myUser myProject myOtherProject
+  $ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ project --from https://some-gerrit-server:8080 \
+    --pass myPassword --user myUser myProject myOtherProject
 ```
