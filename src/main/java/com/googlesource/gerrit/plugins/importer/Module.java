@@ -19,9 +19,11 @@ import static com.googlesource.gerrit.plugins.importer.ImportProjectResource.IMP
 
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
+import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.gerrit.server.config.FactoryModule;
+import com.google.inject.internal.UniqueAnnotations;
 
 class Module extends FactoryModule {
   @Override
@@ -36,6 +38,9 @@ class Module extends FactoryModule {
         child(CONFIG_KIND, "projects").to(ProjectsCollection.class);
       }
     });
+    bind(LifecycleListener.class)
+      .annotatedWith(UniqueAnnotations.create())
+      .to(ImportLog.class);
     bind(OpenRepositoryStep.class);
     bind(ConfigureRepositoryStep.class);
     bind(ConfigureProjectStep.class);
