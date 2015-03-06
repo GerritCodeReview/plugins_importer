@@ -146,7 +146,8 @@ class ReplayRevisionsStep {
       case FAST_FORWARD:
         return;
       default:
-        throw new IOException(String.format("Failed to create ref %s", ref));
+        throw new IOException(String.format(
+            "Failed to create ref %s, RefUpdate.Result = %s", ref, result));
     }
   }
 
@@ -161,7 +162,8 @@ class ReplayRevisionsStep {
       case FORCED:
         return;
       default:
-        throw new IOException(String.format("Failed to delete ref %s", ref));
+        throw new IOException(String.format(
+            "Failed to delete ref %s, RefUpdate.Result = %s", ref, result));
     }
   }
 }
