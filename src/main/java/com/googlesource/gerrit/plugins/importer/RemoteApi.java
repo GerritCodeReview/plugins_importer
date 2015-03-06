@@ -38,8 +38,7 @@ public class RemoteApi {
 
   public ProjectInfo getProject(String projectName) throws IOException {
     String endPoint = "/projects/" + projectName;
-    RestResponse r = restSession.get(endPoint);
-    assertOK(r);
+    RestResponse r = checkedGet(endPoint);
     return newGson().fromJson(r.getReader(),
         new TypeToken<ProjectInfo>() {}.getType());
   }
@@ -55,8 +54,7 @@ public class RemoteApi {
                 ListChangesOption.CURRENT_REVISION,
                 ListChangesOption.ALL_REVISIONS,
                 ListChangesOption.ALL_COMMITS)));
-    RestResponse r = restSession.get(endPoint);
-    assertOK(r);
+    RestResponse r = checkedGet(endPoint);
     List<ChangeInfo> result =
         newGson().fromJson(r.getReader(),
             new TypeToken<List<ChangeInfo>>() {}.getType());
@@ -73,8 +71,7 @@ public class RemoteApi {
   public Iterable<CommentInfo> getComments(int changeId, String rev)
       throws IOException {
     String endPoint = "/changes/" + changeId + "/revisions/" + rev + "/comments";
-    RestResponse r = restSession.get(endPoint);
-    assertOK(r);
+    RestResponse r = checkedGet(endPoint);
     Map<String, List<CommentInfo>> result =
         newGson().fromJson(r.getReader(),
             new TypeToken<Map<String, List<CommentInfo>>>() {}.getType());
@@ -90,9 +87,22 @@ public class RemoteApi {
     return OutputFormat.JSON_COMPACT.newGson();
   }
 
-  private static void assertOK(RestResponse r) throws IOException {
+  private RestResponse checkedGet(String endPoint) throws IOException {
+    RestResponse r = restSession.get(endPoint);
+    assertOK(HttpMethod.GET, endPoint, r);
+    return r;
+  }
+
+  private static void assertOK(HttpMethod method, String endPoint,
+      RestResponse r) throws IOException {
     if (r.getStatusCode() < 200 || 300 <= r.getStatusCode()) {
-      throw new IOException("Unexpected response code: " + r.getStatusCode());
+      throw new IOException(String.format(
+          "Unexpected response code for %s on %s : %s", method.name(),
+          endPoint, r.getStatusCode()));
     }
+  }
+
+  private static enum HttpMethod {
+    GET
   }
 }
