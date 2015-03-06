@@ -18,6 +18,7 @@ import com.google.common.collect.Iterables;
 import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
+import com.google.gerrit.extensions.common.ProjectInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.server.OutputFormat;
 import com.google.gson.Gson;
@@ -33,6 +34,14 @@ public class RemoteApi {
 
   RemoteApi(String url, String user, String pass) {
     restSession = new RestSession(url, user, pass);
+  }
+
+  public ProjectInfo getProject(String projectName) throws IOException {
+    String endPoint = "/projects/" + projectName;
+    RestResponse r = restSession.get(endPoint);
+    assertOK(r);
+    return newGson().fromJson(r.getReader(),
+        new TypeToken<ProjectInfo>() {}.getType());
   }
 
   public List<ChangeInfo> queryChanges(String projectName) throws IOException {
