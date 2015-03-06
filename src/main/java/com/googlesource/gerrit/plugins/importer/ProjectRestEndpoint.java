@@ -50,6 +50,7 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
     public String user;
     public String pass;
     public List<String> projects;
+    public String parent;
   }
 
   // TODO: this should go into the plugin configuration.
@@ -85,8 +86,10 @@ class ProjectRestEndpoint implements RestModifyView<ConfigResource, Input>,
     List<ListenableFuture<?>> tasks = new ArrayList<>();
     for(String projectName : input.projects) {
       Project.NameKey name = new Project.NameKey(projectName);
-      Runnable task = importFactory.create(input.from, name, input.user,
-          input.pass, result);
+      Project.NameKey parent = input.parent != null
+          ? new Project.NameKey(input.parent) : null;
+      Runnable task = importFactory.create(input.from, name, parent,
+          input.user, input.pass, result);
       tasks.add(pool.submit(withRequestContext(task)));
     }
     Futures.getUnchecked(Futures.allAsList(tasks));

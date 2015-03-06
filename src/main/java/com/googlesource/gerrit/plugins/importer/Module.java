@@ -42,6 +42,7 @@ class Module extends AbstractModule {
     install(new FactoryModuleBuilder().build(ImportProjectTask.Factory.class));
     bind(OpenRepositoryStep.class);
     bind(ConfigureRepositoryStep.class);
+    bind(ConfigureProjectStep.class);
     bind(GitFetchStep.class);
     bind(AccountUtil.class);
     install(new FactoryModuleBuilder().build(ReplayChangesStep.Factory.class));

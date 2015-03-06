@@ -12,6 +12,7 @@ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ project
   --from <URL> | -f <URL>
   --user <USER> | -u <USER>
   --pass - | <PASS>
+  [--parent <NAME>]
   <NAME> ...
 ```
 
@@ -40,6 +41,10 @@ OPTIONS
 
 `--user`
 :	User on remote system.
+
+`--parent`
+:	Name of the parent project in the target system.
+	The imported projects will be created under this parent project.
 
 EXAMPLES
 --------

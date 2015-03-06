@@ -53,6 +53,8 @@ imported.
 * _user_: User on remote system.
 * _pass_: Password of remote user.
 * _projects_: The names of the projects to be imported as a list.
+* _parent_: (Optional) Name of the parent project in the target system.
+The imported projects will be created under this parent project.
 
 
 SEE ALSO

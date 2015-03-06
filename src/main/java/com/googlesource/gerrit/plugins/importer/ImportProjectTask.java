@@ -17,9 +17,9 @@ package com.googlesource.gerrit.plugins.importer;
 import static java.lang.String.format;
 
 import com.google.common.base.Charsets;
+import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
-import com.google.gerrit.extensions.common.ProjectInfo;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
@@ -50,7 +50,8 @@ class ImportProjectTask implements Runnable {
   interface Factory {
     ImportProjectTask create(
         @Assisted("from") String from,
-        @Assisted Project.NameKey name,
+        @Assisted("name") Project.NameKey name,
+        @Assisted("parent") Project.NameKey parent,
         @Assisted("user") String user,
         @Assisted("password") String password,
         @Assisted StringBuffer result);
@@ -60,11 +61,13 @@ class ImportProjectTask implements Runnable {
   private final OpenRepositoryStep openRepoStep;
   private final ConfigureRepositoryStep configRepoStep;
   private final GitFetchStep gitFetchStep;
+  private final ConfigureProjectStep configProjectStep;
   private final ReplayChangesStep.Factory replayChangesFactory;
   private final File lockRoot;
 
   private final String fromGerrit;
   private final Project.NameKey name;
+  private Project.NameKey parent;
   private final String user;
   private final String password;
   private final StringBuffer messages;
@@ -77,10 +80,12 @@ class ImportProjectTask implements Runnable {
       OpenRepositoryStep openRepoStep,
       ConfigureRepositoryStep configRepoStep,
       GitFetchStep gitFetchStep,
+      ConfigureProjectStep configProjectStep,
       ReplayChangesStep.Factory replayChangesFactory,
       @PluginData File data,
       @Assisted("from") String fromGerrit,
-      @Assisted Project.NameKey name,
+      @Assisted("name") Project.NameKey name,
+      @Nullable @Assisted("parent") Project.NameKey parent,
       @Assisted("user") String user,
       @Assisted("password") String password,
       @Assisted StringBuffer messages) {
@@ -88,11 +93,13 @@ class ImportProjectTask implements Runnable {
     this.openRepoStep = openRepoStep;
     this.configRepoStep = configRepoStep;
     this.gitFetchStep = gitFetchStep;
+    this.configProjectStep = configProjectStep;
     this.replayChangesFactory = replayChangesFactory;
     this.lockRoot = data;
 
     this.fromGerrit = fromGerrit;
     this.name = name;
+    this.parent = parent;
     this.user = user;
     this.password = password;
     this.messages = messages;
@@ -106,6 +113,7 @@ class ImportProjectTask implements Runnable {
     }
 
     try {
+      setParentProjectName();
       checkPreconditions();
 
       Repository repo = openRepoStep.open(name, messages);
@@ -117,6 +125,7 @@ class ImportProjectTask implements Runnable {
         persistParams();
         configRepoStep.configure(repo, name, fromGerrit);
         gitFetchStep.fetch(user, password, repo, name, messages);
+        configProjectStep.configure(name, parent);
         replayChangesFactory.create(fromGerrit, user, password, repo, name)
             .replay();
       } catch (IOException | GitAPIException | OrmException
@@ -133,13 +142,18 @@ class ImportProjectTask implements Runnable {
     }
   }
 
-  private void checkPreconditions() throws IOException, ValidationException {
-    ProjectInfo p =
-        new RemoteApi(fromGerrit, user, password).getProject(name.get());
-    ProjectState parent = projectCache.get(new Project.NameKey(p.parent));
+  private void setParentProjectName() throws IOException {
     if (parent == null) {
+      parent = new Project.NameKey(new RemoteApi(fromGerrit, user, password)
+          .getProject(name.get()).parent);
+    }
+  }
+
+  private void checkPreconditions() throws ValidationException {
+    ProjectState p = projectCache.get(parent);
+    if (p == null) {
       throw new ValidationException(format(
-          "Parent project %s does not exist in target,", p.parent));
+          "Parent project %s does not exist in target,", parent.get()));
     }
   }
 

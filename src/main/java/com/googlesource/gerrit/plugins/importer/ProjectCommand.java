@@ -19,6 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.base.Strings;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.project.ProjectControl;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
@@ -48,6 +49,10 @@ public class ProjectCommand extends SshCommand {
       usage = "password of remote user")
   private String pass;
 
+  @Option(name = "--parent", required = false, metaVar = "NAME",
+      usage = "name of parent project in target system")
+  private ProjectControl parent;
+
   @Argument(index = 0, multiValued = true, required = true, metaVar = "NAME",
       usage = "name of project to be imported")
   private List<String> projects;
@@ -62,6 +67,9 @@ public class ProjectCommand extends SshCommand {
     input.user = user;
     input.pass = readPassword();
     input.projects = projects;
+    if (parent != null) {
+      input.parent = parent.getProject().getName();
+    }
 
     String res = projectRestEndpoint.apply(new ConfigResource(), input);
     stdout.println(res);
