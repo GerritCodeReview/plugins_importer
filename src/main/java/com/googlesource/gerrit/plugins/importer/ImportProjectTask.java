@@ -106,7 +106,7 @@ class ImportProjectTask implements Runnable {
             .replay();
       } catch (IOException | GitAPIException | OrmException
           | NoSuchAccountException | NoSuchChangeException | RestApiException
-          | ValidationException e) {
+          | ValidationException | RuntimeException e) {
         handleError(e);
       } finally {
         repo.close();
