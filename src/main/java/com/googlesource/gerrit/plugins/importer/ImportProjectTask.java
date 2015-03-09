@@ -107,11 +107,7 @@ class ImportProjectTask implements Runnable {
 
     try {
       checkPreconditions();
-    } catch (IOException | ValidationException e) {
-      handleError(e);
-    }
 
-    try {
       Repository repo = openRepoStep.open(name, messages);
       if (repo == null) {
         return;
@@ -130,14 +126,10 @@ class ImportProjectTask implements Runnable {
       } finally {
         repo.close();
       }
-    } catch (ResourceConflictException e) {
+    } catch (ResourceConflictException | IOException | ValidationException e) {
       handleError(e);
     } finally {
-      try {
-        lockFile.commit();
-      } finally {
-        lockFile.unlock();
-      }
+      lockFile.unlock();
     }
   }
 
@@ -167,6 +159,8 @@ class ImportProjectTask implements Runnable {
     try (OutputStream out = lockFile.getOutputStream()) {
       out.write(s.getBytes(Charsets.UTF_8));
       out.write('\n');
+    } finally {
+      lockFile.commit();
     }
   }
 
