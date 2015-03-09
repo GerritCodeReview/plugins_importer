@@ -49,28 +49,20 @@ class OpenRepositoryStep {
     this.projectCreationValidationListeners = projectCreationValidationListeners;
   }
 
-  Repository open(Project.NameKey name, StringBuffer out)
-      throws ResourceConflictException {
+  Repository open(Project.NameKey name)
+      throws ResourceConflictException, IOException {
     try {
       git.openRepository(name);
-      out.append(format("Repository %s already exists.", name.get()));
-      return null;
+      throw new ResourceConflictException(format(
+          "repository %s already exists", name.get()));
     } catch (RepositoryNotFoundException e) {
       // Project doesn't exist
-    } catch (IOException e) {
-      out.append(e.getMessage());
-      return null;
     }
 
-    try {
-      beforeCreateProject(name);
-      Repository repo = git.createRepository(name);
-      onProjectCreated(name);
-      return repo;
-    } catch(IOException e) {
-      out.append(format("Error: %s, skipping project %s", e, name.get()));
-      return null;
-    }
+    beforeCreateProject(name);
+    Repository repo = git.createRepository(name);
+    onProjectCreated(name);
+    return repo;
   }
 
   private void beforeCreateProject(Project.NameKey name)

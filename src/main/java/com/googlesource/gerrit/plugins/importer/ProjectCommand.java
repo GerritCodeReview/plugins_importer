@@ -17,14 +17,20 @@ package com.googlesource.gerrit.plugins.importer;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Strings;
+import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.restapi.RestApiException;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectControl;
+import com.google.gerrit.server.validators.ValidationException;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
@@ -32,7 +38,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 
 @RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "project", description = "Imports a project")
@@ -53,26 +58,31 @@ public class ProjectCommand extends SshCommand {
       usage = "name of parent project in target system")
   private ProjectControl parent;
 
-  @Argument(index = 0, multiValued = true, required = true, metaVar = "NAME",
-      usage = "name of project to be imported")
-  private List<String> projects;
+  @Argument(index = 0, required = true, metaVar = "NAME",
+      usage = "name of the project to be imported")
+  private String project;
 
   @Inject
-  private ProjectRestEndpoint projectRestEndpoint;
+  private ImportProject.Factory importProjectFactory;
 
   @Override
-  protected void run() throws OrmException, IOException, UnloggedFailure {
-    ProjectRestEndpoint.Input input = new ProjectRestEndpoint.Input();
+  protected void run() throws OrmException, IOException, UnloggedFailure,
+      ValidationException, GitAPIException, NoSuchChangeException,
+      NoSuchAccountException {
+    ImportProject.Input input = new ImportProject.Input();
     input.from = url;
     input.user = user;
     input.pass = readPassword();
-    input.projects = projects;
     if (parent != null) {
       input.parent = parent.getProject().getName();
     }
 
-    String res = projectRestEndpoint.apply(new ConfigResource(), input);
-    stdout.println(res);
+    try {
+      importProjectFactory.create(new Project.NameKey(project))
+          .apply(new ConfigResource(), input);
+    } catch (RestApiException e) {
+      throw die(e.getMessage());
+    }
   }
 
   private String readPassword() throws UnsupportedEncodingException,
@@ -87,4 +97,3 @@ public class ProjectCommand extends SshCommand {
     return pass;
   }
 }
-

@@ -14,8 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static java.lang.String.format;
-
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.Singleton;
 
@@ -25,22 +23,19 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 @Singleton
 class GitFetchStep {
 
   void fetch(String user, String password, Repository repo,
-      Project.NameKey name, StringBuffer out)
+      Project.NameKey name)
       throws InvalidRemoteException, TransportException, GitAPIException {
     CredentialsProvider cp =
         new UsernamePasswordCredentialsProvider(user, password);
-    FetchResult fetchResult = Git.wrap(repo).fetch()
-          .setCredentialsProvider(cp)
-          .setRemote("origin")
-          .call();
-    out.append(format("[INFO] Project '%s' fetched: %s",
-        name.get(), fetchResult.getMessages()));
+    Git.wrap(repo).fetch()
+        .setCredentialsProvider(cp)
+        .setRemote("origin")
+        .call();
   }
 }

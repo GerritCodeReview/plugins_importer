@@ -13,7 +13,7 @@ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ project \
   --user <USER> | -u <USER> \
   --pass - | <PASS> \
   [--parent <NAME>] \
-  <NAME> ...
+  <NAME>
 ```
 
 DESCRIPTION
@@ -48,9 +48,9 @@ OPTIONS
 
 EXAMPLES
 --------
-Import two projects:
+Import a project:
 
 ```
   $ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ project --from https://some-gerrit-server:8080 \
-    --pass myPassword --user myUser myProject myOtherProject
+    --pass myPassword --user myUser myProject
 ```

@@ -11,12 +11,13 @@ Please also take note of the general information on the
 ---------------------------------------------
 
 ### <a id="import-project"> Import Project
-_POST /config/server/@PLUGIN@~project_
+_PUT /config/server/@PLUGIN@~projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)_
 
 Imports a project.
 
-The information about which project should be imported must be provided
-in the request body as a [ProjectInput](#project-input) entity.
+Information about the project import must be provided in the request
+body as a [ImportProjectInput](#import-project-input)
+entity.
 
 Caller must be a member of a group that is granted the 'Import'
 capability (provided by this plugin) or the 'Administrate Server'
@@ -25,17 +26,13 @@ capability.
 #### Request
 
 ```
-  POST /config/server/@PLUGIN@~project HTTP/1.0
+  PUT /config/server/@PLUGIN@~projects/myProject HTTP/1.0
   Content-Type: application/json;charset=UTF-8
 
   {
     "from": "https://some-gerrit-server:8080",
     "user": "myUser",
-    "pass": "myPassword",
-    "projects": [
-      "myProject",
-      "myOtherProject"
-    ]
+    "pass": "myPassword"
   }
 ```
 
@@ -43,18 +40,17 @@ capability.
 <a id="json-entities">JSON Entities
 -----------------------------------
 
-### <a id="project-input"></a>ProjectInput
+### <a id="import-project-input"></a>ImportProjectInput
 
-The `ProjectInput` entity contains information about projects that
-should be imported.
+The `ImportProjectInput` entity contains information about a project
+import.
 
 * _from_: URL of the remote system from where the project should be
 imported.
 * _user_: User on remote system.
 * _pass_: Password of remote user.
-* _projects_: The names of the projects to be imported as a list.
 * _parent_: (Optional) Name of the parent project in the target system.
-The imported projects will be created under this parent project.
+The imported project will be created under this parent project.
 
 
 SEE ALSO

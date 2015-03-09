@@ -15,16 +15,15 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import static com.google.gerrit.server.config.ConfigResource.CONFIG_KIND;
+import static com.googlesource.gerrit.plugins.importer.ImportProjectResource.IMPORT_PROJECT_KIND;
 
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
-import com.google.gerrit.extensions.events.LifecycleListener;
+import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.RestApiModule;
-import com.google.inject.AbstractModule;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.internal.UniqueAnnotations;
+import com.google.gerrit.server.config.FactoryModule;
 
-class Module extends AbstractModule {
+class Module extends FactoryModule {
   @Override
   protected void configure() {
     bind(CapabilityDefinition.class)
@@ -33,24 +32,22 @@ class Module extends AbstractModule {
     install(new RestApiModule() {
       @Override
       protected void configure() {
-        post(CONFIG_KIND, "project").to(ProjectRestEndpoint.class);
+        DynamicMap.mapOf(binder(), IMPORT_PROJECT_KIND);
+        child(CONFIG_KIND, "projects").to(ProjectsCollection.class);
       }
     });
-    bind(LifecycleListener.class)
-      .annotatedWith(UniqueAnnotations.create())
-      .to(ProjectRestEndpoint.class);
-    install(new FactoryModuleBuilder().build(ImportProjectTask.Factory.class));
     bind(OpenRepositoryStep.class);
     bind(ConfigureRepositoryStep.class);
     bind(ConfigureProjectStep.class);
     bind(GitFetchStep.class);
     bind(AccountUtil.class);
-    install(new FactoryModuleBuilder().build(ReplayChangesStep.Factory.class));
-    install(new FactoryModuleBuilder().build(ReplayRevisionsStep.Factory.class));
-    install(new FactoryModuleBuilder().build(ReplayInlineCommentsStep.Factory.class));
-    install(new FactoryModuleBuilder().build(ReplayMessagesStep.Factory.class));
-    install(new FactoryModuleBuilder().build(AddApprovalsStep.Factory.class));
-    install(new FactoryModuleBuilder().build(AddHashtagsStep.Factory.class));
-    install(new FactoryModuleBuilder().build(InsertLinkToOriginalChangeStep.Factory.class));
+    factory(ImportProject.Factory.class);
+    factory(ReplayChangesStep.Factory.class);
+    factory(ReplayRevisionsStep.Factory.class);
+    factory(ReplayInlineCommentsStep.Factory.class);
+    factory(ReplayMessagesStep.Factory.class);
+    factory(AddApprovalsStep.Factory.class);
+    factory(AddHashtagsStep.Factory.class);
+    factory(InsertLinkToOriginalChangeStep.Factory.class);
   }
 }

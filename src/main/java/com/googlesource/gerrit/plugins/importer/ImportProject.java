@@ -17,13 +17,16 @@ package com.googlesource.gerrit.plugins.importer;
 import static java.lang.String.format;
 
 import com.google.common.base.Charsets;
-import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
+import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
+import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.OutputFormat;
+import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
@@ -31,6 +34,8 @@ import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+
+import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
@@ -43,19 +48,20 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class ImportProjectTask implements Runnable {
-
-  private static Logger log = LoggerFactory.getLogger(ImportProjectTask.class);
+@RequiresCapability(ImportCapability.ID)
+class ImportProject implements RestModifyView<ConfigResource, Input> {
+  public static class Input {
+    public String from;
+    public String user;
+    public String pass;
+    public String parent;
+  }
 
   interface Factory {
-    ImportProjectTask create(
-        @Assisted("from") String from,
-        @Assisted("name") Project.NameKey name,
-        @Assisted("parent") Project.NameKey parent,
-        @Assisted("user") String user,
-        @Assisted("password") String password,
-        @Assisted StringBuffer result);
+    ImportProject create(Project.NameKey project);
   }
+
+  private static Logger log = LoggerFactory.getLogger(ImportProject.class);
 
   private final ProjectCache projectCache;
   private final OpenRepositoryStep openRepoStep;
@@ -65,17 +71,12 @@ class ImportProjectTask implements Runnable {
   private final ReplayChangesStep.Factory replayChangesFactory;
   private final File lockRoot;
 
-  private final String fromGerrit;
-  private final Project.NameKey name;
+  private final Project.NameKey project;
   private Project.NameKey parent;
-  private final String user;
-  private final String password;
-  private final StringBuffer messages;
-
   private LockFile lockFile;
 
   @Inject
-  ImportProjectTask(
+  ImportProject(
       ProjectCache projectCache,
       OpenRepositoryStep openRepoStep,
       ConfigureRepositoryStep configRepoStep,
@@ -83,12 +84,7 @@ class ImportProjectTask implements Runnable {
       ConfigureProjectStep configProjectStep,
       ReplayChangesStep.Factory replayChangesFactory,
       @PluginData File data,
-      @Assisted("from") String fromGerrit,
-      @Assisted("name") Project.NameKey name,
-      @Nullable @Assisted("parent") Project.NameKey parent,
-      @Assisted("user") String user,
-      @Assisted("password") String password,
-      @Assisted StringBuffer messages) {
+      @Assisted Project.NameKey project) {
     this.projectCache = projectCache;
     this.openRepoStep = openRepoStep;
     this.configRepoStep = configRepoStep;
@@ -96,56 +92,50 @@ class ImportProjectTask implements Runnable {
     this.configProjectStep = configProjectStep;
     this.replayChangesFactory = replayChangesFactory;
     this.lockRoot = data;
-
-    this.fromGerrit = fromGerrit;
-    this.name = name;
-    this.parent = parent;
-    this.user = user;
-    this.password = password;
-    this.messages = messages;
+    this.project = project;
   }
 
   @Override
-  public void run() {
-    lockFile = lockForImport(name);
-    if (lockFile == null) {
-      return;
-    }
+  public Response<String> apply(ConfigResource rsrc, Input input)
+      throws RestApiException, OrmException, IOException, ValidationException,
+      GitAPIException, NoSuchChangeException, NoSuchAccountException {
+    lockFile = lockForImport(project);
 
     try {
-      setParentProjectName();
+      setParentProjectName(input);
       checkPreconditions();
-
-      Repository repo = openRepoStep.open(name, messages);
-      if (repo == null) {
-        return;
-      }
-
+      Repository repo = openRepoStep.open(project);
       try {
-        persistParams();
-        configRepoStep.configure(repo, name, fromGerrit);
-        gitFetchStep.fetch(user, password, repo, name, messages);
-        configProjectStep.configure(name, parent);
-        replayChangesFactory.create(fromGerrit, user, password, repo, name)
+        persistParams(input);
+        configRepoStep.configure(repo, project, input.from);
+        gitFetchStep.fetch(input.user, input.pass, repo, project);
+        configProjectStep.configure(project, parent);
+        replayChangesFactory.create(input.from, input.user, input.pass, repo, project)
             .replay();
-      } catch (IOException | GitAPIException | OrmException
-          | NoSuchAccountException | NoSuchChangeException | RestApiException
-          | ValidationException | RuntimeException e) {
-        handleError(e);
       } finally {
         repo.close();
       }
-    } catch (ResourceConflictException | IOException | ValidationException e) {
-      handleError(e);
+    } catch (Exception e) {
+      log.error(format("Unable to transfer project '%s' from"
+          + " source gerrit host '%s'.",
+          project.get(), input.from), e);
+      throw e;
     } finally {
       lockFile.unlock();
     }
+
+    return Response.<String> ok("OK");
   }
 
-  private void setParentProjectName() throws IOException {
+  private void setParentProjectName(Input input) throws IOException {
     if (parent == null) {
-      parent = new Project.NameKey(new RemoteApi(fromGerrit, user, password)
-          .getProject(name.get()).parent);
+      if (input.parent != null) {
+        parent = new Project.NameKey(input.parent);
+      } else {
+        parent = new Project.NameKey(
+            new RemoteApi(input.from, input.user, input.pass)
+                .getProject(project.get()).parent);
+      }
     }
   }
 
@@ -157,19 +147,14 @@ class ImportProjectTask implements Runnable {
     }
   }
 
-  static class Params {
-    String from;
-    String user;
-    String project;
-  }
+  private void persistParams(Input input) throws IOException {
+    // copy input to persist it without password
+    Input in = new Input();
+    in.from = input.from;
+    in.user = input.user;
+    in.parent = input.parent;
 
-  private void persistParams() throws IOException {
-    Params p = new Params();
-    p.from = fromGerrit;
-    p.user = user;
-    p.project = name.get();
-
-    String s = OutputFormat.JSON_COMPACT.newGson().toJson(p);
+    String s = OutputFormat.JSON_COMPACT.newGson().toJson(in);
     try (OutputStream out = lockFile.getOutputStream()) {
       out.write(s.getBytes(Charsets.UTF_8));
       out.write('\n');
@@ -178,30 +163,19 @@ class ImportProjectTask implements Runnable {
     }
   }
 
-  private void handleError(Exception e) {
-    messages.append(format("Unable to transfer project '%s' from"
-        + " source gerrit host '%s': %s. Check log for details.",
-        name.get(), fromGerrit, e.getMessage()));
-    log.error(format("Unable to transfer project '%s' from"
-        + " source gerrit host '%s'.",
-        name.get(), fromGerrit), e);
-  }
-
-  private LockFile lockForImport(Project.NameKey project) {
+  private LockFile lockForImport(Project.NameKey project)
+      throws ResourceConflictException {
     File importStatus = new File(lockRoot, project.get());
     LockFile lockFile = new LockFile(importStatus, FS.DETECTED);
     try {
       if (lockFile.lock()) {
         return lockFile;
       } else {
-        messages.append(format("Project %s is being imported from another session"
-            + ", skipping", name.get()));
-        return null;
+        throw new ResourceConflictException(
+            "project is being imported from another session");
       }
     } catch (IOException e1) {
-      messages.append(format(
-          "Error while trying to lock the project %s for import", name.get()));
-      return null;
+      throw new ResourceConflictException("failed to lock project for import");
     }
   }
 }
