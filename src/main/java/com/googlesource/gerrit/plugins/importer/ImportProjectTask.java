@@ -19,11 +19,14 @@ import static java.lang.String.format;
 import com.google.common.base.Charsets;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
+import com.google.gerrit.extensions.common.ProjectInfo;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.OutputFormat;
 import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.project.ProjectCache;
+import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
@@ -53,6 +56,7 @@ class ImportProjectTask implements Runnable {
         @Assisted StringBuffer result);
   }
 
+  private final ProjectCache projectCache;
   private final OpenRepositoryStep openRepoStep;
   private final ConfigureRepositoryStep configRepoStep;
   private final GitFetchStep gitFetchStep;
@@ -68,7 +72,9 @@ class ImportProjectTask implements Runnable {
   private LockFile lockFile;
 
   @Inject
-  ImportProjectTask(OpenRepositoryStep openRepoStep,
+  ImportProjectTask(
+      ProjectCache projectCache,
+      OpenRepositoryStep openRepoStep,
       ConfigureRepositoryStep configRepoStep,
       GitFetchStep gitFetchStep,
       ReplayChangesStep.Factory replayChangesFactory,
@@ -78,6 +84,7 @@ class ImportProjectTask implements Runnable {
       @Assisted("user") String user,
       @Assisted("password") String password,
       @Assisted StringBuffer messages) {
+    this.projectCache = projectCache;
     this.openRepoStep = openRepoStep;
     this.configRepoStep = configRepoStep;
     this.gitFetchStep = gitFetchStep;
@@ -96,6 +103,12 @@ class ImportProjectTask implements Runnable {
     lockFile = lockForImport(name);
     if (lockFile == null) {
       return;
+    }
+
+    try {
+      checkPreconditions();
+    } catch (IOException | ValidationException e) {
+      handleError(e);
     }
 
     try {
@@ -125,6 +138,16 @@ class ImportProjectTask implements Runnable {
       } finally {
         lockFile.unlock();
       }
+    }
+  }
+
+  private void checkPreconditions() throws IOException, ValidationException {
+    ProjectInfo p =
+        new RemoteApi(fromGerrit, user, password).getProject(name.get());
+    ProjectState parent = projectCache.get(new Project.NameKey(p.parent));
+    if (parent == null) {
+      throw new ValidationException(format(
+          "Parent project %s does not exist in target,", p.parent));
     }
   }
 
