@@ -33,6 +33,7 @@ import com.google.inject.assistedinject.Assisted;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Collections;
 
 class ReplayMessagesStep {
 
@@ -71,15 +72,24 @@ class ReplayMessagesStep {
   void replay() throws NoSuchAccountException, NoSuchChangeException,
       OrmException, IOException {
     for (ChangeMessageInfo msg : changeInfo.messages) {
-      Account.Id userId = accountUtil.resolveUser(msg.author);
       Timestamp ts = msg.date;
-      ChangeUpdate update = updateFactory.create(control(change, userId), ts);
-      ChangeMessage cmsg =
-          new ChangeMessage(new ChangeMessage.Key(change.getId(), msg.id),
-              userId, ts, new PatchSet.Id(change.getId(), msg._revisionNumber));
-      cmsg.setMessage(msg.message);
-      cmUtil.addChangeMessage(db, update, cmsg);
-      update.commit();
+      if (msg.author != null) {
+        Account.Id userId = accountUtil.resolveUser(msg.author);
+        ChangeUpdate update = updateFactory.create(control(change, userId), ts);
+        ChangeMessage cmsg =
+            new ChangeMessage(new ChangeMessage.Key(change.getId(), msg.id),
+                userId, ts, new PatchSet.Id(change.getId(), msg._revisionNumber));
+        cmsg.setMessage(msg.message);
+        cmUtil.addChangeMessage(db, update, cmsg);
+        update.commit();
+      } else {
+        // Message create by the GerritPersonIdent user
+        ChangeMessage cmsg =
+            new ChangeMessage(new ChangeMessage.Key(change.getId(), msg.id),
+                null, ts, new PatchSet.Id(change.getId(), msg._revisionNumber));
+        cmsg.setMessage(msg.message);
+        db.changeMessages().insert(Collections.singleton(cmsg));
+      }
     }
   }
 
