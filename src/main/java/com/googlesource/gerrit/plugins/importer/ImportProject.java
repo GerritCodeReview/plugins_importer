@@ -17,9 +17,11 @@ package com.googlesource.gerrit.plugins.importer;
 import static java.lang.String.format;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -37,6 +39,7 @@ import com.google.inject.assistedinject.Assisted;
 
 import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
 
+import org.apache.commons.validator.routines.UrlValidator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Repository;
@@ -99,6 +102,22 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   public Response<String> apply(ConfigResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException {
+    if (input == null) {
+      input = new Input();
+    }
+    if (Strings.isNullOrEmpty(input.from)) {
+      throw new BadRequestException("from is required");
+    }
+    if (!(new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS)).isValid(input.from)) {
+      throw new BadRequestException("from must be a valid URL");
+    }
+    if (Strings.isNullOrEmpty(input.user)) {
+      throw new BadRequestException("user is required");
+    }
+    if (Strings.isNullOrEmpty(input.pass)) {
+      throw new BadRequestException("pass is required");
+    }
+
     lockFile = lockForImport(project);
 
     try {
