@@ -50,15 +50,23 @@ class OpenRepositoryStep {
     this.projectCreationValidationListeners = projectCreationValidationListeners;
   }
 
-  Repository open(Project.NameKey name, ProgressMonitor pm)
+  Repository open(Project.NameKey name, boolean resume, ProgressMonitor pm)
       throws ResourceConflictException, IOException {
     pm.beginTask("Open repository", 1);
     try {
-      git.openRepository(name);
-      throw new ResourceConflictException(format(
-          "repository %s already exists", name.get()));
+      Repository repo = git.openRepository(name);
+      if (resume) {
+        return repo;
+      } else {
+        throw new ResourceConflictException(format(
+            "repository %s already exists", name.get()));
+      }
     } catch (RepositoryNotFoundException e) {
       // Project doesn't exist
+      if (resume) {
+        throw new ResourceConflictException(format(
+            "repository %s does not exist", name.get()));
+      }
     }
 
     beforeCreateProject(name);

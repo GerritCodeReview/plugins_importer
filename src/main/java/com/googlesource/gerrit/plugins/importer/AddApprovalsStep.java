@@ -40,7 +40,7 @@ import java.util.Map.Entry;
 class AddApprovalsStep {
 
   interface Factory {
-    AddApprovalsStep create(Change change, ChangeInfo changeInfo);
+    AddApprovalsStep create(Change change, ChangeInfo changeInfo, boolean resume);
   }
 
   private final AccountUtil accountUtil;
@@ -50,6 +50,7 @@ class AddApprovalsStep {
   private final ChangeControl.GenericFactory changeControlFactory;
   private final Change change;
   private final ChangeInfo changeInfo;
+  private final boolean resume;
 
   @Inject
   public AddApprovalsStep(AccountUtil accountUtil,
@@ -58,7 +59,8 @@ class AddApprovalsStep {
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
       @Assisted Change change,
-      @Assisted ChangeInfo changeInfo) {
+      @Assisted ChangeInfo changeInfo,
+      @Assisted boolean resume) {
     this.accountUtil = accountUtil;
     this.updateFactory = updateFactory;
     this.db = db;
@@ -66,10 +68,16 @@ class AddApprovalsStep {
     this.changeControlFactory = changeControlFactory;
     this.change = change;
     this.changeInfo = changeInfo;
+    this.resume = resume;
   }
 
   void add() throws OrmException, NoSuchChangeException, IOException,
       NoSuchAccountException {
+    if (resume) {
+      db.patchSetApprovals().delete(
+          db.patchSetApprovals().byChange(change.getId()));
+    }
+
     List<PatchSetApproval> approvals = new ArrayList<>();
     for (Entry<String, LabelInfo> e : changeInfo.labels.entrySet()) {
       String labelName = e.getKey();
@@ -83,12 +91,16 @@ class AddApprovalsStep {
               new PatchSetApproval.Key(change.currentPatchSetId(), user,
                   labelType.getLabelId()), a.value.shortValue(), a.date));
           ChangeUpdate update = updateFactory.create(ctrl);
-          update.putApproval(labelName, a.value.shortValue());
+          if (a.value != 0) {
+            update.putApproval(labelName, a.value.shortValue());
+          } else {
+            update.removeApproval(labelName);
+          }
           update.commit();
         }
       }
     }
-    db.patchSetApprovals().upsert(approvals);
+    db.patchSetApprovals().insert(approvals);
   }
 
   private ChangeControl control(Change change, AccountInfo acc)

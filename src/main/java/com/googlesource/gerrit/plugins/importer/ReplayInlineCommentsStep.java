@@ -46,15 +46,17 @@ import com.google.inject.assistedinject.Assisted;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class ReplayInlineCommentsStep {
 
   interface Factory {
     ReplayInlineCommentsStep create(Change change, ChangeInfo changeInfo,
-        RemoteApi api);
+        RemoteApi api, boolean resume);
   }
 
   private final AccountUtil accountUtil;
@@ -67,6 +69,7 @@ class ReplayInlineCommentsStep {
   private final Change change;
   private final ChangeInfo changeInfo;
   private final RemoteApi api;
+  private final boolean resume;
 
   @Inject
   public ReplayInlineCommentsStep(AccountUtil accountUtil,
@@ -78,7 +81,8 @@ class ReplayInlineCommentsStep {
       PatchListCache patchListCache,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
-      @Assisted RemoteApi api) {
+      @Assisted RemoteApi api,
+      @Assisted boolean resume) {
     this.accountUtil = accountUtil;
     this.db = db;
     this.genericUserFactory = genericUserFactory;
@@ -89,6 +93,7 @@ class ReplayInlineCommentsStep {
     this.change = change;
     this.changeInfo = changeInfo;
     this.api = api;
+    this.resume = resume;
   }
 
   void replay() throws RestApiException, OrmException, IOException,
@@ -96,6 +101,9 @@ class ReplayInlineCommentsStep {
     for (PatchSet ps : db.patchSets().byChange(change.getId())) {
       Iterable<CommentInfo> comments = api.getComments(
           changeInfo._number, ps.getRevision().get());
+      if (resume) {
+        comments = filterComments(ps, comments);
+      }
 
       Multimap<Account.Id, CommentInfo> commentsByAuthor = ArrayListMultimap.create();
       for (CommentInfo comment : comments) {
@@ -109,7 +117,24 @@ class ReplayInlineCommentsStep {
     }
   }
 
-  private boolean insertComments(PatchSet ps, Account.Id author,
+  private Iterable<CommentInfo> filterComments(PatchSet ps,
+      Iterable<CommentInfo> comments) throws OrmException {
+    Set<String> existingUuids = new HashSet<>();
+    for (PatchLineComment c : db.patchComments().byPatchSet(ps.getId())) {
+      existingUuids.add(c.getKey().get());
+    }
+
+    Iterator<CommentInfo> it = comments.iterator();
+    while (it.hasNext()) {
+      CommentInfo c = it.next();
+      if (existingUuids.contains(Url.decode(c.id))) {
+        it.remove();
+      }
+    }
+    return comments;
+  }
+
+  private void insertComments(PatchSet ps, Account.Id author,
       Collection<CommentInfo> comments) throws OrmException, IOException,
       NoSuchChangeException {
     ChangeControl ctrl = control(change, author);
@@ -154,10 +179,6 @@ class ReplayInlineCommentsStep {
     plcUtil.deleteComments(db, update, del);
     plcUtil.upsertComments(db, update, ups);
     update.commit();
-
-    db.changes().update(Collections.singleton(change));
-
-    return !del.isEmpty() || !ups.isEmpty();
   }
 
   private Map<String, PatchLineComment> scanDraftComments(ChangeControl ctrl,
