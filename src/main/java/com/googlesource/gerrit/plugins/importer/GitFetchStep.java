@@ -14,7 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.Singleton;
 
 import org.eclipse.jgit.api.Git;
@@ -28,8 +27,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 @Singleton
 class GitFetchStep {
 
-  void fetch(String user, String password, Repository repo,
-      Project.NameKey name)
+  void fetch(String user, String password, Repository repo)
       throws InvalidRemoteException, TransportException, GitAPIException {
     CredentialsProvider cp =
         new UsernamePasswordCredentialsProvider(user, password);
