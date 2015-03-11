@@ -20,9 +20,12 @@ import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.common.ProjectInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.server.OutputFormat;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import org.apache.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.EnumSet;
@@ -36,14 +39,16 @@ public class RemoteApi {
     restSession = new RestSession(url, user, pass);
   }
 
-  public ProjectInfo getProject(String projectName) throws IOException {
+  public ProjectInfo getProject(String projectName) throws IOException,
+      BadRequestException {
     String endPoint = "/projects/" + projectName;
     RestResponse r = checkedGet(endPoint);
     return newGson().fromJson(r.getReader(),
         new TypeToken<ProjectInfo>() {}.getType());
   }
 
-  public List<ChangeInfo> queryChanges(String projectName) throws IOException {
+  public List<ChangeInfo> queryChanges(String projectName) throws IOException,
+      BadRequestException {
     String endPoint =
         "/changes/?q=project:" + projectName +
         "&O=" + Integer.toHexString(ListChangesOption.toBits(
@@ -69,7 +74,7 @@ public class RemoteApi {
   }
 
   public Iterable<CommentInfo> getComments(int changeId, String rev)
-      throws IOException {
+      throws IOException, BadRequestException {
     String endPoint = "/changes/" + changeId + "/revisions/" + rev + "/comments";
     RestResponse r = checkedGet(endPoint);
     Map<String, List<CommentInfo>> result =
@@ -87,14 +92,19 @@ public class RemoteApi {
     return OutputFormat.JSON_COMPACT.newGson();
   }
 
-  private RestResponse checkedGet(String endPoint) throws IOException {
+  private RestResponse checkedGet(String endPoint) throws IOException,
+      BadRequestException {
     RestResponse r = restSession.get(endPoint);
     assertOK(HttpMethod.GET, endPoint, r);
     return r;
   }
 
   private static void assertOK(HttpMethod method, String endPoint,
-      RestResponse r) throws IOException {
+      RestResponse r) throws IOException, BadRequestException {
+    if (r.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+      throw new BadRequestException(
+          "invalid credentials: accessing source system failed with 401 Unauthorized");
+    }
     if (r.getStatusCode() < 200 || 300 <= r.getStatusCode()) {
       throw new IOException(String.format(
           "Unexpected response code for %s on %s : %s", method.name(),

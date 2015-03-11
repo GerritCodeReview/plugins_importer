@@ -172,7 +172,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   private void setParentProjectName(Input input, ProgressMonitor pm)
-      throws IOException {
+      throws IOException, BadRequestException {
     pm.beginTask("Set parent project", 1);
     if (parent == null) {
       if (input.parent != null) {
