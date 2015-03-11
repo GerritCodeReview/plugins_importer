@@ -42,7 +42,7 @@ _GET /config/server/@PLUGIN@~projects/_
 Lists the imported projects.
 
 As result a map is returned that maps the project name to
-[ImportProjectInput](#import-project-input) entity.
+[ImportProjectInfo](#import-project-info) entity.
 
 Caller must be a member of a group that is granted the 'Import'
 capability (provided by this plugin) or the 'Administrate Server'
@@ -63,20 +63,63 @@ capability.
 
   )]}'
   {
-  "myProject": {
-    "from": "http://localhost:8081/",
-    "user": "admin"
-  },
-  "myOtherProject": {
-    "from": "http://localhost:8081/",
-    "user": "admin"
+    "myProject": {
+      "from": "http://localhost:8081/",
+      "imports": [
+        {
+          "timestamp": "2015-03-11 09:14:21.748000000",
+          "user": {
+            "_account_id": 1000000,
+            "name": "Administrator",
+            "email": "edwin.kempin@gmail.com",
+            "username": "admin"
+          },
+          "remote_user": "admin"
+        }
+      ]
+    },
+    "myOtherProject": {
+      "from": "http://localhost:8081/",
+      "imports": [
+        {
+          "timestamp": "2015-03-11 09:16:04.511000000",
+          "user": {
+            "_account_id": 1000000,
+            "name": "Administrator",
+            "email": "edwin.kempin@gmail.com",
+            "username": "admin"
+          },
+          "remote_user": "admin"
+        }
+      ]
+    }
   }
-}
 ```
 
 
 <a id="json-entities">JSON Entities
 -----------------------------------
+
+### <a id="import-info"></a>ImportInfo
+
+The `ImportInfo` entity contains information about a past import.
+
+* _timestamp_: The timestamp of when the import was done.
+* _user_: User that did the import as a detailed
+link:../../../Documentation/rest-api-accounts.html#account-info[AccountInfo]
+entity.
+* _remote_user_: User on remote system.
+
+### <a id="import-project-info"></a>ImportProjectInfo
+
+The `ImportProjectInfo` entity contains information about the past
+imports of a project.
+
+* _from_: URL of the remote system from where the project should be
+imported.
+* _parent_: (Optional) Name of the parent project in the target system.
+* _imports_: List of past imports as [ImportInfo](#import-info)
+entities.
 
 ### <a id="import-project-input"></a>ImportProjectInput
 
@@ -86,8 +129,7 @@ import.
 * _from_: URL of the remote system from where the project should be
 imported.
 * _user_: User on remote system.
-* _pass_: (Optional) Password of remote user (not set when listing
-imported projects).
+* _pass_: Password of remote user.
 * _parent_: (Optional) Name of the parent project in the target system.
 The imported project will be created under this parent project.
 

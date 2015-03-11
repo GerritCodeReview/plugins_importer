@@ -18,14 +18,11 @@ import com.google.common.collect.Maps;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestReadView;
-import com.google.gerrit.server.OutputFormat;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Map;
@@ -42,11 +39,11 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   }
 
   @Override
-  public Map<String, ImportProject.Input> apply(ConfigResource rsrc)
+  public Map<String, ImportProjectInfo> apply(ConfigResource rsrc)
       throws IOException {
-    Map<String, ImportProject.Input> importedProjects = Maps.newTreeMap();
+    Map<String, ImportProjectInfo> importedProjects = Maps.newTreeMap();
     for (File f : listImportFiles()) {
-      importedProjects.put(f.getName(), parseParams(f));
+      importedProjects.put(f.getName(), ImportJson.parse(f));
     }
     return importedProjects;
   }
@@ -58,12 +55,5 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
         return !name.endsWith(".lock");
       }
     });
-  }
-
-  private ImportProject.Input parseParams(File f) throws IOException {
-    try (FileReader r = new FileReader(f)) {
-      return OutputFormat.JSON_COMPACT.newGson().fromJson(r,
-          new TypeToken<ImportProject.Input>() {}.getType());
-    }
   }
 }
