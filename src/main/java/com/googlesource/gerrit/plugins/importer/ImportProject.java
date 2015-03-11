@@ -27,6 +27,8 @@ import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.CurrentUser;
+import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.OutputFormat;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
@@ -35,6 +37,7 @@ import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
@@ -72,6 +75,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private final GitFetchStep gitFetchStep;
   private final ConfigureProjectStep configProjectStep;
   private final ReplayChangesStep.Factory replayChangesFactory;
+  private final Provider<CurrentUser> currentUser;
+  private final ImportLog importLog;
   private final File lockRoot;
 
   private final Project.NameKey project;
@@ -86,6 +91,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       GitFetchStep gitFetchStep,
       ConfigureProjectStep configProjectStep,
       ReplayChangesStep.Factory replayChangesFactory,
+      Provider<CurrentUser> currentUser,
+      ImportLog importLog,
       @PluginData File data,
       @Assisted Project.NameKey project) {
     this.projectCache = projectCache;
@@ -94,6 +101,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     this.gitFetchStep = gitFetchStep;
     this.configProjectStep = configProjectStep;
     this.replayChangesFactory = replayChangesFactory;
+    this.currentUser = currentUser;
+    this.importLog = importLog;
     this.lockRoot = data;
     this.project = project;
   }
@@ -134,7 +143,11 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       } finally {
         repo.close();
       }
+      importLog.onImport((IdentifiedUser) currentUser.get(), project,
+          input.from);
     } catch (Exception e) {
+      importLog.onImport((IdentifiedUser) currentUser.get(), project,
+          input.from, e);
       log.error(format("Unable to transfer project '%s' from"
           + " source gerrit host '%s'.",
           project.get(), input.from), e);
