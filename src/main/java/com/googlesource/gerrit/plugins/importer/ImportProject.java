@@ -22,6 +22,7 @@ import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -136,10 +137,43 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       throw new BadRequestException("pass is required");
     }
 
+    LockFile lockFile = lockForImport(project);
+    try {
+      return apply(lockFile, input, false);
+    } finally {
+      lockFile.unlock();
+    }
+  }
+
+  public Response<String> resume(String user, String pass, File importStatus)
+      throws RestApiException, OrmException, IOException, ValidationException,
+      GitAPIException, NoSuchChangeException, NoSuchAccountException {
+    LockFile lockFile = lockForImport(project);
+    try {
+      ImportProjectInfo info = ImportJson.parse(importStatus);
+
+      ImportProject.Input input = new ImportProject.Input();
+      input.user = user;
+      input.pass = pass;
+      input.from = info.from;
+      input.parent = info.parent;
+
+      return apply(lockFile, input, true);
+    } finally {
+      lockFile.unlock();
+    }
+  }
+
+  private Response<String> apply(LockFile lockFile, Input input, boolean resume)
+      throws RestApiException, OrmException, IOException, ValidationException,
+      GitAPIException, NoSuchChangeException, NoSuchAccountException {
+    if (resume) {
+      throw new NotImplementedException();
+    }
+
     ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
         NullProgressMonitor.INSTANCE;
 
-    LockFile lockFile = lockForImport(project);
     try {
       setParentProjectName(input, pm);
       checkPreconditions(pm);
@@ -164,8 +198,6 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
           + " source gerrit host '%s'.",
           project.get(), input.from), e);
       throw e;
-    } finally {
-      lockFile.unlock();
     }
 
     return Response.<String> ok("OK");
