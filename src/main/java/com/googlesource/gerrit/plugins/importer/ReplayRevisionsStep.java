@@ -28,6 +28,7 @@ import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
@@ -80,7 +81,7 @@ class ReplayRevisionsStep {
     db.changes().beginTransaction(change.getId());
     try {
       for (RevisionInfo r : revisions) {
-        String origRef = r.ref;
+        String origRef = imported(r.ref);
         ObjectId id = repo.resolve(origRef);
         if (id == null) {
           // already replayed?
@@ -103,7 +104,7 @@ class ReplayRevisionsStep {
 
         ChangeUtil.insertAncestors(db, ps.getId(), commit);
 
-        renameRef(repo, origRef, ps);
+        updateRef(repo, ps);
       }
 
       db.patchSets().insert(patchSets);
@@ -111,6 +112,11 @@ class ReplayRevisionsStep {
     } finally {
       db.rollback();
     }
+  }
+
+  private static String imported(String ref) {
+    return ConfigureRepositoryStep.R_IMPORTS
+        + ref.substring(Constants.R_REFS.length());
   }
 
   private static void sortRevisionInfoByNumber(List<RevisionInfo> list) {
@@ -122,21 +128,10 @@ class ReplayRevisionsStep {
     });
   }
 
-  private void renameRef(Repository repo, String origRef, PatchSet ps)
+  private void updateRef(Repository repo, PatchSet ps)
       throws IOException {
     String ref = ps.getId().toRefName();
-    if (ref.equals(origRef)) {
-      return;
-    }
-
-    createRef(repo, ps);
-    deleteRef(repo, ps, origRef);
-  }
-
-  private void createRef(Repository repo, PatchSet ps) throws IOException {
-    String ref = ps.getId().toRefName();
     RefUpdate ru = repo.updateRef(ref);
-    ru.setForceUpdate(true);
     ru.setExpectedOldObjectId(ObjectId.zeroId());
     ru.setNewObjectId(ObjectId.fromString(ps.getRevision().get()));
     RefUpdate.Result result = ru.update();
@@ -148,22 +143,6 @@ class ReplayRevisionsStep {
       default:
         throw new IOException(String.format(
             "Failed to create ref %s, RefUpdate.Result = %s", ref, result));
-    }
-  }
-
-  private void deleteRef(Repository repo, PatchSet ps, String ref)
-      throws IOException {
-    RefUpdate ru = repo.updateRef(ref);
-    ru.setForceUpdate(true);
-    ru.setExpectedOldObjectId(ObjectId.fromString(ps.getRevision().get()));
-    ru.setNewObjectId(ObjectId.zeroId());
-    RefUpdate.Result result = ru.update();
-    switch (result) {
-      case FORCED:
-        return;
-      default:
-        throw new IOException(String.format(
-            "Failed to delete ref %s, RefUpdate.Result = %s", ref, result));
     }
   }
 }

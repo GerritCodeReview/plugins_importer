@@ -20,20 +20,51 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+
+import java.io.IOException;
+import java.util.Map;
 
 @Singleton
 class GitFetchStep {
 
   void fetch(String user, String password, Repository repo)
-      throws InvalidRemoteException, TransportException, GitAPIException {
+      throws InvalidRemoteException, TransportException, GitAPIException,
+      IOException {
     CredentialsProvider cp =
         new UsernamePasswordCredentialsProvider(user, password);
     Git.wrap(repo).fetch()
         .setCredentialsProvider(cp)
         .setRemote("origin")
         .call();
+    updateNonChangeRefs(repo);
+  }
+
+  private void updateNonChangeRefs(Repository repo) throws IOException {
+    Map<String, Ref> refs = repo.getRefDatabase().getRefs(
+        ConfigureRepositoryStep.R_IMPORTS);
+    for (Map.Entry<String, Ref> e : refs.entrySet()) {
+      if (e.getKey().startsWith("changes/")) {
+        continue;
+      }
+      String targetRef = Constants.R_REFS + e.getKey();
+      RefUpdate ru = repo.updateRef(targetRef);
+      ru.setNewObjectId(e.getValue().getObjectId());
+      RefUpdate.Result result = ru.forceUpdate();
+      switch (result) {
+        case NEW:
+        case FAST_FORWARD:
+        case FORCED:
+          break;
+        default:
+          throw new IOException(String.format(
+              "Failed to update %s, RefUpdate.Result = %s", targetRef, result));
+      }
+    }
   }
 }

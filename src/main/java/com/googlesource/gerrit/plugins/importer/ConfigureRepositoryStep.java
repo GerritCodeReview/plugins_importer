@@ -25,13 +25,15 @@ import java.io.IOException;
 @Singleton
 class ConfigureRepositoryStep {
 
+  static final String R_IMPORTS = "refs/imports/";
+
   void configure(Repository repo, Project.NameKey name, String originUrl)
       throws IOException {
     StoredConfig config = repo.getConfig();
     config.setString("remote", "origin", "url", originUrl
         .concat("/")
         .concat(name.get()));
-    config.setString("remote", "origin", "fetch", "+refs/*:refs/*");
+    config.setString("remote", "origin", "fetch", "+refs/*:" + R_IMPORTS + "*");
     config.setString("http", null, "sslVerify", Boolean.FALSE.toString());
     config.save();
   }
