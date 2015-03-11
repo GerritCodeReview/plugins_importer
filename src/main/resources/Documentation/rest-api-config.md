@@ -36,6 +36,44 @@ capability.
   }
 ```
 
+### <a id="list-imported-projects"> List Imported Projects
+_GET /config/server/@PLUGIN@~projects/_
+
+Lists the imported projects.
+
+As result a map is returned that maps the project name to
+[ImportProjectInput](#import-project-input) entity.
+
+Caller must be a member of a group that is granted the 'Import'
+capability (provided by this plugin) or the 'Administrate Server'
+capability.
+
+#### Request
+
+```
+  GET /config/server/@PLUGIN@~projects/ HTTP/1.0
+```
+
+#### Response
+
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+  "myProject": {
+    "from": "http://localhost:8081/",
+    "user": "admin"
+  },
+  "myOtherProject": {
+    "from": "http://localhost:8081/",
+    "user": "admin"
+  }
+}
+```
+
 
 <a id="json-entities">JSON Entities
 -----------------------------------
@@ -48,7 +86,8 @@ import.
 * _from_: URL of the remote system from where the project should be
 imported.
 * _user_: User on remote system.
-* _pass_: Password of remote user.
+* _pass_: (Optional) Password of remote user (not set when listing
+imported projects).
 * _parent_: (Optional) Name of the parent project in the target system.
 The imported project will be created under this parent project.
 

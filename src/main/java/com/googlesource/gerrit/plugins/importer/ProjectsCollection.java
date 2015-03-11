@@ -14,38 +14,43 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.AcceptsCreate;
 import com.google.gerrit.extensions.restapi.ChildCollection;
 import com.google.gerrit.extensions.restapi.IdString;
-import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestView;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
+@RequiresCapability(ImportCapability.ID)
 public class ProjectsCollection implements
     ChildCollection<ConfigResource, ImportProjectResource>,
     AcceptsCreate<ConfigResource> {
 
   private final DynamicMap<RestView<ImportProjectResource>> views;
   private final ImportProject.Factory importProjectFactory;
+  private final Provider<ListImportedProjects> list;
 
   @Inject
   ProjectsCollection(
       DynamicMap<RestView<ImportProjectResource>> views,
-      ImportProject.Factory importProjectFactory) {
+      ImportProject.Factory importProjectFactory,
+      Provider<ListImportedProjects> list) {
     this.views = views;
     this.importProjectFactory = importProjectFactory;
+    this.list = list;
   }
 
   @Override
   public RestView<ConfigResource> list() {
-    throw new NotImplementedException();
+    return list.get();
   }
 
   @Override
