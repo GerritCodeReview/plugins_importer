@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.registration.DynamicMap;
 import com.google.gerrit.extensions.restapi.AcceptsCreate;
@@ -28,6 +29,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
+import java.io.File;
+
 @Singleton
 @RequiresCapability(ImportCapability.ID)
 public class ProjectsCollection implements
@@ -37,15 +40,18 @@ public class ProjectsCollection implements
   private final DynamicMap<RestView<ImportProjectResource>> views;
   private final ImportProject.Factory importProjectFactory;
   private final Provider<ListImportedProjects> list;
+  private final File lockRoot;
 
   @Inject
   ProjectsCollection(
       DynamicMap<RestView<ImportProjectResource>> views,
       ImportProject.Factory importProjectFactory,
-      Provider<ListImportedProjects> list) {
+      Provider<ListImportedProjects> list,
+      @PluginData File data) {
     this.views = views;
     this.importProjectFactory = importProjectFactory;
     this.list = list;
+    this.lockRoot = data;
   }
 
   @Override
@@ -56,7 +62,12 @@ public class ProjectsCollection implements
   @Override
   public ImportProjectResource parse(ConfigResource parent, IdString id)
       throws ResourceNotFoundException {
-    throw new ResourceNotFoundException(id);
+    File f = new File(lockRoot, id.get());
+    if (!f.exists()) {
+      throw new ResourceNotFoundException(id);
+    }
+
+    return new ImportProjectResource(id.get(), f);
   }
 
   @Override
