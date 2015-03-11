@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
+
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.AllProjectsName;
 import com.google.gerrit.server.git.MetaDataUpdate;
@@ -21,6 +23,8 @@ import com.google.gerrit.server.git.ProjectConfig;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import org.eclipse.jgit.lib.ProgressMonitor;
 
 import java.io.IOException;
 
@@ -40,8 +44,9 @@ class ConfigureProjectStep {
     this.allProjectsName = allProjectsName;
   }
 
-  void configure(Project.NameKey name, Project.NameKey parentName)
+  void configure(Project.NameKey name, Project.NameKey parentName, ProgressMonitor pm)
       throws IOException {
+    pm.beginTask("Configure project", 1);
     ProjectConfig projectConfig = projectCache.get(name).getConfig();
     Project p = projectConfig.getProject();
     if (!p.getParent(allProjectsName).equals(parentName)) {
@@ -51,5 +56,6 @@ class ConfigureProjectStep {
       projectConfig.commit(md);
       projectCache.evict(p);
     }
+    updateAndEnd(pm);
   }
 }

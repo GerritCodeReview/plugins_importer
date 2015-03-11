@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
 import static java.lang.String.format;
 
 import com.google.gerrit.extensions.registration.DynamicSet;
@@ -28,13 +29,13 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
 
 @Singleton
 class OpenRepositoryStep {
-
   private final GitRepositoryManager git;
   private final ProjectCache projectCache;
   private final DynamicSet<ProjectCreationValidationListener>
@@ -49,8 +50,9 @@ class OpenRepositoryStep {
     this.projectCreationValidationListeners = projectCreationValidationListeners;
   }
 
-  Repository open(Project.NameKey name)
+  Repository open(Project.NameKey name, ProgressMonitor pm)
       throws ResourceConflictException, IOException {
+    pm.beginTask("Open repository", 1);
     try {
       git.openRepository(name);
       throw new ResourceConflictException(format(
@@ -62,6 +64,7 @@ class OpenRepositoryStep {
     beforeCreateProject(name);
     Repository repo = git.createRepository(name);
     onProjectCreated(name);
+    updateAndEnd(pm);
     return repo;
   }
 

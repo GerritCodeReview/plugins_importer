@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
 import static java.lang.String.format;
 
 import com.google.common.base.Charsets;
@@ -45,7 +46,10 @@ import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
+import org.eclipse.jgit.lib.NullProgressMonitor;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.util.FS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +57,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
 
 @RequiresCapability(ImportCapability.ID)
 class ImportProject implements RestModifyView<ConfigResource, Input> {
@@ -83,6 +88,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private Project.NameKey parent;
   private LockFile lockFile;
 
+  private Writer err = null;
+
   @Inject
   ImportProject(
       ProjectCache projectCache,
@@ -107,6 +114,9 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     this.project = project;
   }
 
+  void setErr(Writer err) {
+    this.err = err;
+  }
   @Override
   public Response<String> apply(ConfigResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException,
@@ -127,18 +137,21 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       throw new BadRequestException("pass is required");
     }
 
-    lockFile = lockForImport(project);
+    ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
+        NullProgressMonitor.INSTANCE;
 
+    lockFile = lockForImport(project);
     try {
-      setParentProjectName(input);
-      checkPreconditions();
-      Repository repo = openRepoStep.open(project);
+      setParentProjectName(input, pm);
+      checkPreconditions(pm);
+      Repository repo = openRepoStep.open(project, pm);
       try {
-        persistParams(input);
-        configRepoStep.configure(repo, project, input.from);
-        gitFetchStep.fetch(input.user, input.pass, repo);
-        configProjectStep.configure(project, parent);
-        replayChangesFactory.create(input.from, input.user, input.pass, repo, project)
+        persistParams(input, pm);
+        configRepoStep.configure(repo, project, input.from, pm);
+        gitFetchStep.fetch(input.user, input.pass, repo, project, pm);
+        configProjectStep.configure(project, parent, pm);
+        replayChangesFactory.create(input.from, input.user, input.pass, repo,
+            project, pm)
             .replay();
       } finally {
         repo.close();
@@ -159,7 +172,9 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     return Response.<String> ok("OK");
   }
 
-  private void setParentProjectName(Input input) throws IOException {
+  private void setParentProjectName(Input input, ProgressMonitor pm)
+      throws IOException {
+    pm.beginTask("Set parent project", 1);
     if (parent == null) {
       if (input.parent != null) {
         parent = new Project.NameKey(input.parent);
@@ -169,17 +184,21 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
                 .getProject(project.get()).parent);
       }
     }
+    updateAndEnd(pm);
   }
 
-  private void checkPreconditions() throws ValidationException {
+  private void checkPreconditions(ProgressMonitor pm) throws ValidationException {
+    pm.beginTask("Check preconditions", 1);
     ProjectState p = projectCache.get(parent);
     if (p == null) {
       throw new ValidationException(format(
           "Parent project %s does not exist in target,", parent.get()));
     }
+    updateAndEnd(pm);
   }
 
-  private void persistParams(Input input) throws IOException {
+  private void persistParams(Input input, ProgressMonitor pm) throws IOException {
+    pm.beginTask("Persist parameters", 1);
     // copy input to persist it without password
     Input in = new Input();
     in.from = input.from;
@@ -193,6 +212,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     } finally {
       lockFile.commit();
     }
+    updateAndEnd(pm);
   }
 
   private LockFile lockForImport(Project.NameKey project)

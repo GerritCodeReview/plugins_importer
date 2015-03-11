@@ -14,9 +14,12 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
+
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.Singleton;
 
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 
@@ -27,8 +30,9 @@ class ConfigureRepositoryStep {
 
   static final String R_IMPORTS = "refs/imports/";
 
-  void configure(Repository repo, Project.NameKey name, String originUrl)
+  void configure(Repository repo, Project.NameKey name, String originUrl, ProgressMonitor pm)
       throws IOException {
+    pm.beginTask("Configure repository", 1);
     StoredConfig config = repo.getConfig();
     config.setString("remote", "origin", "url", originUrl
         .concat("/")
@@ -36,5 +40,6 @@ class ConfigureRepositoryStep {
     config.setString("remote", "origin", "fetch", "+refs/*:" + R_IMPORTS + "*");
     config.setString("http", null, "sslVerify", Boolean.FALSE.toString());
     config.save();
+    updateAndEnd(pm);
   }
 }

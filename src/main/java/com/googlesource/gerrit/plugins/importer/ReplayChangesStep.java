@@ -29,6 +29,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevWalk;
 
@@ -44,7 +45,8 @@ class ReplayChangesStep {
         @Assisted("user") String user,
         @Assisted("password") String password,
         Repository repo,
-        Project.NameKey name);
+        Project.NameKey name,
+        ProgressMonitor pm);
   }
 
   private final ReplayRevisionsStep.Factory replayRevisionsFactory;
@@ -61,6 +63,8 @@ class ReplayChangesStep {
   private final Repository repo;
   private final Project.NameKey name;
 
+  private final ProgressMonitor pm;
+
   @Inject
   ReplayChangesStep(
       ReplayRevisionsStep.Factory replayRevisionsFactory,
@@ -72,6 +76,7 @@ class ReplayChangesStep {
       AccountUtil accountUtil,
       ReviewDb db,
       ChangeIndexer indexer,
+      @Assisted ProgressMonitor pm,
       @Assisted("from") String fromGerrit,
       @Assisted("user") String user,
       @Assisted("password") String password,
@@ -90,20 +95,25 @@ class ReplayChangesStep {
     this.api = new RemoteApi(fromGerrit, user, password);
     this.repo = repo;
     this.name = name;
+    this.pm = pm;
   }
 
   void replay() throws IOException, OrmException,
       NoSuchAccountException, NoSuchChangeException, RestApiException,
       ValidationException {
     List<ChangeInfo> changes = api.queryChanges(name.get());
+
+    pm.beginTask("Replay Changes", changes.size());
     RevWalk rw = new RevWalk(repo);
     try {
       for (ChangeInfo c : changes) {
         replayChange(rw, c);
+        pm.update(1);
       }
     } finally {
       rw.release();
     }
+    pm.endTask();
   }
 
   private void replayChange(RevWalk rw, ChangeInfo c)

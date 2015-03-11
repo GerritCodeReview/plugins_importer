@@ -78,8 +78,9 @@ public class ProjectCommand extends SshCommand {
     }
 
     try {
-      importProjectFactory.create(new Project.NameKey(project))
-          .apply(new ConfigResource(), input);
+      ImportProject importer = importProjectFactory.create(new Project.NameKey(project));
+      importer.setErr(stderr);
+      importer.apply(new ConfigResource(), input);
     } catch (RestApiException e) {
       throw die(e.getMessage());
     }
