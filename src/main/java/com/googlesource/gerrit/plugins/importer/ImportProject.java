@@ -148,7 +148,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       try {
         persistParams(input, pm);
         configRepoStep.configure(repo, project, input.from, pm);
-        gitFetchStep.fetch(input.user, input.pass, repo, project, pm);
+        gitFetchStep.fetch(input.user, input.pass, repo, pm);
         configProjectStep.configure(project, parent, pm);
         replayChangesFactory.create(input.from, input.user, input.pass, repo,
             project, pm)

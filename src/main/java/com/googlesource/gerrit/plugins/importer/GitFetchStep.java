@@ -16,7 +16,6 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
 
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.Singleton;
 
 import org.eclipse.jgit.api.Git;
@@ -24,9 +23,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.RefUpdate;
-import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -37,8 +36,7 @@ import java.util.Map;
 @Singleton
 class GitFetchStep {
 
-  void fetch(String user, String password, Repository repo,
-      Project.NameKey name, ProgressMonitor pm)
+  void fetch(String user, String password, Repository repo, ProgressMonitor pm)
       throws InvalidRemoteException, TransportException, GitAPIException,
       IOException {
     pm.beginTask("Fetch project", 1);
