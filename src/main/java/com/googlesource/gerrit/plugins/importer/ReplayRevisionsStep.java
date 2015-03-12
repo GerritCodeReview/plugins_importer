@@ -81,6 +81,10 @@ class ReplayRevisionsStep {
     db.changes().beginTransaction(change.getId());
     try {
       for (RevisionInfo r : revisions) {
+        if (r.draft != null && r.draft) {
+          // no import of draft patch sets
+          continue;
+        }
         String origRef = imported(r.ref);
         ObjectId id = repo.resolve(origRef);
         if (id == null) {

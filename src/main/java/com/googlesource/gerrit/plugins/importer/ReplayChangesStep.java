@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Branch;
@@ -119,6 +120,11 @@ class ReplayChangesStep {
   private void replayChange(RevWalk rw, ChangeInfo c)
       throws IOException, OrmException, NoSuchAccountException,
       NoSuchChangeException, RestApiException, ValidationException {
+    if (c.status == ChangeStatus.DRAFT) {
+      // no import of draft changes
+      return;
+    }
+
     Change change = createChange(c);
     replayRevisionsFactory.create(repo, rw, change, c).replay();
     db.changes().insert(Collections.singleton(change));
