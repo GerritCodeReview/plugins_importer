@@ -174,6 +174,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
         NullProgressMonitor.INSTANCE;
 
+    checkProjectInSource(input, pm);
+
     try {
       setParentProjectName(input, pm);
       checkPreconditions(pm);
@@ -203,6 +205,13 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     }
 
     return Response.<String> ok("OK");
+  }
+
+  private void checkProjectInSource(Input input, ProgressMonitor pm)
+      throws IOException, BadRequestException {
+    pm.beginTask("Check source project", 1);
+    new RemoteApi(input.from, input.user, input.pass).getProject(project.get());
+    updateAndEnd(pm);
   }
 
   private void setParentProjectName(Input input, ProgressMonitor pm)
