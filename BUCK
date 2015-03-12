@@ -25,6 +25,10 @@ gerrit_plugin(
     HTTP_LIB,
     GSON,
   ],
+  provided_deps = [
+    '//lib/commons:validator',
+    '//lib/log:log4j'
+  ],
 )
 
 # this is required for bucklets/tools/eclipse/project.py to work
