@@ -191,6 +191,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       }
       importLog.onImport((IdentifiedUser) currentUser.get(), project,
           input.from);
+    } catch (BadRequestException e) {
+      throw e;
     } catch (Exception e) {
       importLog.onImport((IdentifiedUser) currentUser.get(), project,
           input.from, e);
@@ -218,12 +220,12 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     updateAndEnd(pm);
   }
 
-  private void checkPreconditions(ProgressMonitor pm) throws ValidationException {
+  private void checkPreconditions(ProgressMonitor pm) throws BadRequestException {
     pm.beginTask("Check preconditions", 1);
     ProjectState p = projectCache.get(parent);
     if (p == null) {
-      throw new ValidationException(format(
-          "Parent project %s does not exist in target,", parent.get()));
+      throw new BadRequestException(format(
+          "Parent project '%s' does not exist in target.", parent.get()));
     }
     updateAndEnd(pm);
   }
