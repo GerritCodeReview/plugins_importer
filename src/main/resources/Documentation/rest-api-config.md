@@ -65,6 +65,7 @@ capability.
   {
     "myProject": {
       "from": "http://localhost:8081/",
+      "name": "myProject",
       "imports": [
         {
           "timestamp": "2015-03-11 09:14:21.748000000",
@@ -78,8 +79,9 @@ capability.
         }
       ]
     },
-    "myOtherProject": {
+    "myProject2": {
       "from": "http://localhost:8081/",
+      "name": "projectToBeRenamed",
       "imports": [
         {
           "timestamp": "2015-03-11 09:16:04.511000000",
@@ -124,6 +126,7 @@ capability.
   )]}'
   {
     "from": "http://localhost:8081/",
+    "name": "myProject",
     "imports": [
       {
         "timestamp": "2015-03-11 09:14:21.748000000",
@@ -184,6 +187,7 @@ imports of a project.
 
 * _from_: URL of the remote system from where the project should be
 imported.
+* _name_: Name of the project in the source system.
 * _parent_: (Optional) Name of the parent project in the target system.
 * _imports_: List of past imports as [ImportInfo](#import-info)
 entities.
@@ -195,6 +199,9 @@ import.
 
 * _from_: URL of the remote system from where the project should be
 imported.
+* _name_: (Optional) Name of the project in the source system.
+If not specified it is assumed to be the same name as in the target
+system.
 * _user_: User on remote system.
 * _pass_: Password of remote user.
 * _parent_: (Optional) Name of the parent project in the target system.

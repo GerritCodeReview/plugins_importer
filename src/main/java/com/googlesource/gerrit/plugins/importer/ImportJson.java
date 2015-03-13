@@ -59,6 +59,7 @@ public class ImportJson {
     if (info == null) {
       info = new ImportProjectInfo();
       info.from = input.from;
+      info.name = input.name;
       info.parent = input.parent;
       info.imports = new ArrayList<>();
     }

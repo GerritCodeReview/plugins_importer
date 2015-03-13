@@ -10,6 +10,7 @@ SYNOPSIS
 ```
 ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ project \
   --from <URL> | -f <URL> \
+  [--name <NAME>] \
   --user <USER> | -u <USER> \
   --pass - | <PASS> \
   [--parent <NAME>] \
@@ -36,6 +37,10 @@ OPTIONS
 
 `--from`
 :	URL of the remote system from where the project should be imported.
+
+`--name`
+:	Name of the project in the source system.
+	If not specified it is assumed to be the same name as in the target system.
 
 `--pass`
 :	Password of remote user.

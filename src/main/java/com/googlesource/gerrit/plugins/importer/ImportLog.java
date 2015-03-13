@@ -40,7 +40,8 @@ class ImportLog implements LifecycleListener {
   public static String ACCOUNT_ID = "accountId";
   public static String USER_NAME = "userName";
   public static String FROM = "from";
-  public static String PROJECT_NAME = "projectName";
+  public static String SRC_PROJECT_NAME = "srcProjectName";
+  public static String TARGET_PROJECT_NAME = "targetProjectName";
   public static String ERROR = "error";
 
   private final SystemLog systemLog;
@@ -57,12 +58,13 @@ class ImportLog implements LifecycleListener {
     this.auditService = auditService;
   }
 
-  public void onImport(IdentifiedUser user, Project.NameKey project, String from) {
-    onImport(user, project, from, null);
+  public void onImport(IdentifiedUser user, Project.NameKey srcProject,
+      Project.NameKey targetProject, String from) {
+    onImport(user, srcProject, targetProject, from, null);
   }
 
-  public void onImport(IdentifiedUser user, Project.NameKey project,
-      String from, Exception ex) {
+  public void onImport(IdentifiedUser user, Project.NameKey srcProject,
+      Project.NameKey targetProject, String from, Exception ex) {
     long ts = TimeUtil.nowMs();
     LoggingEvent event = new LoggingEvent( //
         Logger.class.getName(), // fqnOfCategoryClass
@@ -84,7 +86,8 @@ class ImportLog implements LifecycleListener {
     event.setProperty(ACCOUNT_ID, user.getAccountId().toString());
     event.setProperty(USER_NAME, user.getUserName());
     event.setProperty(FROM, from);
-    event.setProperty(PROJECT_NAME, project.get());
+    event.setProperty(SRC_PROJECT_NAME, srcProject.get());
+    event.setProperty(TARGET_PROJECT_NAME, targetProject.get());
 
     if (ex != null) {
       event.setProperty(ERROR, ex.toString());
@@ -92,7 +95,7 @@ class ImportLog implements LifecycleListener {
 
     log.callAppenders(event);
 
-    audit(user, ts, project, from, ex);
+    audit(user, ts, srcProject, from, ex);
   }
 
   private void audit(IdentifiedUser user, long ts, Project.NameKey project,

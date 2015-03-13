@@ -45,6 +45,11 @@ public class ProjectCommand extends SshCommand {
       usage = "URL of the remote system from where the project should be imported")
   private String url;
 
+  @Option(name = "--name", required = false, metaVar = "NAME",
+      usage = "name of project in source system (if not specified it is"
+          + " assumed to be the same name as in the target system)")
+  private String name;
+
   @Option(name = "--user", aliases = {"-u"}, required = true, metaVar = "NAME",
       usage = "user on remote system")
   private String user;
@@ -61,7 +66,7 @@ public class ProjectCommand extends SshCommand {
   private boolean quiet;
 
   @Argument(index = 0, required = true, metaVar = "NAME",
-      usage = "name of the project to be imported")
+      usage = "name of the project in target system")
   private String project;
 
   @Inject
@@ -73,6 +78,7 @@ public class ProjectCommand extends SshCommand {
       NoSuchAccountException {
     ImportProject.Input input = new ImportProject.Input();
     input.from = url;
+    input.name = name;
     input.user = user;
     input.pass = readPassword();
     if (!Strings.isNullOrEmpty(parent)) {

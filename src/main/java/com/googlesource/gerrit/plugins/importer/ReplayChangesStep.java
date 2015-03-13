@@ -50,7 +50,8 @@ class ReplayChangesStep {
         @Assisted("user") String user,
         @Assisted("password") String password,
         Repository repo,
-        Project.NameKey name,
+        @Assisted("srcProject") Project.NameKey srcProject,
+        @Assisted("targetProject") Project.NameKey targetProject,
         boolean resume,
         ProgressMonitor pm);
   }
@@ -68,7 +69,8 @@ class ReplayChangesStep {
   private final String fromGerrit;
   private final RemoteApi api;
   private final Repository repo;
-  private final Project.NameKey name;
+  private final Project.NameKey srcProject;
+  private final Project.NameKey targetProject;
   private final boolean resume;
   private final ProgressMonitor pm;
 
@@ -88,7 +90,8 @@ class ReplayChangesStep {
       @Assisted("user") String user,
       @Assisted("password") String password,
       @Assisted Repository repo,
-      @Assisted Project.NameKey name,
+      @Assisted("srcProject") Project.NameKey srcProject,
+      @Assisted("targetProject") Project.NameKey targetProject,
       @Assisted boolean resume,
       @Assisted ProgressMonitor pm) {
     this.replayRevisionsFactory = replayRevisionsFactory;
@@ -104,15 +107,16 @@ class ReplayChangesStep {
     this.fromGerrit = fromGerrit;
     this.api = new RemoteApi(fromGerrit, user, password);
     this.repo = repo;
-    this.name = name;
-    this.pm = pm;
+    this.srcProject = srcProject;
+    this.targetProject = targetProject;
     this.resume = resume;
+    this.pm = pm;
   }
 
   void replay() throws IOException, OrmException,
       NoSuchAccountException, NoSuchChangeException, RestApiException,
       ValidationException {
-    List<ChangeInfo> changes = api.queryChanges(name.get());
+    List<ChangeInfo> changes = api.queryChanges(srcProject.get());
 
     pm.beginTask("Replay Changes", changes.size());
     RevWalk rw = new RevWalk(repo);
@@ -159,7 +163,7 @@ class ReplayChangesStep {
   private Change findChange(ChangeInfo c) throws OrmException {
     List<Change> changes = ChangeData.asChanges(
         queryProvider.get().byBranchKey(
-            new Branch.NameKey(name, fullName(c.branch)),
+            new Branch.NameKey(targetProject, fullName(c.branch)),
             new Change.Key(c.changeId)));
     if (changes.isEmpty()) {
       return null;
@@ -175,8 +179,7 @@ class ReplayChangesStep {
 
     Change change =
         new Change(new Change.Key(c.changeId), changeId, accountUtil.resolveUser(c.owner),
-            new Branch.NameKey(new Project.NameKey(c.project),
-            fullName(c.branch)), c.created);
+            new Branch.NameKey(targetProject, fullName(c.branch)), c.created);
     change.setStatus(Change.Status.forChangeStatus(c.status));
     change.setTopic(c.topic);
     change.setLastUpdatedOn(c.updated);

@@ -18,6 +18,7 @@ import java.util.List;
 
 public class ImportProjectInfo {
   public String from;
+  public String name;
   public String parent;
   public List<ImportInfo> imports;
 }

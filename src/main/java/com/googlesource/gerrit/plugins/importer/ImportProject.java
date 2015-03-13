@@ -59,6 +59,7 @@ import java.io.Writer;
 class ImportProject implements RestModifyView<ConfigResource, Input> {
   public static class Input {
     public String from;
+    public String name;
     public String user;
     public String pass;
     public String parent;
@@ -77,7 +78,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   interface Factory {
-    ImportProject create(Project.NameKey project);
+    ImportProject create(Project.NameKey targetProject);
   }
 
   private static Logger log = LoggerFactory.getLogger(ImportProject.class);
@@ -93,7 +94,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private final ImportLog importLog;
   private final File lockRoot;
 
-  private final Project.NameKey project;
+  private final Project.NameKey targetProject;
+  private Project.NameKey srcProject;
   private Project.NameKey parent;
 
   private Writer err;
@@ -110,7 +112,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       ImportJson importJson,
       ImportLog importLog,
       @PluginData File data,
-      @Assisted Project.NameKey project) {
+      @Assisted Project.NameKey targetProject) {
     this.projectCache = projectCache;
     this.openRepoStep = openRepoStep;
     this.configRepoStep = configRepoStep;
@@ -121,7 +123,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     this.importJson = importJson;
     this.importLog = importLog;
     this.lockRoot = data;
-    this.project = project;
+    this.targetProject = targetProject;
   }
 
   void setErr(Writer err) {
@@ -155,6 +157,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       input.user = user;
       input.pass = pass;
       input.from = info.from;
+      input.name = info.name;
       input.parent = info.parent;
 
       return apply(lockFile, input, info);
@@ -173,33 +176,33 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
         NullProgressMonitor.INSTANCE;
 
-    checkProjectInSource(input, pm);
-
     try {
+      srcProject = !Strings.isNullOrEmpty(input.name)
+          ? new Project.NameKey(input.name) : targetProject;
+      checkProjectInSource(input, pm);
       setParentProjectName(input, pm);
       checkPreconditions(pm);
-      Repository repo = openRepoStep.open(project, resume, pm);
+      Repository repo = openRepoStep.open(targetProject, resume, pm);
       try {
         ImportJson.persist(lockFile, importJson.format(input, info), pm);
-        configRepoStep.configure(repo, project, input.from, pm);
+        configRepoStep.configure(repo, srcProject, input.from, pm);
         gitFetchStep.fetch(input.user, input.pass, repo, pm);
-        configProjectStep.configure(project, parent, pm);
+        configProjectStep.configure(targetProject, parent, pm);
         replayChangesFactory.create(input.from, input.user, input.pass, repo,
-            project, resume, pm)
-            .replay();
+            srcProject, targetProject, resume, pm).replay();
       } finally {
         repo.close();
       }
-      importLog.onImport((IdentifiedUser) currentUser.get(), project,
-          input.from);
+      importLog.onImport((IdentifiedUser) currentUser.get(), srcProject,
+          targetProject, input.from);
     } catch (BadRequestException e) {
       throw e;
     } catch (Exception e) {
-      importLog.onImport((IdentifiedUser) currentUser.get(), project,
-          input.from, e);
+      importLog.onImport((IdentifiedUser) currentUser.get(), srcProject,
+          targetProject, input.from, e);
       log.error(format("Unable to transfer project '%s' from"
           + " source gerrit host '%s'.",
-          project.get(), input.from), e);
+          srcProject.get(), input.from), e);
       throw e;
     }
 
@@ -209,7 +212,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private void checkProjectInSource(Input input, ProgressMonitor pm)
       throws IOException, BadRequestException {
     pm.beginTask("Check source project", 1);
-    new RemoteApi(input.from, input.user, input.pass).getProject(project.get());
+    new RemoteApi(input.from, input.user, input.pass).getProject(srcProject.get());
     updateAndEnd(pm);
   }
 
@@ -222,7 +225,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       } else {
         parent = new Project.NameKey(
             new RemoteApi(input.from, input.user, input.pass)
-                .getProject(project.get()).parent);
+                .getProject(srcProject.get()).parent);
       }
     }
     updateAndEnd(pm);
@@ -239,7 +242,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   private LockFile lockForImport() throws ResourceConflictException {
-    File importStatus = new File(lockRoot, project.get());
+    File importStatus = new File(lockRoot, targetProject.get());
     LockFile lockFile = new LockFile(importStatus, FS.DETECTED);
     try {
       if (lockFile.lock()) {

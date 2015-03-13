@@ -43,12 +43,12 @@ final class ImportLogLayout extends Layout {
    *
    * A successful project import will result in a log entry like this:
    *   [2015-03-05 09:13:28,912 +0100] INFO 1000000 admin OK \
-   *   https://some-gerrit-server:8080 myProject
+   *   https://some-gerrit-server:8080 srcName targetName
    *
    * The log entry for a failed project import will look like this:
    *   [2015-03-05 12:14:30,180 +0100] ERROR 1000000 admin FAIL \
-   *   https://some-gerrit-server:8080 myProject com.google.gwtorm.server.OrmException: \
-   *   Failed to access the database
+   *   https://some-gerrit-server:8080 srcName targetName \
+   *   com.google.gwtorm.server.OrmException: Failed to access the database
    */
   @Override
   public String format(LoggingEvent event) {
@@ -70,7 +70,8 @@ final class ImportLogLayout extends Layout {
     buf.append(event.getMessage());
 
     req(ImportLog.FROM, buf, event);
-    req(ImportLog.PROJECT_NAME, buf, event);
+    req(ImportLog.SRC_PROJECT_NAME, buf, event);
+    req(ImportLog.TARGET_PROJECT_NAME, buf, event);
     opt(ImportLog.ERROR, buf, event);
 
     buf.append('\n');
