@@ -143,6 +143,7 @@ class ReplayChangesStep {
             fullName(c.branch)), c.created);
     change.setStatus(Change.Status.forChangeStatus(c.status));
     change.setTopic(c.topic);
+    change.setLastUpdatedOn(c.updated);
     return change;
   }
 
