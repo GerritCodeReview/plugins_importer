@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
 import static java.lang.String.format;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
@@ -30,7 +29,6 @@ import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
-import com.google.gerrit.server.OutputFormat;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
@@ -56,7 +54,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Writer;
 
 @RequiresCapability(ImportCapability.ID)
@@ -81,12 +78,12 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private final ConfigureProjectStep configProjectStep;
   private final ReplayChangesStep.Factory replayChangesFactory;
   private final Provider<CurrentUser> currentUser;
+  private final ImportJson importJson;
   private final ImportLog importLog;
   private final File lockRoot;
 
   private final Project.NameKey project;
   private Project.NameKey parent;
-  private LockFile lockFile;
 
   private Writer err = null;
 
@@ -99,6 +96,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       ConfigureProjectStep configProjectStep,
       ReplayChangesStep.Factory replayChangesFactory,
       Provider<CurrentUser> currentUser,
+      ImportJson importJson,
       ImportLog importLog,
       @PluginData File data,
       @Assisted Project.NameKey project) {
@@ -109,6 +107,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     this.configProjectStep = configProjectStep;
     this.replayChangesFactory = replayChangesFactory;
     this.currentUser = currentUser;
+    this.importJson = importJson;
     this.importLog = importLog;
     this.lockRoot = data;
     this.project = project;
@@ -140,13 +139,13 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
         NullProgressMonitor.INSTANCE;
 
-    lockFile = lockForImport(project);
+    LockFile lockFile = lockForImport(project);
     try {
       setParentProjectName(input, pm);
       checkPreconditions(pm);
       Repository repo = openRepoStep.open(project, pm);
       try {
-        persistParams(input, pm);
+        ImportJson.persist(lockFile, importJson.format(input), pm);
         configRepoStep.configure(repo, project, input.from, pm);
         gitFetchStep.fetch(input.user, input.pass, repo, pm);
         configProjectStep.configure(project, parent, pm);
@@ -193,24 +192,6 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     if (p == null) {
       throw new ValidationException(format(
           "Parent project %s does not exist in target,", parent.get()));
-    }
-    updateAndEnd(pm);
-  }
-
-  private void persistParams(Input input, ProgressMonitor pm) throws IOException {
-    pm.beginTask("Persist parameters", 1);
-    // copy input to persist it without password
-    Input in = new Input();
-    in.from = input.from;
-    in.user = input.user;
-    in.parent = input.parent;
-
-    String s = OutputFormat.JSON_COMPACT.newGson().toJson(in);
-    try (OutputStream out = lockFile.getOutputStream()) {
-      out.write(s.getBytes(Charsets.UTF_8));
-      out.write('\n');
-    } finally {
-      lockFile.commit();
     }
     updateAndEnd(pm);
   }
