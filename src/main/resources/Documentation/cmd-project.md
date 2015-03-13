@@ -45,7 +45,7 @@ OPTIONS
 
 `--parent`
 :	Name of the parent project in the target system.
-	The imported projects will be created under this parent project.
+	The imported project will be created under this parent project.
 
 `--quiet`
 :	Suppress progress messages.
