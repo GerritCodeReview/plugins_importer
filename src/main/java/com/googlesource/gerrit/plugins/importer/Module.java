@@ -37,6 +37,7 @@ class Module extends FactoryModule {
         DynamicMap.mapOf(binder(), IMPORT_PROJECT_KIND);
         child(CONFIG_KIND, "projects").to(ProjectsCollection.class);
         get(IMPORT_PROJECT_KIND).to(GetImportedProject.class);
+        put(IMPORT_PROJECT_KIND, "resume").to(ResumeProjectImport.class);
       }
     });
     bind(LifecycleListener.class)

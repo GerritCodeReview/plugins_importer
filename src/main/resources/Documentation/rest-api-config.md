@@ -139,6 +139,30 @@ capability.
   }
 ```
 
+### <a id="resume-project-import"> Resume Project Import
+_GET /config/server/@PLUGIN@~projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)/resume_
+
+Resumes a project import.
+
+Information about the import resume must be provided in the request
+body as a [ImportResumeInput](#import-resume-input) entity.
+
+Caller must be a member of a group that is granted the 'Import'
+capability (provided by this plugin) or the 'Administrate Server'
+capability.
+
+#### Request
+
+```
+  PUT /config/server/@PLUGIN@~projects/myProject/resume HTTP/1.0
+  Content-Type: application/json;charset=UTF-8
+
+  {
+    "user": "myUser",
+    "pass": "myPassword"
+  }
+```
+
 
 <a id="json-entities">JSON Entities
 -----------------------------------
@@ -175,6 +199,14 @@ imported.
 * _pass_: Password of remote user.
 * _parent_: (Optional) Name of the parent project in the target system.
 The imported project will be created under this parent project.
+
+### <a id="import-resume-input"></a>ImportResumeInput
+
+The `ImportResumeInput` entity contains information about an import
+resume.
+
+* _user_: User on remote system.
+* _pass_: Password of remote user.
 
 
 SEE ALSO

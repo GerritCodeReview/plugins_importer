@@ -27,11 +27,11 @@ class ImportProjectResource implements RestResource {
       new TypeLiteral<RestView<ImportProjectResource>>() {};
 
   private final Project.NameKey name;
-  private final File file;
+  private final File importStatus;
 
-  ImportProjectResource(String name, File file) {
+  ImportProjectResource(String name, File importStatus) {
     this.name = new Project.NameKey(name);
-    this.file = file;
+    this.importStatus = importStatus;
   }
 
   public Project.NameKey getName() {
@@ -39,6 +39,10 @@ class ImportProjectResource implements RestResource {
   }
 
   public ImportProjectInfo getInfo() throws IOException {
-    return ImportJson.parse(file);
+    return ImportJson.parse(importStatus);
+  }
+
+  public File getImportStatus() {
+    return importStatus;
   }
 }
