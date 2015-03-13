@@ -58,6 +58,9 @@ public class ProjectCommand extends SshCommand {
       usage = "name of parent project in target system")
   private ProjectControl parent;
 
+  @Option(name = "--quiet", usage = "suppress progress messages")
+  private boolean quiet;
+
   @Argument(index = 0, required = true, metaVar = "NAME",
       usage = "name of the project to be imported")
   private String project;
@@ -79,7 +82,9 @@ public class ProjectCommand extends SshCommand {
 
     try {
       ImportProject importer = importProjectFactory.create(new Project.NameKey(project));
-      importer.setErr(stderr);
+      if (!quiet) {
+        importer.setErr(stderr);
+      }
       importer.apply(new ConfigResource(), input);
     } catch (RestApiException e) {
       throw die(e.getMessage());
