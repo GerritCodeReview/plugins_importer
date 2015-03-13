@@ -27,6 +27,7 @@ import com.google.gerrit.server.util.SystemLog;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -121,9 +122,11 @@ class ImportLog implements LifecycleListener {
   public void start() {
     if (!started) {
       Logger importLogger = LogManager.getLogger(IMPORT_LOG_NAME);
-      importLogger.removeAllAppenders();
-      importLogger.addAppender(systemLog.createAsyncAppender(
-          importLogger.getName(), new ImportLogLayout()));
+      String loggerName = importLogger.getName();
+      AsyncAppender asyncAppender = systemLog.createAsyncAppender(
+          loggerName, new ImportLogLayout());
+      importLogger.removeAppender(loggerName);
+      importLogger.addAppender(asyncAppender);
       importLogger.setAdditivity(false);
       started = true;
     }
