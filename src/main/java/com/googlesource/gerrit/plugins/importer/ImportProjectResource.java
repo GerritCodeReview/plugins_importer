@@ -19,17 +19,26 @@ import com.google.gerrit.extensions.restapi.RestView;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.TypeLiteral;
 
+import java.io.File;
+import java.io.IOException;
+
 class ImportProjectResource implements RestResource {
   static final TypeLiteral<RestView<ImportProjectResource>> IMPORT_PROJECT_KIND =
       new TypeLiteral<RestView<ImportProjectResource>>() {};
 
   private final Project.NameKey name;
+  private final File file;
 
-  ImportProjectResource(String name) {
+  ImportProjectResource(String name, File file) {
     this.name = new Project.NameKey(name);
+    this.file = file;
   }
 
   public Project.NameKey getName() {
     return name;
+  }
+
+  public ImportProjectInfo getInfo() throws IOException {
+    return ImportJson.parse(file);
   }
 }

@@ -96,6 +96,49 @@ capability.
   }
 ```
 
+### <a id="get-imported-project"> Get Imported Project
+_GET /config/server/@PLUGIN@~projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)_
+
+Gets information about the imports of a project.
+
+As result a [ImportProjectInfo](#import-project-info) entity is
+returned.
+
+Caller must be a member of a group that is granted the 'Import'
+capability (provided by this plugin) or the 'Administrate Server'
+capability.
+
+#### Request
+
+```
+  GET /config/server/@PLUGIN@~projects/myProject HTTP/1.0
+```
+
+#### Response
+
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "from": "http://localhost:8081/",
+    "imports": [
+      {
+        "timestamp": "2015-03-11 09:14:21.748000000",
+        "user": {
+          "_account_id": 1000000,
+          "name": "Administrator",
+          "email": "edwin.kempin@gmail.com",
+          "username": "admin"
+        },
+        "remote_user": "admin"
+      }
+    ]
+  }
+```
+
 
 <a id="json-entities">JSON Entities
 -----------------------------------
