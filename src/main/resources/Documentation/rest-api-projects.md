@@ -33,6 +33,21 @@ capability.
   }
 ```
 
+### <a id="resume-copy-project"> Resume Copy Project
+_PUT /projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)/@PLUGIN@~copy.resume_
+
+Resumes copying to a project from the original copy source.
+
+Caller must be a member of a group that is granted the 'CopyProject'
+capability (provided by this plugin) or the 'Administrate Server'
+capability.
+
+#### Request
+
+```
+  PUT /projects/myProjectCopy/@PLUGIN@~copy.resume HTTP/1.0
+```
+
 
 <a id="json-entities">JSON Entities
 -----------------------------------

@@ -44,6 +44,7 @@ class Module extends FactoryModule {
         put(IMPORT_PROJECT_KIND, "resume").to(ResumeProjectImport.class);
 
         put(PROJECT_KIND, "copy").to(CopyProject.class);
+        put(PROJECT_KIND, "copy.resume").to(ResumeCopyProject.class);
       }
     });
     bind(LifecycleListener.class)
