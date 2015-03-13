@@ -1,0 +1,55 @@
+@PLUGIN@ - /projects/ REST API
+==============================
+
+This page describes the REST endpoints that are added by the @PLUGIN@
+plugin.
+
+Please also take note of the general information on the
+[REST API](../../../Documentation/rest-api.html).
+
+<a id="importer-endpoints"> Importer Endpoints
+----------------------------------------------
+
+### <a id="copy-project"> Copy Project
+_PUT /projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)/@PLUGIN@~copy_
+
+Copies a project.
+
+Information about the copy target must be provided in the request body
+as a [CopyProjectInput](#copy-project-input) entity.
+
+Caller must be a member of a group that is granted the 'CopyProject'
+capability (provided by this plugin) or the 'Administrate Server'
+capability.
+
+#### Request
+
+```
+  PUT /projects/myProject/@PLUGIN@~copy HTTP/1.0
+  Content-Type: application/json;charset=UTF-8
+
+  {
+    "name": "myProjectCopy"
+  }
+```
+
+
+<a id="json-entities">JSON Entities
+-----------------------------------
+
+### <a id="copy-project-input"></a>CopyProjectInput
+
+The `CopyProjectInput` entity contains information about a the copy
+target.
+
+* _name_: The target project name.
+
+
+SEE ALSO
+--------
+
+* [Config related REST endpoints](../../../Documentation/rest-api-projects.html)
+
+GERRIT
+------
+Part of [Gerrit Code Review](../../../Documentation/index.html)

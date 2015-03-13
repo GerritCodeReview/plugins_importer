@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import static com.google.gerrit.server.config.ConfigResource.CONFIG_KIND;
+import static com.google.gerrit.server.project.ProjectResource.PROJECT_KIND;
 import static com.googlesource.gerrit.plugins.importer.ImportProjectResource.IMPORT_PROJECT_KIND;
 
 import com.google.gerrit.extensions.annotations.Exports;
@@ -31,6 +32,9 @@ class Module extends FactoryModule {
     bind(CapabilityDefinition.class)
         .annotatedWith(Exports.named(ImportCapability.ID))
         .to(ImportCapability.class);
+    bind(CapabilityDefinition.class)
+        .annotatedWith(Exports.named(CopyProjectCapability.ID))
+        .to(CopyProjectCapability.class);
     install(new RestApiModule() {
       @Override
       protected void configure() {
@@ -38,6 +42,8 @@ class Module extends FactoryModule {
         child(CONFIG_KIND, "projects").to(ProjectsCollection.class);
         get(IMPORT_PROJECT_KIND).to(GetImportedProject.class);
         put(IMPORT_PROJECT_KIND, "resume").to(ResumeProjectImport.class);
+
+        put(PROJECT_KIND, "copy").to(CopyProject.class);
       }
     });
     bind(LifecycleListener.class)
