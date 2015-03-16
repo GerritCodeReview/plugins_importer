@@ -18,10 +18,13 @@ import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.project.ProjectResource;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
@@ -60,5 +63,29 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     }
     return importProjectFactory.create(rsrc.getName())
         .resume(input.user, input.pass, rsrc.getImportStatus());
+  }
+
+  public static class OnProjects implements RestModifyView<ProjectResource, Input> {
+    private final ProjectsCollection projectsCollection;
+    private final ResumeProjectImport resumeProjectImport;
+
+    @Inject
+    public OnProjects(
+        ProjectsCollection projectsCollection,
+        ResumeProjectImport resumeProjectImport) {
+      this.projectsCollection = projectsCollection;
+      this.resumeProjectImport = resumeProjectImport;
+    }
+
+    @Override
+    public Response<String> apply(ProjectResource rsrc, Input input)
+        throws RestApiException, IOException, OrmException,
+        ValidationException, GitAPIException, NoSuchChangeException,
+        NoSuchAccountException {
+      ImportProjectResource projectResource =
+          projectsCollection.parse(new ConfigResource(),
+              IdString.fromDecoded(rsrc.getName()));
+      return resumeProjectImport.apply(projectResource, input);
+    }
   }
 }

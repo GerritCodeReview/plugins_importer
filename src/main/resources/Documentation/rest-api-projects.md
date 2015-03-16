@@ -48,6 +48,31 @@ capability.
   PUT /projects/myProjectCopy/@PLUGIN@~copy.resume HTTP/1.0
 ```
 
+### <a id="resume-project-import"> Resume Project Import
+_PUT /projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)/@PLUGIN@~import.resume_
+
+Resumes importing to a project from the original copy source.
+
+Information about the import resume must be provided in the request
+body as a [ImportResumeInput](rest-api-config.html#import-resume-input)
+entity.
+
+Caller must be a member of a group that is granted the 'ImportProject'
+capability (provided by this plugin) or the 'Administrate Server'
+capability.
+
+#### Request
+
+```
+  PUT /projects/myProjectCopy/@PLUGIN@~import.resume HTTP/1.0
+  Content-Type: application/json;charset=UTF-8
+
+  {
+    "user": "myUser",
+    "pass": "myPassword"
+  }
+```
+
 
 <a id="json-entities">JSON Entities
 -----------------------------------
