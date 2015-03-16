@@ -56,7 +56,7 @@ public class ProjectCommand extends SshCommand {
 
   @Option(name = "--parent", required = false, metaVar = "NAME",
       usage = "name of parent project in target system")
-  private ProjectControl parent;
+  private String parent;
 
   @Option(name = "--quiet", usage = "suppress progress messages")
   private boolean quiet;
@@ -76,8 +76,8 @@ public class ProjectCommand extends SshCommand {
     input.from = url;
     input.user = user;
     input.pass = readPassword();
-    if (parent != null) {
-      input.parent = parent.getProject().getName();
+    if (!Strings.isNullOrEmpty(parent)) {
+      input.parent = parent;
     }
 
     try {
