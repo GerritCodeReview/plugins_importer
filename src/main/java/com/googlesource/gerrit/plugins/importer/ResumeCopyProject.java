@@ -15,16 +15,23 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.IdString;
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.gerrit.extensions.webui.UiAction;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountState;
+import com.google.gerrit.server.account.CapabilityControl;
+import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectResource;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
@@ -40,19 +47,29 @@ import java.io.IOException;
 
 @Singleton
 @RequiresCapability(CopyProjectCapability.ID)
-class ResumeCopyProject implements RestModifyView<ProjectResource, Input> {
+class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
+    UiAction<ProjectResource> {
   private final ResumeProjectImport resumeProjectImport;
   private final ProjectsCollection projectsCollection;
   private final Provider<CurrentUser> currentUserProvider;
+  private final String pluginName;
+  private final String canonicalWebUrl;
+  private final ProjectCache projectCache;
 
   @Inject
   ResumeCopyProject(
       ResumeProjectImport resumeProjectImport,
       ProjectsCollection projectsCollection,
-      Provider<CurrentUser> currentUserProvider) {
+      Provider<CurrentUser> currentUserProvider,
+      @PluginName String pluginName,
+      @CanonicalWebUrl String canonicalWebUrl,
+      ProjectCache projectCache) {
     this.resumeProjectImport = resumeProjectImport;
     this.projectsCollection = projectsCollection;
     this.currentUserProvider = currentUserProvider;
+    this.pluginName = pluginName;
+    this.canonicalWebUrl = canonicalWebUrl;
+    this.projectCache = projectCache;
   }
 
   @Override
@@ -69,5 +86,39 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input> {
         projectsCollection.parse(new ConfigResource(),
             IdString.fromDecoded(rsrc.getName()));
     return resumeProjectImport.apply(projectResource, in);
+  }
+
+  @Override
+  public UiAction.Description getDescription(
+      ProjectResource rsrc) {
+    return new UiAction.Description()
+        .setLabel("Resume Copy...")
+        .setTitle(String.format("Resume copy for project %s", rsrc.getName()))
+        .setVisible(canResumeCopy(rsrc) && isCopied(rsrc));
+  }
+
+  private boolean canResumeCopy(ProjectResource rsrc) {
+    CapabilityControl ctl = currentUserProvider.get().getCapabilities();
+    return ctl.canAdministrateServer()
+        || (ctl.canPerform(pluginName + "-" + CopyProjectCapability.ID)
+            && rsrc.getControl().isOwner());
+  }
+
+  private boolean isCopied(ProjectResource rsrc) {
+    try {
+      ImportProjectResource projectResource =
+          projectsCollection.parse(new ConfigResource(),
+              IdString.fromDecoded(rsrc.getName()));
+      ImportProjectInfo info = projectResource.getInfo();
+      if (!canonicalWebUrl.equals(info.from)) {
+        // no copy, but an import from another system
+        return false;
+      }
+
+      // check that source project still exists
+      return projectCache.get(new Project.NameKey(info.name)) != null;
+    } catch (ResourceNotFoundException | IOException e) {
+      return false;
+    }
   }
 }

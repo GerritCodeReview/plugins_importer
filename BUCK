@@ -20,6 +20,7 @@ gerrit_plugin(
     'Gerrit-ApiVersion: 2.11-SNAPSHOT',
     'Gerrit-Module: com.googlesource.gerrit.plugins.importer.Module',
     'Gerrit-SshModule: com.googlesource.gerrit.plugins.importer.SshModule',
+    'Gerrit-HttpModule: com.googlesource.gerrit.plugins.importer.HttpModule',
   ],
   deps = [
     HTTP_LIB,

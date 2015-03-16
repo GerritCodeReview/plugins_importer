@@ -41,6 +41,7 @@ limitations under the License.
               <Gerrit-PluginName>importer</Gerrit-PluginName>
               <Gerrit-Module>com.googlesource.gerrit.plugins.importer.Module</Gerrit-Module>
               <Gerrit-SshModule>com.googlesource.gerrit.plugins.importer.SshModule</Gerrit-SshModule>
+              <Gerrit-HttpModule>com.googlesource.gerrit.plugins.importer.HttpModule</Gerrit-HttpModule>
 
               <Implementation-Vendor>Gerrit Code Review</Implementation-Vendor>
               <Implementation-URL>http://code.google.com/p/gerrit/</Implementation-URL>

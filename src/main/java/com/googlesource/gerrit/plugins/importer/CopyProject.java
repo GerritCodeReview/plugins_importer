@@ -16,15 +16,18 @@ package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountState;
+import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
@@ -43,7 +46,8 @@ import java.io.IOException;
 
 @Singleton
 @RequiresCapability(CopyProjectCapability.ID)
-class CopyProject implements RestModifyView<ProjectResource, Input> {
+class CopyProject implements RestModifyView<ProjectResource, Input>,
+    UiAction<ProjectResource> {
   public static class Input {
     public String name;
   }
@@ -51,15 +55,18 @@ class CopyProject implements RestModifyView<ProjectResource, Input> {
   private final ImportProject.Factory importProjectFactory;
   private final String canonicalWebUrl;
   private final Provider<CurrentUser> currentUserProvider;
+  private final String pluginName;
 
   @Inject
   CopyProject(
       ImportProject.Factory importProjectFactory,
       @CanonicalWebUrl String canonicalWebUrl,
-      Provider<CurrentUser> currentUserProvider) {
+      Provider<CurrentUser> currentUserProvider,
+      @PluginName String pluginName) {
     this.importProjectFactory = importProjectFactory;
     this.canonicalWebUrl = canonicalWebUrl;
     this.currentUserProvider = currentUserProvider;
+    this.pluginName = pluginName;
   }
 
   @Override
@@ -80,5 +87,19 @@ class CopyProject implements RestModifyView<ProjectResource, Input> {
 
     return importProjectFactory.create(new Project.NameKey(input.name))
         .apply(new ConfigResource(), in);
+  }
+
+  @Override
+  public UiAction.Description getDescription(ProjectResource rsrc) {
+    return new UiAction.Description()
+        .setLabel("Copy...")
+        .setTitle(String.format("Copy project %s", rsrc.getName()))
+        .setVisible(canCopy(rsrc));
+  }
+
+  private boolean canCopy(ProjectResource rsrc) {
+    CapabilityControl ctl = currentUserProvider.get().getCapabilities();
+    return ctl.canAdministrateServer()
+        || ctl.canPerform(pluginName + "-" + CopyProjectCapability.ID);
   }
 }
