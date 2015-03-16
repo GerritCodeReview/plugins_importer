@@ -13,7 +13,7 @@ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ project \
   --user <USER> | -u <USER> \
   --pass - | <PASS> \
   [--parent <NAME>] \
-  [--quiet]
+  [--quiet] \
   <NAME>
 ```
 
