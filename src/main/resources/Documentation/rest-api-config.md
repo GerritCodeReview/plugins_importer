@@ -8,7 +8,7 @@ Please also take note of the general information on the
 [REST API](../../../Documentation/rest-api.html).
 
 <a id="importer-endpoints"> Importer Endpoints
----------------------------------------------
+----------------------------------------------
 
 ### <a id="import-project"> Import Project
 _PUT /config/server/@PLUGIN@~projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)_
