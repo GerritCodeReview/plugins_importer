@@ -42,6 +42,7 @@ import com.googlesource.gerrit.plugins.importer.ResumeProjectImport.Input;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
+import java.io.Writer;
 
 @Singleton
 @RequiresCapability(ImportCapability.ID)
@@ -52,6 +53,8 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
   }
 
   private final ImportProject.Factory importProjectFactory;
+
+  private Writer err;
 
   @Inject
   public ResumeProjectImport(ImportProject.Factory importProjectFactory) {
@@ -68,8 +71,10 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     if (Strings.isNullOrEmpty(input.pass)) {
       throw new BadRequestException("pass is required");
     }
-    return importProjectFactory.create(rsrc.getName())
-        .resume(input.user, input.pass, rsrc.getImportStatus());
+
+    ImportProject importer = importProjectFactory.create(rsrc.getName());
+    importer.setErr(err);
+    return importer.resume(input.user, input.pass, rsrc.getImportStatus());
   }
 
   public static class OnProjects implements
@@ -136,5 +141,9 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
         return false;
       }
     }
+  }
+
+  void setErr(Writer err) {
+    this.err = err;
   }
 }

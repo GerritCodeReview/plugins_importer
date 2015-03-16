@@ -21,6 +21,7 @@ class SshModule extends PluginCommandModule {
   protected void configureCommands() {
     command(ProjectCommand.class);
     command(ListProjectImportsCommand.class);
+    command(ResumeProjectCommand.class);
 
     command(GroupCommand.class);
   }
