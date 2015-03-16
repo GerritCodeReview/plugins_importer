@@ -41,7 +41,6 @@ import com.google.inject.assistedinject.Assisted;
 
 import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
 
-import org.apache.commons.validator.routines.UrlValidator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.NullProgressMonitor;
@@ -67,9 +66,6 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     private void validate() throws BadRequestException {
       if (Strings.isNullOrEmpty(from)) {
         throw new BadRequestException("from is required");
-      }
-      if (!(new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS)).isValid(from)) {
-        throw new BadRequestException("from must be a valid URL");
       }
       if (Strings.isNullOrEmpty(user)) {
         throw new BadRequestException("user is required");
