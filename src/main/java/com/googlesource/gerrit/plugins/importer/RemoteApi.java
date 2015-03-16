@@ -105,6 +105,12 @@ public class RemoteApi {
       throw new BadRequestException(
           "invalid credentials: accessing source system failed with 401 Unauthorized");
     }
+    if (r.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+      throw new BadRequestException(
+          "Project not found or missing permissions for accessing the project:"
+          + " accessing source system failed with 404 Not found");
+    }
+
     if (r.getStatusCode() < 200 || 300 <= r.getStatusCode()) {
       throw new IOException(String.format(
           "Unexpected response code for %s on %s : %s", method.name(),
