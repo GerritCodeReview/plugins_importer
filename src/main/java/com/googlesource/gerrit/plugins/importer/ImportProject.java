@@ -86,7 +86,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private final Project.NameKey project;
   private Project.NameKey parent;
 
-  private Writer err = null;
+  private Writer err;
 
   @Inject
   ImportProject(
@@ -117,6 +117,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   void setErr(Writer err) {
     this.err = err;
   }
+
   @Override
   public Response<String> apply(ConfigResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException,
