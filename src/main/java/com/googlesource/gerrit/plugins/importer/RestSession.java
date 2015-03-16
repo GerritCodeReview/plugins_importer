@@ -91,8 +91,7 @@ public class RestSession extends HttpSession {
     return new RestResponse(getClient().execute(delete));
   }
 
-
-  public static RawInput newRawInput(final String content) throws IOException {
+  public static RawInput newRawInput(final String content) {
     Preconditions.checkNotNull(content);
     Preconditions.checkArgument(!content.isEmpty());
     return new RawInput() {
