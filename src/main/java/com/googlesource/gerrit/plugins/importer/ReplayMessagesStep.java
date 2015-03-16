@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeMessageInfo;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.ChangeMessage;
@@ -73,8 +74,8 @@ class ReplayMessagesStep {
     this.resume = resume;
   }
 
-  void replay() throws NoSuchAccountException, NoSuchChangeException,
-      OrmException, IOException {
+  void replay(RemoteApi api) throws NoSuchAccountException, NoSuchChangeException,
+      OrmException, IOException, BadRequestException {
     for (ChangeMessageInfo msg : changeInfo.messages) {
       ChangeMessage.Key msgKey = new ChangeMessage.Key(change.getId(), msg.id);
       if (resume && db.changeMessages().get(msgKey) != null) {
@@ -84,7 +85,7 @@ class ReplayMessagesStep {
 
       Timestamp ts = msg.date;
       if (msg.author != null) {
-        Account.Id userId = accountUtil.resolveUser(msg.author);
+        Account.Id userId = accountUtil.resolveUser(api, msg.author);
         ChangeUpdate update = updateFactory.create(control(change, userId), ts);
         ChangeMessage cmsg =
             new ChangeMessage(msgKey, userId, ts, new PatchSet.Id(

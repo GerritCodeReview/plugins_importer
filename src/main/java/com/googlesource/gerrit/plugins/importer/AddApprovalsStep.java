@@ -20,6 +20,7 @@ import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.LabelInfo;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
@@ -71,8 +72,8 @@ class AddApprovalsStep {
     this.resume = resume;
   }
 
-  void add() throws OrmException, NoSuchChangeException, IOException,
-      NoSuchAccountException {
+  void add(RemoteApi api) throws OrmException, NoSuchChangeException, IOException,
+      NoSuchAccountException, BadRequestException {
     if (resume) {
       db.patchSetApprovals().delete(
           db.patchSetApprovals().byChange(change.getId()));
@@ -84,7 +85,7 @@ class AddApprovalsStep {
       LabelInfo label = e.getValue();
       if (label.all != null) {
         for (ApprovalInfo a : label.all) {
-          Account.Id user = accountUtil.resolveUser(a);
+          Account.Id user = accountUtil.resolveUser(api, a);
           ChangeControl ctrl = control(change, a);
           LabelType labelType = ctrl.getLabelTypes().byLabel(labelName);
           approvals.add(new PatchSetApproval(

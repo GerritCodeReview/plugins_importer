@@ -18,6 +18,7 @@ import com.google.common.collect.Iterators;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
@@ -151,12 +152,12 @@ class ReplayChangesStep {
         return;
       }
     }
-    replayRevisionsFactory.create(repo, rw, change, c).replay();
+    replayRevisionsFactory.create(repo, rw, change, c).replay(api);
     upsertChange(resumeChange, change, c);
 
     replayInlineCommentsFactory.create(change, c, api, resumeChange).replay();
-    replayMessagesFactory.create(change, c, resumeChange).replay();
-    addApprovalsFactory.create(change, c, resume).add();
+    replayMessagesFactory.create(change, c, resumeChange).replay(api);
+    addApprovalsFactory.create(change, c, resume).add(api);
     addHashtagsFactory.create(change, c, resumeChange).add();
 
     insertLinkToOriginalFactory.create(fromGerrit,change, c, resumeChange).insert();
@@ -178,11 +179,11 @@ class ReplayChangesStep {
   }
 
   private Change createChange(ChangeInfo c) throws OrmException,
-      NoSuchAccountException {
+      NoSuchAccountException, BadRequestException, IOException {
     Change.Id changeId = new Change.Id(db.nextChangeId());
 
     Change change =
-        new Change(new Change.Key(c.changeId), changeId, accountUtil.resolveUser(c.owner),
+        new Change(new Change.Key(c.changeId), changeId, accountUtil.resolveUser(api, c.owner),
             new Branch.NameKey(targetProject, fullName(c.branch)), c.created);
     change.setStatus(Change.Status.forChangeStatus(c.status));
     change.setTopic(c.topic);

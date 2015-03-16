@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.PatchSetInfo;
@@ -73,7 +74,8 @@ class ReplayRevisionsStep {
     this.changeInfo = changeInfo;
   }
 
-  void replay() throws IOException, OrmException, NoSuchAccountException {
+  void replay(RemoteApi api) throws IOException, OrmException, NoSuchAccountException,
+      BadRequestException {
     List<RevisionInfo> revisions = new ArrayList<>(changeInfo.revisions.values());
     sortRevisionInfoByNumber(revisions);
     List<PatchSet> patchSets = new ArrayList<>();
@@ -101,7 +103,7 @@ class ReplayRevisionsStep {
 
         patchSets.add(ps);
 
-        ps.setUploader(accountUtil.resolveUser(r.uploader));
+        ps.setUploader(accountUtil.resolveUser(api, r.uploader));
         ps.setCreatedOn(r.created);
         ps.setRevision(new RevId(commit.name()));
         ps.setDraft(r.draft != null && r.draft);

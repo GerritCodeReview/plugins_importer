@@ -16,17 +16,27 @@ package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.AccountInfo;
+import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.AccountSshKey;
 import com.google.gerrit.reviewdb.client.AuthType;
+import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.AccountException;
 import com.google.gerrit.server.account.AccountManager;
 import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.account.AuthRequest;
+import com.google.gerrit.server.account.GetSshKeys.SshKeyInfo;
 import com.google.gerrit.server.config.AuthConfig;
+import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 
 @Singleton
@@ -35,24 +45,30 @@ class AccountUtil {
   private final AccountCache accountCache;
   private final AccountManager accountManager;
   private final AuthType authType;
+  private final Provider<ReviewDb> db;
 
   @Inject
   public AccountUtil(AccountCache accountCache,
       AccountManager accountManager,
-      AuthConfig authConfig) {
+      AuthConfig authConfig,
+      Provider<ReviewDb> db) {
     this.accountCache = accountCache;
     this.accountManager = accountManager;
     this.authType = authConfig.getAuthType();
+    this.db = db;
   }
 
-  Account.Id resolveUser(AccountInfo acc) throws NoSuchAccountException {
+  Account.Id resolveUser(RemoteApi api, AccountInfo acc)
+      throws NoSuchAccountException, BadRequestException, IOException,
+      OrmException {
     AccountState a = accountCache.getByUsername(acc.username);
+
     if (a == null) {
       switch (authType) {
         case HTTP_LDAP:
         case CLIENT_SSL_CERT_LDAP:
         case LDAP:
-          return createAccountByLdap(acc.username);
+          return createAccountByLdapAndAddSshKeys(api, acc, a);
         default:
           throw new NoSuchAccountException(String.format("User %s not found",
               acc.username));
@@ -63,21 +79,46 @@ class AccountUtil {
           "User %s not found: Email mismatch, expected %s but found %s",
           acc.username, acc.email, a.getAccount().getPreferredEmail()));
     }
+
     return a.getAccount().getId();
   }
 
-  private Account.Id createAccountByLdap(String user)
-      throws NoSuchAccountException {
-    if (!user.matches(Account.USER_NAME_PATTERN)) {
-      throw new NoSuchAccountException(String.format("User %s not found", user));
+  private Account.Id createAccountByLdapAndAddSshKeys(RemoteApi api,
+      AccountInfo acc, AccountState a)
+      throws NoSuchAccountException, BadRequestException, IOException,
+      OrmException {
+    if (!acc.username.matches(Account.USER_NAME_PATTERN)) {
+      throw new NoSuchAccountException(String.format("User %s not found",
+          acc.username));
     }
 
     try {
-      AuthRequest req = AuthRequest.forUser(user);
+      AuthRequest req = AuthRequest.forUser(acc.username);
       req.setSkipAuthentication(true);
-      return accountManager.authenticate(req).getAccountId();
+      Account.Id id = accountManager.authenticate(req).getAccountId();
+      addSshKeys(api, acc, a);
+      return id;
     } catch (AccountException e) {
-      throw new NoSuchAccountException(String.format("User %s not found", user));
+      throw new NoSuchAccountException(
+          String.format("User %s not found", acc.username));
     }
+  }
+
+  private void addSshKeys(RemoteApi api, AccountInfo acc, AccountState a) throws
+  BadRequestException, IOException, OrmException {
+    List<SshKeyInfo> sshKeys = api.getSshKeys(acc.username);
+    db.get().accountSshKeys().upsert(toAccountSshKey(a, sshKeys));
+  }
+
+  private static Collection<AccountSshKey> toAccountSshKey(AccountState a,
+      List<SshKeyInfo> sshKeys) {
+    Collection<AccountSshKey> result = new HashSet<>();
+    int index = 1;
+    for (SshKeyInfo sshKeyInfo : sshKeys) {
+      result.add(new AccountSshKey(
+          new AccountSshKey.Id(a.getAccount().getId(), index++),
+          sshKeyInfo.sshPublicKey));
+    }
+    return result;
   }
 }
