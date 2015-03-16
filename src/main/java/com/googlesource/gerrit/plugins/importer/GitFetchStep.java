@@ -54,7 +54,11 @@ class GitFetchStep {
     Map<String, Ref> refs = repo.getRefDatabase().getRefs(
         ConfigureRepositoryStep.R_IMPORTS);
     for (Map.Entry<String, Ref> e : refs.entrySet()) {
-      if (e.getKey().startsWith("changes/")) {
+      String name = e.getKey();
+      if (name.startsWith("changes/")) {
+        continue;
+      }
+      if (name.startsWith("users/") && name.contains("/edit")) {
         continue;
       }
       String targetRef = Constants.R_REFS + e.getKey();
