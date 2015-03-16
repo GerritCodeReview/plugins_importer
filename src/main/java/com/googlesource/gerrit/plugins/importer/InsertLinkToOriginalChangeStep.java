@@ -44,10 +44,11 @@ class InsertLinkToOriginalChangeStep {
   private final String fromGerrit;
   private final Change change;
   private final ChangeInfo changeInfo;
+  private final boolean resume;
 
   interface Factory {
     InsertLinkToOriginalChangeStep create(String fromGerrit, Change change,
-        ChangeInfo changeInfo);
+        ChangeInfo changeInfo, boolean resume);
   }
 
   @Inject
@@ -59,7 +60,8 @@ class InsertLinkToOriginalChangeStep {
       ChangeMessagesUtil cmUtil,
       @Assisted String fromGerrit,
       @Assisted Change change,
-      @Assisted ChangeInfo changeInfo) {
+      @Assisted ChangeInfo changeInfo,
+      @Assisted boolean resume) {
     this.currentUser = currentUser;
     this.updateFactory = updateFactory;
     this.genericUserFactory = genericUserFactory;
@@ -69,10 +71,12 @@ class InsertLinkToOriginalChangeStep {
     this.fromGerrit = fromGerrit;
     this.change = change;
     this.changeInfo = changeInfo;
+    this.resume = resume;
   }
 
   void insert() throws NoSuchChangeException, OrmException, IOException {
-    insertMessage(change, "Imported from " + changeUrl(changeInfo));
+    insertMessage(change, (resume ? "Resumed import of " : "Imported from ")
+        + changeUrl(changeInfo));
   }
 
   private String changeUrl(ChangeInfo c) {

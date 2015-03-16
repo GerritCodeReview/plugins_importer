@@ -54,22 +54,28 @@ public class ImportJson {
     this.accountLoaderFactory = accountLoaderFactory;
   }
 
-  public ImportProjectInfo format(Input input) throws OrmException {
-    ImportProjectInfo info = new ImportProjectInfo();
-    info.from = input.from;
-    info.parent = input.parent;
-    info.imports = new ArrayList<>();
+  public ImportProjectInfo format(Input input, ImportProjectInfo info)
+      throws OrmException {
+    if (info == null) {
+      info = new ImportProjectInfo();
+      info.from = input.from;
+      info.parent = input.parent;
+      info.imports = new ArrayList<>();
+    }
 
+    info.imports.add(createImportInfo(input.user));
+    return info;
+  }
+
+  private ImportInfo createImportInfo(String remoteUser) throws OrmException {
     AccountLoader accountLoader = accountLoaderFactory.create(true);
     ImportInfo importInfo = new ImportInfo();
     importInfo.timestamp = new Timestamp(TimeUtil.nowMs());
     importInfo.user =
         accountLoader.get(((IdentifiedUser) currentUser.get()).getAccountId());
-    importInfo.remoteUser = input.user;
-    info.imports.add(importInfo);
+    importInfo.remoteUser = remoteUser;
     accountLoader.fill();
-
-    return info;
+    return importInfo;
   }
 
   public static void persist(LockFile lockFile, ImportProjectInfo info,

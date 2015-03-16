@@ -65,6 +65,7 @@ class GitFetchStep {
         case NEW:
         case FAST_FORWARD:
         case FORCED:
+        case NO_CHANGE:
           break;
         default:
           throw new IOException(String.format(

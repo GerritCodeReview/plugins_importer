@@ -85,15 +85,20 @@ class ReplayRevisionsStep {
           // no import of draft patch sets
           continue;
         }
+        PatchSet ps = new PatchSet(new PatchSet.Id(change.getId(), r._number));
+        String newRef = ps.getId().toRefName();
+        if (repo.resolve(newRef) != null) {
+          // already replayed
+          continue;
+        }
+
         String origRef = imported(r.ref);
         ObjectId id = repo.resolve(origRef);
         if (id == null) {
-          // already replayed?
           continue;
         }
         RevCommit commit = rw.parseCommit(id);
 
-        PatchSet ps = new PatchSet(new PatchSet.Id(change.getId(), r._number));
         patchSets.add(ps);
 
         ps.setUploader(accountUtil.resolveUser(r.uploader));

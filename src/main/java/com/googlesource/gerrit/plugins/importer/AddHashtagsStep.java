@@ -35,7 +35,7 @@ import java.util.HashSet;
 class AddHashtagsStep {
 
   interface Factory {
-    AddHashtagsStep create(Change change, ChangeInfo changeInfo);
+    AddHashtagsStep create(Change change, ChangeInfo changeInfo, boolean resume);
   }
 
   private final HashtagsUtil hashtagsUtil;
@@ -43,26 +43,36 @@ class AddHashtagsStep {
   private final ChangeControl.GenericFactory changeControlFactory;
   private final Change change;
   private final ChangeInfo changeInfo;
+  private final boolean resume;
 
   @Inject
   AddHashtagsStep(HashtagsUtil hashtagsUtil,
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
       @Assisted Change change,
-      @Assisted ChangeInfo changeInfo) {
+      @Assisted ChangeInfo changeInfo,
+      @Assisted boolean resume) {
     this.hashtagsUtil = hashtagsUtil;
     this.change = change;
     this.changeInfo = changeInfo;
     this.genericUserFactory = genericUserFactory;
     this.changeControlFactory = changeControlFactory;
+    this.resume = resume;
   }
 
   void add() throws IllegalArgumentException, AuthException, IOException,
       ValidationException, OrmException, NoSuchChangeException {
+    ChangeControl ctrl = control(change, changeInfo.owner);
+
+    if (resume) {
+      HashtagsInput input = new HashtagsInput();
+      input.remove = ctrl.getNotes().load().getHashtags();
+      hashtagsUtil.setHashtags(ctrl, input, false, false);
+    }
+
     HashtagsInput input = new HashtagsInput();
     input.add = new HashSet<>(changeInfo.hashtags);
-    hashtagsUtil.setHashtags(control(change, changeInfo.owner),
-        input, false, false);
+    hashtagsUtil.setHashtags(ctrl, input, false, false);
   }
 
   private ChangeControl control(Change change, AccountInfo acc)

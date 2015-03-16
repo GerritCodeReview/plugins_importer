@@ -38,7 +38,8 @@ import java.util.Collections;
 class ReplayMessagesStep {
 
   interface Factory {
-    ReplayMessagesStep create(Change change, ChangeInfo changeInfo);
+    ReplayMessagesStep create(Change change, ChangeInfo changeInfo,
+        boolean resume);
   }
 
   private final AccountUtil accountUtil;
@@ -49,6 +50,7 @@ class ReplayMessagesStep {
   private final ChangeControl.GenericFactory changeControlFactory;
   private final Change change;
   private final ChangeInfo changeInfo;
+  private final boolean resume;
 
   @Inject
   public ReplayMessagesStep(AccountUtil accountUtil,
@@ -58,7 +60,8 @@ class ReplayMessagesStep {
       ChangeControl.GenericFactory changeControlFactory,
       ReviewDb db,
       @Assisted Change change,
-      @Assisted ChangeInfo changeInfo) {
+      @Assisted ChangeInfo changeInfo,
+      @Assisted boolean resume) {
     this.accountUtil = accountUtil;
     this.updateFactory = updateFactory;
     this.cmUtil = cmUtil;
@@ -67,18 +70,25 @@ class ReplayMessagesStep {
     this.changeControlFactory = changeControlFactory;
     this.change = change;
     this.changeInfo = changeInfo;
+    this.resume = resume;
   }
 
   void replay() throws NoSuchAccountException, NoSuchChangeException,
       OrmException, IOException {
     for (ChangeMessageInfo msg : changeInfo.messages) {
+      ChangeMessage.Key msgKey = new ChangeMessage.Key(change.getId(), msg.id);
+      if (resume && db.changeMessages().get(msgKey) != null) {
+        // already replayed
+        continue;
+      }
+
       Timestamp ts = msg.date;
       if (msg.author != null) {
         Account.Id userId = accountUtil.resolveUser(msg.author);
         ChangeUpdate update = updateFactory.create(control(change, userId), ts);
         ChangeMessage cmsg =
-            new ChangeMessage(new ChangeMessage.Key(change.getId(), msg.id),
-                userId, ts, new PatchSet.Id(change.getId(), msg._revisionNumber));
+            new ChangeMessage(msgKey, userId, ts, new PatchSet.Id(
+                change.getId(), msg._revisionNumber));
         cmsg.setMessage(msg.message);
         cmUtil.addChangeMessage(db, update, cmsg);
         update.commit();

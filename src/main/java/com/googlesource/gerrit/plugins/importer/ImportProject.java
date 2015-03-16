@@ -22,7 +22,6 @@ import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
-import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -143,7 +142,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
 
     LockFile lockFile = lockForImport(project);
     try {
-      return apply(lockFile, input, false);
+      return apply(lockFile, input, null);
     } finally {
       lockFile.unlock();
     }
@@ -162,18 +161,16 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       input.from = info.from;
       input.parent = info.parent;
 
-      return apply(lockFile, input, true);
+      return apply(lockFile, input, info);
     } finally {
       lockFile.unlock();
     }
   }
 
-  private Response<String> apply(LockFile lockFile, Input input, boolean resume)
+  private Response<String> apply(LockFile lockFile, Input input, ImportProjectInfo info)
       throws RestApiException, OrmException, IOException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException {
-    if (resume) {
-      throw new NotImplementedException();
-    }
+    boolean resume = info != null;
 
     input.validate();
 
@@ -185,14 +182,14 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     try {
       setParentProjectName(input, pm);
       checkPreconditions(pm);
-      Repository repo = openRepoStep.open(project, pm);
+      Repository repo = openRepoStep.open(project, resume, pm);
       try {
-        ImportJson.persist(lockFile, importJson.format(input), pm);
+        ImportJson.persist(lockFile, importJson.format(input, info), pm);
         configRepoStep.configure(repo, project, input.from, pm);
         gitFetchStep.fetch(input.user, input.pass, repo, pm);
         configProjectStep.configure(project, parent, pm);
         replayChangesFactory.create(input.from, input.user, input.pass, repo,
-            project, pm)
+            project, resume, pm)
             .replay();
       } finally {
         repo.close();
