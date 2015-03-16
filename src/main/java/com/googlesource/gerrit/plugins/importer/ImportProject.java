@@ -136,7 +136,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       input = new Input();
     }
 
-    LockFile lockFile = lockForImport(project);
+    LockFile lockFile = lockForImport();
     try {
       return apply(lockFile, input, null);
     } finally {
@@ -147,7 +147,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   public Response<String> resume(String user, String pass, File importStatus)
       throws RestApiException, OrmException, IOException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException {
-    LockFile lockFile = lockForImport(project);
+    LockFile lockFile = lockForImport();
     try {
       ImportProjectInfo info = ImportJson.parse(importStatus);
 
@@ -238,8 +238,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     updateAndEnd(pm);
   }
 
-  private LockFile lockForImport(Project.NameKey project)
-      throws ResourceConflictException {
+  private LockFile lockForImport() throws ResourceConflictException {
     File importStatus = new File(lockRoot, project.get());
     LockFile lockFile = new LockFile(importStatus, FS.DETECTED);
     try {
