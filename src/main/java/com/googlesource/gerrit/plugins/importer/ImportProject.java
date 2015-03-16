@@ -64,6 +64,21 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     public String user;
     public String pass;
     public String parent;
+
+    private void validate() throws BadRequestException {
+      if (Strings.isNullOrEmpty(from)) {
+        throw new BadRequestException("from is required");
+      }
+      if (!(new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS)).isValid(from)) {
+        throw new BadRequestException("from must be a valid URL");
+      }
+      if (Strings.isNullOrEmpty(user)) {
+        throw new BadRequestException("user is required");
+      }
+      if (Strings.isNullOrEmpty(pass)) {
+        throw new BadRequestException("pass is required");
+      }
+    }
   }
 
   interface Factory {
@@ -125,18 +140,6 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     if (input == null) {
       input = new Input();
     }
-    if (Strings.isNullOrEmpty(input.from)) {
-      throw new BadRequestException("from is required");
-    }
-    if (!(new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS)).isValid(input.from)) {
-      throw new BadRequestException("from must be a valid URL");
-    }
-    if (Strings.isNullOrEmpty(input.user)) {
-      throw new BadRequestException("user is required");
-    }
-    if (Strings.isNullOrEmpty(input.pass)) {
-      throw new BadRequestException("pass is required");
-    }
 
     LockFile lockFile = lockForImport(project);
     try {
@@ -171,6 +174,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     if (resume) {
       throw new NotImplementedException();
     }
+
+    input.validate();
 
     ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
         NullProgressMonitor.INSTANCE;
