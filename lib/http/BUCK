@@ -1,15 +1,12 @@
 include_defs('//bucklets/gerrit_plugin.bucklet')
 include_defs('//bucklets/maven_jar.bucklet')
 
-# TODO: support standalone Buck build with 2.11
-#if STANDALONE_MODE:
-#  COMMONS = '//lib/commons:commons_lib'
-#  LOG = '//lib/log:jcl-over-slf4j'
-#else:
-#  COMMONS = '//plugins/importer/lib/commons:commons_lib'
-#  LOG = '//plugins/importer/lib/log:jcl-over-slf4j'
-COMMONS = '//plugins/importer/lib/commons:commons_lib'
-LOG = '//plugins/importer/lib/log:jcl-over-slf4j'
+if STANDALONE_MODE:
+  COMMONS = '//lib/commons:commons_lib'
+  LOG = '//lib/log:jcl-over-slf4j'
+else:
+  COMMONS = '//plugins/importer/lib/commons:commons_lib'
+  LOG = '//plugins/importer/lib/log:jcl-over-slf4j'
 
 java_library(
   name = 'http_lib',
