@@ -27,7 +27,6 @@ gerrit_plugin(
     GSON,
   ],
   provided_deps = [
-    '//lib/commons:validator',
     '//lib/log:log4j'
   ],
 )
