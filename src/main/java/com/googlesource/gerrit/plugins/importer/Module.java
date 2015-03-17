@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.google.gerrit.server.config.ConfigResource.CONFIG_KIND;
 import static com.google.gerrit.server.project.ProjectResource.PROJECT_KIND;
 import static com.googlesource.gerrit.plugins.importer.ImportProjectResource.IMPORT_PROJECT_KIND;
+import static com.googlesource.gerrit.plugins.importer.ImportGroupResource.IMPORT_GROUP_KIND;
 
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
@@ -41,13 +42,16 @@ class Module extends FactoryModule {
       @Override
       protected void configure() {
         DynamicMap.mapOf(binder(), IMPORT_PROJECT_KIND);
+        DynamicMap.mapOf(binder(), IMPORT_GROUP_KIND);
+
         child(CONFIG_KIND, "projects").to(ProjectsCollection.class);
         get(IMPORT_PROJECT_KIND).to(GetImportedProject.class);
         put(IMPORT_PROJECT_KIND, "resume").to(ResumeProjectImport.class);
-
         put(PROJECT_KIND, "copy").to(CopyProject.class);
         put(PROJECT_KIND, "copy.resume").to(ResumeCopyProject.class);
         put(PROJECT_KIND, "import.resume").to(ResumeProjectImport.OnProjects.class);
+
+        child(CONFIG_KIND, "groups").to(GroupsCollection.class);
       }
     });
     bind(LifecycleListener.class)
@@ -67,5 +71,6 @@ class Module extends FactoryModule {
     factory(AddHashtagsStep.Factory.class);
     factory(InsertLinkToOriginalChangeStep.Factory.class);
     DynamicSet.bind(binder(), TopMenu.class).to(ImportProjectMenu.class);
+    factory(ImportGroup.Factory.class);
   }
 }

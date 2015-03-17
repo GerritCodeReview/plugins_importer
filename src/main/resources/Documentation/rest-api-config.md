@@ -170,9 +170,45 @@ capability.
   }
 ```
 
+### <a id="import-group"> Import Group
+_PUT /config/server/@PLUGIN@~groups/[\{group-name\}](../../../Documentation/rest-api-groups.html#group-name)_
+
+Imports a group.
+
+Information about the group import must be provided in the request
+body as a [ImportGroupInput](#import-group-input)
+entity.
+
+Caller must be a member of a group that is granted the 'Import'
+capability (provided by this plugin) or the 'Administrate Server'
+capability.
+
+#### Request
+
+```
+  PUT /config/server/@PLUGIN@~groups/myGroup HTTP/1.0
+  Content-Type: application/json;charset=UTF-8
+
+  {
+    "from": "https://some-gerrit-server:8080",
+    "user": "myUser",
+    "pass": "myPassword"
+  }
+```
+
 
 <a id="json-entities">JSON Entities
 -----------------------------------
+
+
+### <a id="import-group-input"></a>ImportGroupInput
+
+The `ImportGroupInput` entity contains information about a group import.
+
+* _from_: URL of the remote system from where the group should be
+imported.
+* _user_: User on remote system.
+* _pass_: Password of remote user.
 
 ### <a id="import-info"></a>ImportInfo
 
