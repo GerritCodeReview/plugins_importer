@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.common.collect.Iterables;
 import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
+import com.google.gerrit.server.group.GroupJson.GroupInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.common.ProjectInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
@@ -74,6 +75,15 @@ public class RemoteApi {
     }
 
     return result;
+  }
+
+  public GroupInfo getGroup(String groupName) throws IOException,
+      BadRequestException {
+    String endPoint = "/groups/" + groupName + "/detail";
+    try (RestResponse r = checkedGet(endPoint)) {
+      return newGson().fromJson(r.getReader(),
+              new TypeToken<GroupInfo>() {}.getType());
+    }
   }
 
   public Iterable<CommentInfo> getComments(int changeId, String rev)
