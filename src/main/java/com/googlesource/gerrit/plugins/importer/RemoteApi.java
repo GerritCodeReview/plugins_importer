@@ -42,9 +42,10 @@ public class RemoteApi {
   public ProjectInfo getProject(String projectName) throws IOException,
       BadRequestException {
     String endPoint = "/projects/" + projectName;
-    RestResponse r = checkedGet(endPoint);
-    return newGson().fromJson(r.getReader(),
-        new TypeToken<ProjectInfo>() {}.getType());
+    try (RestResponse r = checkedGet(endPoint)) {
+      return newGson().fromJson(r.getReader(),
+          new TypeToken<ProjectInfo>() {}.getType());
+    }
   }
 
   public List<ChangeInfo> queryChanges(String projectName) throws IOException,
@@ -59,10 +60,12 @@ public class RemoteApi {
                 ListChangesOption.CURRENT_REVISION,
                 ListChangesOption.ALL_REVISIONS,
                 ListChangesOption.ALL_COMMITS)));
-    RestResponse r = checkedGet(endPoint);
-    List<ChangeInfo> result =
-        newGson().fromJson(r.getReader(),
+
+    List<ChangeInfo> result;
+    try (RestResponse r = checkedGet(endPoint)) {
+      result = newGson().fromJson(r.getReader(),
             new TypeToken<List<ChangeInfo>>() {}.getType());
+    }
 
     for (ChangeInfo c : result) {
       for (Map.Entry<String, RevisionInfo> e : c.revisions.entrySet()) {
@@ -76,10 +79,11 @@ public class RemoteApi {
   public Iterable<CommentInfo> getComments(int changeId, String rev)
       throws IOException, BadRequestException {
     String endPoint = "/changes/" + changeId + "/revisions/" + rev + "/comments";
-    RestResponse r = checkedGet(endPoint);
-    Map<String, List<CommentInfo>> result =
-        newGson().fromJson(r.getReader(),
-            new TypeToken<Map<String, List<CommentInfo>>>() {}.getType());
+    Map<String, List<CommentInfo>> result;
+    try (RestResponse r = checkedGet(endPoint)) {
+      result = newGson().fromJson(r.getReader(),
+              new TypeToken<Map<String, List<CommentInfo>>>() {}.getType());
+    }
     for (Map.Entry<String, List<CommentInfo>> e : result.entrySet()) {
       for (CommentInfo i : e.getValue()) {
         i.path = e.getKey();

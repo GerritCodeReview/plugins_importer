@@ -18,11 +18,11 @@ import com.google.common.base.CharMatcher;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class HttpSession {
   protected final String url;
   private final String user;
   private final String pass;
-  private HttpClient client;
+  private CloseableHttpClient client;
 
   public HttpSession(String url, String user, String pass) {
     this.url = CharMatcher.is('/').trimTrailingFrom(url);
@@ -56,7 +56,7 @@ public class HttpSession {
     return new HttpResponse(getClient().execute(get));
   }
 
-  protected HttpClient getClient() throws IOException {
+  protected CloseableHttpClient getClient() throws IOException {
     if (client == null) {
       URI uri = URI.create(url);
       BasicCredentialsProvider creds = new BasicCredentialsProvider();
