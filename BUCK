@@ -1,5 +1,7 @@
 include_defs('//bucklets/gerrit_plugin.bucklet')
 
+MODULE = 'com.googlesource.gerrit.plugins.importer.Importer'
+
 if STANDALONE_MODE:
   HTTP_LIB = '//lib/http:http_lib'
   GSON = '//lib/gson:gson'
@@ -12,7 +14,8 @@ else:
 gerrit_plugin(
   name = 'importer',
   srcs = glob(['src/main/java/**/*.java']),
-  resources = glob(['src/main/resources/**/*']),
+  resources = glob(['src/main/**/*']),
+  gwt_module = MODULE,
   manifest_entries = [
     'Gerrit-PluginName: importer',
     'Gerrit-ApiType: plugin',

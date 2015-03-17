@@ -68,6 +68,25 @@ limitations under the License.
       </plugin>
 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <version>2.7.0</version>
+        <configuration>
+          <module>com.googlesource.gerrit.plugins.importer.Importer</module>
+          <disableClassMetadata>true</disableClassMetadata>
+          <disableCastChecking>true</disableCastChecking>
+          <webappDirectory>${project.build.directory}/classes/static</webappDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.3</version>
@@ -92,6 +111,18 @@ limitations under the License.
       <groupId>com.google.gerrit</groupId>
       <artifactId>gerrit-${Gerrit-ApiType}-api</artifactId>
       <version>${Gerrit-ApiVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gerrit</groupId>
+      <artifactId>gerrit-plugin-gwtui</artifactId>
+      <version>${Gerrit-ApiVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+      <version>2.7.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
