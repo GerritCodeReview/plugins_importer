@@ -120,9 +120,9 @@ public class RemoteApi {
           "invalid credentials: accessing source system failed with 401 Unauthorized");
     }
     if (r.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-      throw new BadRequestException(
-          "Project not found or missing permissions for accessing the project:"
-          + " accessing source system failed with 404 Not found");
+      throw new BadRequestException(String.format(
+          "missing permissions or invalid import entity identifier: Accessing "
+          + "REST endpoint %s on source system failed with 404 Not found", endPoint));
     }
 
     if (r.getStatusCode() < 200 || 300 <= r.getStatusCode()) {
