@@ -220,7 +220,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       throws IOException, BadRequestException {
     pm.beginTask("Set parent project", 1);
     if (parent == null) {
-      if (input.parent != null) {
+      if (!Strings.isNullOrEmpty(input.parent)) {
         parent = new Project.NameKey(input.parent);
       } else {
         parent = new Project.NameKey(
