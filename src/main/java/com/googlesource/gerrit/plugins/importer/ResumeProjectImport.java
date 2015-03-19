@@ -16,18 +16,25 @@ package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.IdString;
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.gerrit.extensions.webui.UiAction;
+import com.google.gerrit.server.CurrentUser;
+import com.google.gerrit.server.account.CapabilityControl;
+import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import com.googlesource.gerrit.plugins.importer.ResumeProjectImport.Input;
@@ -65,16 +72,26 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
         .resume(input.user, input.pass, rsrc.getImportStatus());
   }
 
-  public static class OnProjects implements RestModifyView<ProjectResource, Input> {
+  public static class OnProjects implements
+      RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
     private final ProjectsCollection projectsCollection;
     private final ResumeProjectImport resumeProjectImport;
+    private final Provider<CurrentUser> currentUserProvider;
+    private final String pluginName;
+    private final String canonicalWebUrl;
 
     @Inject
     public OnProjects(
         ProjectsCollection projectsCollection,
-        ResumeProjectImport resumeProjectImport) {
+        ResumeProjectImport resumeProjectImport,
+        Provider<CurrentUser> currentUserProvider,
+        @PluginName String pluginName,
+        @CanonicalWebUrl String canonicalWebUrl) {
       this.projectsCollection = projectsCollection;
       this.resumeProjectImport = resumeProjectImport;
+      this.currentUserProvider = currentUserProvider;
+      this.pluginName = pluginName;
+      this.canonicalWebUrl = canonicalWebUrl;
     }
 
     @Override
@@ -86,6 +103,38 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
           projectsCollection.parse(new ConfigResource(),
               IdString.fromDecoded(rsrc.getName()));
       return resumeProjectImport.apply(projectResource, input);
+    }
+
+    @Override
+    public UiAction.Description getDescription(ProjectResource rsrc) {
+      return new UiAction.Description()
+          .setLabel("Resume Import...")
+          .setTitle(String.format("Resume import for project %s", rsrc.getName()))
+          .setVisible(canResumeImport(rsrc) && isImported(rsrc));
+    }
+
+    private boolean canResumeImport(ProjectResource rsrc) {
+      CapabilityControl ctl = currentUserProvider.get().getCapabilities();
+      return ctl.canAdministrateServer()
+          || (ctl.canPerform(pluginName + "-" + ImportCapability.ID)
+              && rsrc.getControl().isOwner());
+    }
+
+    private boolean isImported(ProjectResource rsrc) {
+      try {
+        ImportProjectResource projectResource =
+            projectsCollection.parse(new ConfigResource(),
+                IdString.fromDecoded(rsrc.getName()));
+        ImportProjectInfo info = projectResource.getInfo();
+        if (canonicalWebUrl.equals(info.from)) {
+          // no import, but a copy within the same system
+          return false;
+        }
+
+        return true;
+      } catch (ResourceNotFoundException | IOException e) {
+        return false;
+      }
     }
   }
 }
