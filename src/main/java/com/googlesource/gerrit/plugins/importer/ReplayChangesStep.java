@@ -146,6 +146,10 @@ class ReplayChangesStep {
       change = createChange(c);
     } else {
       resumeChange = true;
+      if (change.getLastUpdatedOn().equals(c.updated)) {
+        // change was not modified since last import
+        return;
+      }
     }
     replayRevisionsFactory.create(repo, rw, change, c).replay();
     upsertChange(resumeChange, change, c);
