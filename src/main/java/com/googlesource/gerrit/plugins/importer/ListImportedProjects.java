@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
@@ -21,6 +22,8 @@ import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import org.kohsuke.args4j.Option;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -32,6 +35,14 @@ import java.util.Map;
 public class ListImportedProjects implements RestReadView<ConfigResource> {
 
   private final File lockRoot;
+
+  @Option(name = "--match", metaVar = "MATCH",
+      usage = "List only projects containing this substring, case insensitive")
+  public void setMatch(String match) {
+    this.match = match.toLowerCase();
+  }
+
+  private String match;
 
   @Inject
   ListImportedProjects(@PluginData File data) {
@@ -49,10 +60,12 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   }
 
   private File[] listImportFiles() {
+    match = Strings.nullToEmpty(match);
+
     return lockRoot.listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
-        return !name.endsWith(".lock");
+        return !name.endsWith(".lock") && name.toLowerCase().contains(match);
       }
     });
   }

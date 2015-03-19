@@ -48,10 +48,14 @@ Caller must be a member of a group that is granted the 'Import'
 capability (provided by this plugin) or the 'Administrate Server'
 capability.
 
+It is possible to filter the list of imported projects using the
+`match` option. The response will include only those projects whose
+name contains the given `match` substring, case insensitive.
+
 #### Request
 
 ```
-  GET /config/server/@PLUGIN@~projects/ HTTP/1.0
+  GET /config/server/@PLUGIN@~projects/?match=my HTTP/1.0
 ```
 
 #### Response
