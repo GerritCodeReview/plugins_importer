@@ -1,14 +1,13 @@
 include_defs('//bucklets/gerrit_plugin.bucklet')
 
-# TODO: support standalone Buck build with 2.11
-#if STANDALONE_MODE:
-#  HTTP_LIB = '//lib/http:http_lib'
-#  GSON = '//lib/gson:gson'
-#else:
-#  HTTP_LIB = '//plugins/importer/lib/http:http_lib'
-#  GSON = '//plugins/importer/lib/gson:gson'
-HTTP_LIB = '//plugins/importer/lib/http:http_lib'
-GSON = '//plugins/importer/lib/gson:gson'
+if STANDALONE_MODE:
+  HTTP_LIB = '//lib/http:http_lib'
+  GSON = '//lib/gson:gson'
+  LOG4J = '//lib/log:log4j'
+else:
+  HTTP_LIB = '//plugins/importer/lib/http:http_lib'
+  GSON = '//plugins/importer/lib/gson:gson'
+  LOG4J = '//plugins/importer/lib/log:log4j'
 
 gerrit_plugin(
   name = 'importer',
@@ -27,7 +26,7 @@ gerrit_plugin(
     GSON,
   ],
   provided_deps = [
-    '//lib/log:log4j'
+    LOG4J,
   ],
 )
 
