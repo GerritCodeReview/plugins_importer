@@ -22,7 +22,9 @@ import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
 import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.registration.DynamicMap;
+import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.RestApiModule;
+import com.google.gerrit.extensions.webui.TopMenu;
 import com.google.gerrit.server.config.FactoryModule;
 import com.google.inject.internal.UniqueAnnotations;
 
@@ -64,5 +66,6 @@ class Module extends FactoryModule {
     factory(AddApprovalsStep.Factory.class);
     factory(AddHashtagsStep.Factory.class);
     factory(InsertLinkToOriginalChangeStep.Factory.class);
+    DynamicSet.bind(binder(), TopMenu.class).to(ImportProjectMenu.class);
   }
 }
