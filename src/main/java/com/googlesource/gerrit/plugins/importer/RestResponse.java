@@ -16,13 +16,15 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static com.google.gerrit.httpd.restapi.RestApiServlet.JSON_MAGIC;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
 public class RestResponse extends HttpResponse {
 
-  RestResponse(org.apache.http.HttpResponse response) {
+  RestResponse(CloseableHttpResponse response) {
     super(response);
   }
 

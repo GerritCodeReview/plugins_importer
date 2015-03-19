@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Preconditions;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.eclipse.jgit.util.IO;
 import org.eclipse.jgit.util.RawParseUtils;
 
@@ -24,12 +25,12 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.ByteBuffer;
 
-public class HttpResponse {
+public class HttpResponse implements AutoCloseable {
 
-  protected org.apache.http.HttpResponse response;
+  protected CloseableHttpResponse response;
   protected Reader reader;
 
-  HttpResponse(org.apache.http.HttpResponse response) {
+  HttpResponse(CloseableHttpResponse response) {
     this.response = response;
   }
 
@@ -40,10 +41,15 @@ public class HttpResponse {
     return reader;
   }
 
-  public void consume() throws IllegalStateException, IOException {
-    Reader reader = getReader();
-    if (reader != null) {
-      while (reader.read() != -1);
+  @Override
+  public void close() throws IOException {
+    try {
+      Reader reader = getReader();
+      if (reader != null) {
+        while (reader.read() != -1);
+      }
+    } finally {
+      response.close();
     }
   }
 
