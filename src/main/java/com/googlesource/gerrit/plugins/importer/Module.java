@@ -47,6 +47,8 @@ class Module extends FactoryModule {
         child(CONFIG_KIND, "projects").to(ProjectsCollection.class);
         get(IMPORT_PROJECT_KIND).to(GetImportedProject.class);
         put(IMPORT_PROJECT_KIND, "resume").to(ResumeProjectImport.class);
+        delete(IMPORT_PROJECT_KIND).to(CompleteProjectImport.class);
+
         put(PROJECT_KIND, "copy").to(CopyProject.class);
         put(PROJECT_KIND, "copy.resume").to(ResumeCopyProject.class);
         put(PROJECT_KIND, "import.resume").to(ResumeProjectImport.OnProjects.class);
