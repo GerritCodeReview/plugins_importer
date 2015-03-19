@@ -14,10 +14,14 @@
 
 package com.googlesource.gerrit.plugins.importer.client;
 
+import com.google.gerrit.client.Resources;
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.PluginEntryPoint;
+import com.google.gwt.core.client.GWT;
 
 public class ImporterPlugin extends PluginEntryPoint {
+  public static final Resources RESOURCES = GWT.create(Resources.class);
+
   @Override
   public void onPluginLoad() {
     Plugin.get().screen("project", new ImportProjectScreen.Factory());

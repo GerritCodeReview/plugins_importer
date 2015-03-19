@@ -29,6 +29,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PasswordTextBox;
@@ -54,12 +55,14 @@ public class ImportProjectScreen extends VerticalPanel {
   ImportProjectScreen() {
     setStyleName("importer-import-panel");
 
-    fromTxt = addTextBox("From*");
-    srcNameTxt = addTextBox("Project Name in Source*");
-    targetNameTxt = addTextBox("Target Project Name");
-    userTxt = addTextBox("Remote User*");
-    passTxt = addPasswordTextBox("Password*");
-    parentTxt = addTextBox("Parent");
+    fromTxt = addTextBox("From*", "URL of the remote system from where the project should be imported");
+    srcNameTxt = addTextBox("Project Name in Source*", "name of project in source system");
+    targetNameTxt = addTextBox("Target Project Name", "name of project in target system"
+        + " (if not specified it is assumed to be the same name as in the source system)");
+    userTxt = addTextBox("Remote User*", "user on remote system");
+    passTxt = addPasswordTextBox("Password*", "password of remote user");
+    parentTxt = addTextBox("Parent", "name of parent project in target system"
+        + "(if not specified it is assumed to be the same parent as in the source system)");
 
     HorizontalPanel buttons = new HorizontalPanel();
     add(buttons);
@@ -80,18 +83,25 @@ public class ImportProjectScreen extends VerticalPanel {
     importButton.setEnabled(false);
   }
 
-  private TextBox addTextBox(String label) {
-    return addTextBox(label, false);
+  private TextBox addTextBox(String label, String infoMsg) {
+    return addTextBox(label, infoMsg, false);
   }
 
-  private TextBox addPasswordTextBox(String label) {
-    return addTextBox(label, true);
+  private TextBox addPasswordTextBox(String label, String infoMsg) {
+    return addTextBox(label, infoMsg, true);
   }
 
-  private TextBox addTextBox(String label, boolean isPassword) {
+  private TextBox addTextBox(String label, String infoMsg, boolean isPassword) {
+    HorizontalPanel hp = new HorizontalPanel();
+    hp.add(new Label(label));
+    Image info = new Image(ImporterPlugin.RESOURCES.info());
+    info.setTitle(infoMsg);
+    hp.add(info);
+    hp.add(new Label(":"));
+
     Panel p = new VerticalPanel();
+    p.add(hp);
     TextBox tb = createTextBox(isPassword);
-    p.add(new Label(label + ":"));
     p.add(tb);
     add(p);
     return tb;
