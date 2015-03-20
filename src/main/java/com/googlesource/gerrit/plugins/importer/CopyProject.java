@@ -94,10 +94,10 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
     return new UiAction.Description()
         .setLabel("Copy...")
         .setTitle(String.format("Copy project %s", rsrc.getName()))
-        .setVisible(canCopy(rsrc));
+        .setVisible(canCopy());
   }
 
-  private boolean canCopy(ProjectResource rsrc) {
+  private boolean canCopy() {
     CapabilityControl ctl = currentUserProvider.get().getCapabilities();
     return ctl.canAdministrateServer()
         || ctl.canPerform(pluginName + "-" + CopyProjectCapability.ID);
