@@ -62,12 +62,17 @@ public class ProjectsCollection implements
   @Override
   public ImportProjectResource parse(ConfigResource parent, IdString id)
       throws ResourceNotFoundException {
-    File f = new File(lockRoot, id.get());
+    return parse(id.get());
+  }
+
+  public ImportProjectResource parse(String id)
+      throws ResourceNotFoundException {
+    File f = new File(lockRoot, id);
     if (!f.exists()) {
       throw new ResourceNotFoundException(id);
     }
 
-    return new ImportProjectResource(id.get(), f);
+    return new ImportProjectResource(id, f);
   }
 
   @Override
