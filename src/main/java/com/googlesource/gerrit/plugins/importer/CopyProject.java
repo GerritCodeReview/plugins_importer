@@ -43,6 +43,8 @@ import com.googlesource.gerrit.plugins.importer.CopyProject.Input;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 
 @Singleton
 @RequiresCapability(CopyProjectCapability.ID)
@@ -56,6 +58,8 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
   private final String canonicalWebUrl;
   private final Provider<CurrentUser> currentUserProvider;
   private final String pluginName;
+
+  private Writer err;
 
   @Inject
   CopyProject(
@@ -85,8 +89,10 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
     in.user = s.getUserName();
     in.pass = s.getPassword(s.getUserName());
 
-    return importProjectFactory.create(new Project.NameKey(input.name))
-        .apply(new ConfigResource(), in);
+    ImportProject importer = importProjectFactory.create(
+        new Project.NameKey(input.name));
+    importer.setErr(err);
+    return importer.apply(new ConfigResource(), in);
   }
 
   @Override
@@ -101,5 +107,9 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
     CapabilityControl ctl = currentUserProvider.get().getCapabilities();
     return ctl.canAdministrateServer()
         || ctl.canPerform(pluginName + "-" + CopyProjectCapability.ID);
+  }
+
+  void setErr(PrintWriter err) {
+    this.err = err;
   }
 }

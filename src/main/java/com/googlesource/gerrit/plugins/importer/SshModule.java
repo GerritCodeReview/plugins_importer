@@ -22,6 +22,7 @@ class SshModule extends PluginCommandModule {
     command(ProjectCommand.class);
     command(ListProjectImportsCommand.class);
     command(ResumeProjectCommand.class);
+    command(CopyProjectCommand.class);
 
     command(GroupCommand.class);
   }
