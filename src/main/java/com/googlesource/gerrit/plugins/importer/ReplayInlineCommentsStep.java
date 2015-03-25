@@ -107,7 +107,7 @@ class ReplayInlineCommentsStep {
 
       Multimap<Account.Id, CommentInfo> commentsByAuthor = ArrayListMultimap.create();
       for (CommentInfo comment : comments) {
-        Account.Id id  = accountUtil.resolveUser(comment.author);
+        Account.Id id  = accountUtil.resolveUser(api, comment.author);
         commentsByAuthor.put(id, comment);
       }
 

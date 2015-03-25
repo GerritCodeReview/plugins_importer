@@ -23,6 +23,7 @@ import com.google.gerrit.extensions.common.ProjectInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.server.OutputFormat;
+import com.google.gerrit.server.account.GetSshKeys.SshKeyInfo;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RemoteApi {
+
   private final RestSession restSession;
 
   RemoteApi(String url, String user, String pass) {
@@ -100,6 +102,14 @@ public class RemoteApi {
       }
     }
     return Iterables.concat(result.values());
+  }
+
+  public List<SshKeyInfo> getSshKeys(String userId) throws BadRequestException, IOException {
+    String endPoint = "/accounts/" + userId + "/sshkeys/";
+    try (RestResponse r = checkedGet(endPoint)) {
+      return newGson().fromJson(r.getReader(),
+          new TypeToken<List<SshKeyInfo>>() {}.getType());
+    }
   }
 
   private static Gson newGson() {
