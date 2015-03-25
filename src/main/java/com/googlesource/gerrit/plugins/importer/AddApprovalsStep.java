@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.common.base.MoreObjects;
+import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.AccountInfo;
@@ -89,7 +91,8 @@ class AddApprovalsStep {
           LabelType labelType = ctrl.getLabelTypes().byLabel(labelName);
           approvals.add(new PatchSetApproval(
               new PatchSetApproval.Key(change.currentPatchSetId(), user,
-                  labelType.getLabelId()), a.value.shortValue(), a.date));
+                  labelType.getLabelId()), a.value.shortValue(),
+                  MoreObjects.firstNonNull(a.date, TimeUtil.nowTs())));
           ChangeUpdate update = updateFactory.create(ctrl);
           if (a.value != 0) {
             update.putApproval(labelName, a.value.shortValue());
