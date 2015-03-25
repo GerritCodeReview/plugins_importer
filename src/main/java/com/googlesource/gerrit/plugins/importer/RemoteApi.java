@@ -86,11 +86,26 @@ public class RemoteApi {
     }
   }
 
+  /**
+   * Retrieves inline comments of a patch set.
+   *
+   * @param changeId numeric change ID
+   * @param rev the revision
+   * @return Iterable that provides the inline comments, or {@code null} if the
+   *         revision does not exist
+   * @throws IOException thrown if sending the request fails
+   * @throws BadRequestException thrown if the response is neither
+   *         {@code 200 OK} nor {@code 404 Not Found}
+   */
   public Iterable<CommentInfo> getComments(int changeId, String rev)
       throws IOException, BadRequestException {
     String endPoint = "/changes/" + changeId + "/revisions/" + rev + "/comments";
     Map<String, List<CommentInfo>> result;
-    try (RestResponse r = checkedGet(endPoint)) {
+    try (RestResponse r = restSession.get(endPoint)) {
+      if (r.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+        return null;
+      }
+      assertOK(HttpMethod.GET, endPoint, r);
       result = newGson().fromJson(r.getReader(),
               new TypeToken<Map<String, List<CommentInfo>>>() {}.getType());
     }
