@@ -196,6 +196,24 @@ capability.
   }
 ```
 
+### <a id="complete-project-import"> Resume Project Import
+_DELETE /config/server/@PLUGIN@~projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)_
+
+Mark a project import as completed.
+
+Once a project import is completed it cannot be resumed any more.
+
+#### Request
+
+```
+  DELETE /config/server/@PLUGIN@~projects/myProject HTTP/1.0
+```
+
+#### Response
+
+```
+  HTTP/1.1 204 No Content
+```
 
 <a id="json-entities">JSON Entities
 -----------------------------------
