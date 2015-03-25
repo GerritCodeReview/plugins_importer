@@ -26,5 +26,6 @@ public class ImporterPlugin extends PluginEntryPoint {
   public void onPluginLoad() {
     Plugin.get().screen("project", new ImportProjectScreen.Factory());
     Plugin.get().screen("list", new ImportProjectListScreen.Factory());
+    Plugin.get().screenRegex("projects/(.*)", new ProjectImportsScreen.Factory());
   }
 }

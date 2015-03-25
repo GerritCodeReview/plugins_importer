@@ -66,3 +66,7 @@
 .importer-action-panel .gwt-Button {
   margin: 2px;
 }
+
+.importer-projectImportInfoTable {
+  margin-bottom: 10px;
+}

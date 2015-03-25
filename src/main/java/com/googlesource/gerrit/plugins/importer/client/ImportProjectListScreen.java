@@ -19,14 +19,11 @@ import com.google.gerrit.client.rpc.Natives;
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;
 import com.google.gerrit.plugin.client.screen.Screen;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Anchor;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
-import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.InlineHyperlink;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 import java.util.List;
@@ -84,11 +81,10 @@ public class ImportProjectListScreen extends VerticalPanel {
         fmt.addStyleName(row, 0, "leftMostCell");
       }
 
-      t.setText(row, 0, project);
+      t.setWidget(row, 0, new InlineHyperlink(
+          project, "/x/" + Plugin.get().getName() + "/projects/" + project));
 
-      String srcProjectUrl = ensureSlash(info.from())
-          + "#/admin/projects/"
-          + (info.name() != null ? info.name() : project);
+      String srcProjectUrl = projectUrl(info, project);
       t.setWidget(row, 1, new Anchor(srcProjectUrl, srcProjectUrl));
 
       List<ImportInfo> importList = Natives.asList(info.imports());
@@ -101,21 +97,7 @@ public class ImportProjectListScreen extends VerticalPanel {
         t.setText(row, 3, "N/A");
       }
 
-      FlowPanel p = new FlowPanel();
-      p.setStyleName("importer-action-panel");
-      p.add(new Button("Resume...", new ClickHandler() {
-        @Override
-        public void onClick(ClickEvent event) {
-          (new ResumeImportDialog(project)).center();
-        }
-      }));
-      p.add(new Button("Complete...", new ClickHandler() {
-        @Override
-        public void onClick(ClickEvent event) {
-          (new CompleteImportDialog(project)).center();
-        }
-      }));
-      t.setWidget(row, 4, p);
+      t.setWidget(row, 4, new ImportActionPanel(project));
 
       row++;
     }
@@ -123,8 +105,14 @@ public class ImportProjectListScreen extends VerticalPanel {
     add(t);
   }
 
-  private static String removeNs(String timestamp) {
+  public static String removeNs(String timestamp) {
     return timestamp.substring(0, timestamp.lastIndexOf('.'));
+  }
+
+  public static String projectUrl(ImportProjectInfo info, String project) {
+    return ensureSlash(info.from())
+        + "#/admin/projects/"
+        + (info.name() != null ? info.name() : project);
   }
 
   private static String ensureSlash(String in) {
