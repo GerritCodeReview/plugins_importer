@@ -53,3 +53,11 @@
   vertical-align: middle;
   height: 20px;
 }
+
+.importer-cancel-button {
+  margin-left: 150px;
+}
+
+.importer-resume-message {
+  margin-bottom: 10px;
+}

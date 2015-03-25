@@ -19,8 +19,11 @@ import com.google.gerrit.client.rpc.Natives;
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;
 import com.google.gerrit.plugin.client.screen.Screen;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Anchor;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -55,7 +58,7 @@ public class ImportProjectListScreen extends VerticalPanel {
   }
 
   private void display(NativeMap<ImportProjectInfo> map) {
-    int columns = 4;
+    int columns = 5;
     FlexTable t = new FlexTable();
     t.setStyleName("importer-importProjectTable");
     FlexCellFormatter fmt = t.getFlexCellFormatter();
@@ -69,9 +72,10 @@ public class ImportProjectListScreen extends VerticalPanel {
     t.setText(0, 1, "From");
     t.setText(0, 2, "Last Import By");
     t.setText(0, 3, "Last Import At");
+    t.setText(0, 4, "Actions");
 
     int row = 1;
-    for (String project : map.keySet()) {
+    for (final String project : map.keySet()) {
       ImportProjectInfo info = map.get(project);
 
       for (int c = 0; c < columns; c++) {
@@ -95,6 +99,13 @@ public class ImportProjectListScreen extends VerticalPanel {
         t.setText(row, 2, "N/A");
         t.setText(row, 3, "N/A");
       }
+
+      t.setWidget(row, 4, new Button("Resume...", new ClickHandler() {
+        @Override
+        public void onClick(ClickEvent event) {
+          (new ResumeImportDialog(project)).center();
+        }
+      }));
 
       row++;
     }
