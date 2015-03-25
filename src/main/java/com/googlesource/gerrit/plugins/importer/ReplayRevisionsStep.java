@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.reviewdb.client.Change;
@@ -34,6 +35,8 @@ import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,9 +51,13 @@ class ReplayRevisionsStep {
         ChangeInfo changeInfo);
   }
 
+  private static final Logger log = LoggerFactory
+      .getLogger(ReplayRevisionsStep.class);
+
   private final AccountUtil accountUtil;
   private final ReviewDb db;
   private final PatchSetInfoFactory patchSetInfoFactory;
+  private final String pluginName;
   private final Repository repo;
   private final RevWalk rw;
   private final Change change;
@@ -60,6 +67,7 @@ class ReplayRevisionsStep {
   public ReplayRevisionsStep(AccountUtil accountUtil,
       ReviewDb db,
       PatchSetInfoFactory patchSetInfoFactory,
+      @PluginName String pluginName,
       @Assisted Repository repo,
       @Assisted RevWalk rw,
       @Assisted Change change,
@@ -67,6 +75,7 @@ class ReplayRevisionsStep {
     this.accountUtil = accountUtil;
     this.db = db;
     this.patchSetInfoFactory = patchSetInfoFactory;
+    this.pluginName = pluginName;
     this.repo = repo;
     this.rw = rw;
     this.change = change;
@@ -87,17 +96,28 @@ class ReplayRevisionsStep {
         }
         PatchSet ps = new PatchSet(new PatchSet.Id(change.getId(), r._number));
         String newRef = ps.getId().toRefName();
-        if (repo.resolve(newRef) != null) {
-          // already replayed
-          continue;
-        }
-
+        ObjectId newId = repo.resolve(newRef);
         String origRef = imported(r.ref);
         ObjectId id = repo.resolve(origRef);
         if (id == null) {
           continue;
         }
         RevCommit commit = rw.parseCommit(id);
+        if (newId != null) {
+          RevCommit newCommit = rw.parseCommit(newId);
+          if (newCommit.equals(commit)) {
+            // already replayed
+            continue;
+          } else {
+            // a patch set with the same number was created both in the source
+            // and in the target system
+            log.warn(String.format(
+                "[%s] Project %s was modified in target system: "
+                    + "Skip replay revision for patch set %s.",
+                pluginName, change.getProject().get(), ps.getId().toString()));
+            continue;
+          }
+        }
 
         patchSets.add(ps);
 
