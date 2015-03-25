@@ -14,17 +14,13 @@
 
 package com.googlesource.gerrit.plugins.importer.client;
 
-import com.google.gerrit.client.Resources;
-import com.google.gerrit.plugin.client.Plugin;
-import com.google.gerrit.plugin.client.PluginEntryPoint;
-import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JavaScriptObject;
 
-public class ImporterPlugin extends PluginEntryPoint {
-  public static final Resources RESOURCES = GWT.create(Resources.class);
+public class ImportInfo extends JavaScriptObject {
+  public final native String timestamp() /*-{ return this.timestamp; }-*/;
+  public final native AccountInfo user() /*-{ return this.user; }-*/;
+  public final native String remoteUser() /*-{ return this.remote_user; }-*/;
 
-  @Override
-  public void onPluginLoad() {
-    Plugin.get().screen("project", new ImportProjectScreen.Factory());
-    Plugin.get().screen("list", new ImportProjectListScreen.Factory());
+  protected ImportInfo() {
   }
 }

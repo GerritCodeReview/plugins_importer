@@ -40,6 +40,7 @@ public class ImportProjectMenu implements TopMenu {
     List<MenuItem> projectItems = Lists.newArrayListWithExpectedSize(2);
     if (canImport()) {
       projectItems.add(new MenuItem("Import Project", "#/x/" + pluginName + "/project", ""));
+      projectItems.add(new MenuItem("List Imports", "#/x/" + pluginName + "/list", ""));
     }
     if (!projectItems.isEmpty()) {
       menuEntries.add(new MenuEntry("Projects", projectItems));

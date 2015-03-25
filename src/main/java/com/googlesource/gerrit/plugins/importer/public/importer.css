@@ -13,10 +13,43 @@
  * limitations under the License.
  */
 
-.importer-import-panel, .importer-message-panel {
+.importer-import-panel,
+.importer-message-panel,
+.importer-imports-panel {
   border-spacing: 0px 5px;
 }
 
 .importer-importButton {
   margin-left: 10px !important;
+}
+
+.importer-importProjectTable {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.importer-importProjectTable .leftMostCell {
+  border-left: 1px solid #EEE;
+}
+
+.importer-importProjectTable .topMostCell {
+  border-top: 1px solid #EEE;
+}
+
+.importer-importProjectTable .dataHeader {
+  border: 1px solid #FFF;
+  padding: 2px 6px 1px;
+  background-color: #EEE;
+  font-style: italic;
+  white-space: nowrap;
+  color: textColor;
+}
+
+.importer-importProjectTable .dataCell {
+  padding-left: 5px;
+  padding-right: 5px;
+  border-right: 1px solid #EEE;
+  border-bottom: 1px solid #EEE;
+  vertical-align: middle;
+  height: 20px;
 }
