@@ -26,6 +26,7 @@ import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 import java.util.List;
@@ -100,12 +101,21 @@ public class ImportProjectListScreen extends VerticalPanel {
         t.setText(row, 3, "N/A");
       }
 
-      t.setWidget(row, 4, new Button("Resume...", new ClickHandler() {
+      FlowPanel p = new FlowPanel();
+      p.setStyleName("importer-action-panel");
+      p.add(new Button("Resume...", new ClickHandler() {
         @Override
         public void onClick(ClickEvent event) {
           (new ResumeImportDialog(project)).center();
         }
       }));
+      p.add(new Button("Complete...", new ClickHandler() {
+        @Override
+        public void onClick(ClickEvent event) {
+          (new CompleteImportDialog(project)).center();
+        }
+      }));
+      t.setWidget(row, 4, p);
 
       row++;
     }

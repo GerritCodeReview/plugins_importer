@@ -58,6 +58,11 @@
   margin-left: 150px;
 }
 
-.importer-resume-message {
+.importer-resume-message,
+.importer-complete-message {
   margin-bottom: 10px;
+}
+
+.importer-action-panel .gwt-Button {
+  margin: 2px;
 }
