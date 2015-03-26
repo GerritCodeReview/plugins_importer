@@ -19,7 +19,6 @@ import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
-import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
@@ -74,7 +73,7 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
   }
 
   @Override
-  public Response<String> apply(ProjectResource rsrc, Input input)
+  public ImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException {
     if (Strings.isNullOrEmpty(input.name)) {

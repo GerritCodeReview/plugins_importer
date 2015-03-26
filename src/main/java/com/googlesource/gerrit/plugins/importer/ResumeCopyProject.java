@@ -19,7 +19,6 @@ import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
-import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
@@ -73,7 +72,7 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
   }
 
   @Override
-  public Response<String> apply(ProjectResource rsrc, Input input)
+  public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException {
     AccountState s = ((IdentifiedUser) currentUserProvider.get()).state();
