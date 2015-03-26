@@ -15,12 +15,10 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.extensions.api.changes.HashtagsInput;
-import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.restapi.AuthException;
-import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
-import com.google.gerrit.server.IdentifiedUser;
+import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.change.HashtagsUtil;
 import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
@@ -39,7 +37,7 @@ class AddHashtagsStep {
   }
 
   private final HashtagsUtil hashtagsUtil;
-  private final IdentifiedUser.GenericFactory genericUserFactory;
+  private final CurrentUser currentUser;
   private final ChangeControl.GenericFactory changeControlFactory;
   private final Change change;
   private final ChangeInfo changeInfo;
@@ -47,7 +45,7 @@ class AddHashtagsStep {
 
   @Inject
   AddHashtagsStep(HashtagsUtil hashtagsUtil,
-      IdentifiedUser.GenericFactory genericUserFactory,
+      CurrentUser currentUser,
       ChangeControl.GenericFactory changeControlFactory,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
@@ -55,14 +53,14 @@ class AddHashtagsStep {
     this.hashtagsUtil = hashtagsUtil;
     this.change = change;
     this.changeInfo = changeInfo;
-    this.genericUserFactory = genericUserFactory;
+    this.currentUser = currentUser;
     this.changeControlFactory = changeControlFactory;
     this.resume = resume;
   }
 
   void add() throws IllegalArgumentException, AuthException, IOException,
       ValidationException, OrmException, NoSuchChangeException {
-    ChangeControl ctrl = control(change, changeInfo.owner);
+    ChangeControl ctrl = changeControlFactory.controlFor(change, currentUser);
 
     if (resume) {
       HashtagsInput input = new HashtagsInput();
@@ -73,16 +71,5 @@ class AddHashtagsStep {
     HashtagsInput input = new HashtagsInput();
     input.add = new HashSet<>(changeInfo.hashtags);
     hashtagsUtil.setHashtags(ctrl, input, false, false);
-  }
-
-  private ChangeControl control(Change change, AccountInfo acc)
-      throws NoSuchChangeException {
-    return control(change, new Account.Id(acc._accountId));
-  }
-
-  private ChangeControl control(Change change, Account.Id id)
-      throws NoSuchChangeException {
-    return changeControlFactory.controlFor(change,
-        genericUserFactory.create(id));
   }
 }
