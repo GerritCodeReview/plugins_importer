@@ -53,7 +53,8 @@ class ReplayChangesStep {
         Repository repo,
         @Assisted("srcProject") Project.NameKey srcProject,
         @Assisted("targetProject") Project.NameKey targetProject,
-        boolean resume,
+        @Assisted("force") boolean force,
+        @Assisted("resume") boolean resume,
         ProgressMonitor pm);
   }
 
@@ -72,6 +73,7 @@ class ReplayChangesStep {
   private final Repository repo;
   private final Project.NameKey srcProject;
   private final Project.NameKey targetProject;
+  private final boolean force;
   private final boolean resume;
   private final ProgressMonitor pm;
 
@@ -93,7 +95,8 @@ class ReplayChangesStep {
       @Assisted Repository repo,
       @Assisted("srcProject") Project.NameKey srcProject,
       @Assisted("targetProject") Project.NameKey targetProject,
-      @Assisted boolean resume,
+      @Assisted("force") boolean force,
+      @Assisted("resume") boolean resume,
       @Assisted ProgressMonitor pm) {
     this.replayRevisionsFactory = replayRevisionsFactory;
     this.replayInlineCommentsFactory = replayInlineCommentsFactory;
@@ -110,6 +113,7 @@ class ReplayChangesStep {
     this.repo = repo;
     this.srcProject = srcProject;
     this.targetProject = targetProject;
+    this.force = force;
     this.resume = resume;
     this.pm = pm;
   }
@@ -147,7 +151,7 @@ class ReplayChangesStep {
       change = createChange(c);
     } else {
       resumeChange = true;
-      if (change.getLastUpdatedOn().equals(c.updated)) {
+      if (!force && change.getLastUpdatedOn().equals(c.updated)) {
         // change was not modified since last import
         return;
       }

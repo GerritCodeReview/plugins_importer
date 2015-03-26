@@ -97,6 +97,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private final Project.NameKey targetProject;
   private Project.NameKey srcProject;
   private Project.NameKey parent;
+  private boolean force;
 
   private Writer err;
 
@@ -146,9 +147,10 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     }
   }
 
-  public Response<String> resume(String user, String pass, File importStatus)
-      throws RestApiException, OrmException, IOException, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException {
+  public Response<String> resume(String user, String pass, boolean force,
+      File importStatus) throws RestApiException, OrmException, IOException,
+      ValidationException, GitAPIException, NoSuchChangeException,
+      NoSuchAccountException {
     LockFile lockFile = lockForImport();
     try {
       ImportProjectInfo info = ImportJson.parse(importStatus);
@@ -159,6 +161,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       input.from = info.from;
       input.name = info.name;
       input.parent = info.parent;
+
+      this.force = force;
 
       return apply(lockFile, input, info);
     } finally {
@@ -189,7 +193,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
         gitFetchStep.fetch(input.user, input.pass, repo, pm);
         configProjectStep.configure(targetProject, parent, pm);
         replayChangesFactory.create(input.from, input.user, input.pass, repo,
-            srcProject, targetProject, resume, pm).replay();
+            srcProject, targetProject, force, resume, pm).replay();
       } finally {
         repo.close();
       }
