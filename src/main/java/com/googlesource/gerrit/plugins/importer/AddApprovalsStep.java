@@ -18,6 +18,7 @@ import com.google.common.base.MoreObjects;
 import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -35,6 +36,9 @@ import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +50,9 @@ class AddApprovalsStep {
     AddApprovalsStep create(Change change, ChangeInfo changeInfo, boolean resume);
   }
 
+  private static final Logger log = LoggerFactory
+      .getLogger(ReplayInlineCommentsStep.class);
+
   private final AccountUtil accountUtil;
   private final ChangeUpdate.Factory updateFactory;
   private final ReviewDb db;
@@ -54,6 +61,7 @@ class AddApprovalsStep {
   private final Change change;
   private final ChangeInfo changeInfo;
   private final boolean resume;
+  private final String pluginName;
 
   @Inject
   public AddApprovalsStep(AccountUtil accountUtil,
@@ -61,6 +69,7 @@ class AddApprovalsStep {
       ReviewDb db,
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
+      @PluginName String pluginName,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
       @Assisted boolean resume) {
@@ -72,6 +81,7 @@ class AddApprovalsStep {
     this.change = change;
     this.changeInfo = changeInfo;
     this.resume = resume;
+    this.pluginName = pluginName;
   }
 
   void add(RemoteApi api) throws OrmException, NoSuchChangeException, IOException,
@@ -90,6 +100,15 @@ class AddApprovalsStep {
           Account.Id user = accountUtil.resolveUser(api, a);
           ChangeControl ctrl = control(change, a);
           LabelType labelType = ctrl.getLabelTypes().byLabel(labelName);
+          if(labelType == null) {
+            log.warn(String.format("[%s] Label '%s' not found in target system."
+                + " This label was referenced by an approval provided from '%s'"
+                + " for change '%s'."
+                + " This approval will be skipped. In order to import this"
+                + " approval configure the missing label and resume the import."
+                , pluginName, labelName, a.username, changeInfo.id));
+            continue;
+          }
           approvals.add(new PatchSetApproval(
               new PatchSetApproval.Key(change.currentPatchSetId(), user,
                   labelType.getLabelId()), a.value.shortValue(),
