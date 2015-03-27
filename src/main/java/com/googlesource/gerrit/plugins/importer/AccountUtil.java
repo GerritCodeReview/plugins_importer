@@ -68,7 +68,7 @@ class AccountUtil {
         case HTTP_LDAP:
         case CLIENT_SSL_CERT_LDAP:
         case LDAP:
-          return createAccountByLdapAndAddSshKeys(api, acc, a);
+          return createAccountByLdapAndAddSshKeys(api, acc);
         default:
           throw new NoSuchAccountException(String.format("User %s not found",
               acc.username));
@@ -84,7 +84,7 @@ class AccountUtil {
   }
 
   private Account.Id createAccountByLdapAndAddSshKeys(RemoteApi api,
-      AccountInfo acc, AccountState a)
+      AccountInfo acc)
       throws NoSuchAccountException, BadRequestException, IOException,
       OrmException {
     if (!acc.username.matches(Account.USER_NAME_PATTERN)) {
@@ -96,7 +96,7 @@ class AccountUtil {
       AuthRequest req = AuthRequest.forUser(acc.username);
       req.setSkipAuthentication(true);
       Account.Id id = accountManager.authenticate(req).getAccountId();
-      addSshKeys(api, acc, a);
+      addSshKeys(api, acc);
       return id;
     } catch (AccountException e) {
       throw new NoSuchAccountException(
@@ -104,9 +104,10 @@ class AccountUtil {
     }
   }
 
-  private void addSshKeys(RemoteApi api, AccountInfo acc, AccountState a) throws
+  private void addSshKeys(RemoteApi api, AccountInfo acc) throws
   BadRequestException, IOException, OrmException {
     List<SshKeyInfo> sshKeys = api.getSshKeys(acc.username);
+    AccountState a = accountCache.getByUsername(acc.username);
     db.get().accountSshKeys().upsert(toAccountSshKey(a, sshKeys));
   }
 
