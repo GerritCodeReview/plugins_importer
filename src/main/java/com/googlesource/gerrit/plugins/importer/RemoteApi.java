@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.google.gerrit.extensions.restapi.Url.encode;
+
 import com.google.common.collect.Iterables;
 import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -44,6 +46,7 @@ public class RemoteApi {
 
   public ProjectInfo getProject(String projectName) throws IOException,
       BadRequestException {
+    projectName = encode(projectName);
     String endPoint = "/projects/" + projectName;
     try (RestResponse r = checkedGet(endPoint)) {
       return newGson().fromJson(r.getReader(),
