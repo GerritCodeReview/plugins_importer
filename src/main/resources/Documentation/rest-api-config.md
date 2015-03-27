@@ -196,7 +196,7 @@ capability.
   }
 ```
 
-### <a id="complete-project-import"> Resume Project Import
+### <a id="complete-project-import"> Complete Project Import
 _DELETE /config/server/@PLUGIN@~projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)_
 
 Mark a project import as completed.
