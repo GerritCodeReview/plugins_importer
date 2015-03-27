@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 
 @Singleton
@@ -62,12 +63,12 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   }
 
   private Collection<File> listImportFiles() {
-    match = Strings.nullToEmpty(match);
+    match = Strings.nullToEmpty(match).toLowerCase(Locale.ENGLISH);
     Collection<File> importFiles = new HashSet<>();
     for (File f : Files.fileTreeTraverser().preOrderTraversal(lockRoot)) {
       if (f.isFile()
           && !f.getName().endsWith(".lock")
-          && f.getName().toLowerCase().contains(match)) {
+          && f.getName().toLowerCase(Locale.ENGLISH).contains(match)) {
         importFiles.add(f);
       }
     }
