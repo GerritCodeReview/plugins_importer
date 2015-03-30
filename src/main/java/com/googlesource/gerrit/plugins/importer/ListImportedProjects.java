@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -26,8 +27,9 @@ import com.google.inject.Singleton;
 import org.kohsuke.args4j.Option;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 
 @Singleton
@@ -59,14 +61,16 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
     return importedProjects;
   }
 
-  private File[] listImportFiles() {
+  private Collection<File> listImportFiles() {
     match = Strings.nullToEmpty(match);
-
-    return lockRoot.listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        return !name.endsWith(".lock") && name.toLowerCase().contains(match);
+    Collection<File> importFiles = new HashSet<>();
+    for (File f : Files.fileTreeTraverser().preOrderTraversal(lockRoot)) {
+      if (f.isFile()
+          && !f.getName().endsWith(".lock")
+          && f.getName().toLowerCase().contains(match)) {
+        importFiles.add(f);
       }
-    });
+    }
+    return importFiles;
   }
 }
