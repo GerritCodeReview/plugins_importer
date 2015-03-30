@@ -37,6 +37,14 @@ public class ProjectsCollection implements
     ChildCollection<ConfigResource, ImportProjectResource>,
     AcceptsCreate<ConfigResource> {
 
+  class FileSystemLayout {
+    File getImportStatusFile(String id) {
+      return new File(lockRoot, id);
+    }
+  }
+
+  public final FileSystemLayout FS_LAYOUT = new FileSystemLayout();
+
   private final DynamicMap<RestView<ImportProjectResource>> views;
   private final ImportProject.Factory importProjectFactory;
   private final Provider<ListImportedProjects> list;
@@ -67,7 +75,7 @@ public class ProjectsCollection implements
 
   public ImportProjectResource parse(String id)
       throws ResourceNotFoundException {
-    File f = new File(lockRoot, id);
+    File f = FS_LAYOUT.getImportStatusFile(id);
     if (!f.exists()) {
       throw new ResourceNotFoundException(id);
     }

@@ -19,7 +19,6 @@ import static java.lang.String.format;
 
 import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
-import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
@@ -92,7 +91,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private final Provider<CurrentUser> currentUser;
   private final ImportJson importJson;
   private final ImportLog importLog;
-  private final File lockRoot;
+  private final ProjectsCollection projects;
 
   private final Project.NameKey targetProject;
   private Project.NameKey srcProject;
@@ -112,7 +111,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       Provider<CurrentUser> currentUser,
       ImportJson importJson,
       ImportLog importLog,
-      @PluginData File data,
+      ProjectsCollection projects,
       @Assisted Project.NameKey targetProject) {
     this.projectCache = projectCache;
     this.openRepoStep = openRepoStep;
@@ -123,7 +122,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     this.currentUser = currentUser;
     this.importJson = importJson;
     this.importLog = importLog;
-    this.lockRoot = data;
+    this.projects = projects;
+
     this.targetProject = targetProject;
   }
 
@@ -246,7 +246,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   private LockFile lockForImport() throws ResourceConflictException {
-    File importStatus = new File(lockRoot, targetProject.get());
+    File importStatus = projects.FS_LAYOUT.getImportStatusFile(targetProject.get());
     LockFile lockFile = new LockFile(importStatus, FS.DETECTED);
     try {
       if (lockFile.lock()) {
