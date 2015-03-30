@@ -14,16 +14,39 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.common.AccountInfo;
+import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.PreconditionFailedException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.AccountGroup;
+import com.google.gerrit.reviewdb.client.AccountGroupById;
+import com.google.gerrit.reviewdb.client.AccountGroupMember;
+import com.google.gerrit.reviewdb.client.AccountGroupName;
+import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.GroupCache;
+import com.google.gerrit.server.account.GroupIncludeCache;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.config.GerritServerConfig;
+import com.google.gerrit.server.group.GroupJson.GroupInfo;
+import com.google.gwtorm.server.OrmDuplicateKeyException;
+import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
 import com.googlesource.gerrit.plugins.importer.ImportGroup.Input;
+
+import org.eclipse.jgit.lib.Config;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @RequiresCapability(ImportCapability.ID)
 class ImportGroup implements RestModifyView<ConfigResource, Input> {
@@ -39,16 +62,130 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private final GroupCache groupCache;
   private final AccountGroup.NameKey group;
+  private final ReviewDb db;
+  private final AccountUtil accountUtil;
+  private final AccountCache accountCache;
+  private final GroupIncludeCache groupIncludeCache;
+  private final Config cfg;
+  private RemoteApi api;
 
   @Inject
-  ImportGroup(GroupCache groupCache, @Assisted AccountGroup.NameKey group) {
+  ImportGroup(AccountUtil accountUtil, GroupCache groupCache,
+      AccountCache accountCache, GroupIncludeCache groupIncludeCache,
+      ReviewDb db, @Assisted AccountGroup.NameKey group,
+      @GerritServerConfig Config cfg) {
+    this.db = db;
+    this.accountUtil = accountUtil;
     this.groupCache = groupCache;
+    this.accountCache = accountCache;
+    this.groupIncludeCache = groupIncludeCache;
+    this.cfg = cfg;
     this.group = group;
   }
 
   @Override
-  public Response<String> apply(ConfigResource rsrc, Input input) {
-    return Response.<String> ok("TODO");
+  public Response<String> apply(ConfigResource rsrc, Input input)
+      throws ResourceConflictException, PreconditionFailedException,
+      BadRequestException, NoSuchAccountException, OrmException, IOException {
+    GroupInfo groupInfo;
+    this.api = new RemoteApi(input.from, input.user, input.pass);
+    groupInfo = api.getGroup(group.get());
+    validate(groupInfo);
+    createGroup(groupInfo);
+
+    return Response.<String> ok("OK");
+  }
+
+  private void validate(GroupInfo groupInfo) throws ResourceConflictException,
+      PreconditionFailedException, BadRequestException, IOException,
+      OrmException {
+    if (groupCache.get(new AccountGroup.NameKey(groupInfo.name)) != null) {
+      throw new ResourceConflictException(String.format(
+          "Group with name %s already exists", groupInfo.name));
+    }
+    if (groupCache.get(new AccountGroup.UUID(groupInfo.id)) != null) {
+      throw new ResourceConflictException(String.format(
+          "Group with UUID %s already exists", groupInfo.id));
+    }
+    if (!groupInfo.id.equals(groupInfo.ownerId))
+      if (groupCache.get(new AccountGroup.UUID(groupInfo.ownerId)) == null) {
+        throw new PreconditionFailedException(String.format(
+            "Owner group with UUID %s does not exist", groupInfo.ownerId));
+      }
+    for (AccountInfo member : groupInfo.members) {
+      try {
+        accountUtil.resolveUser(api, member);
+      } catch (NoSuchAccountException e) {
+        throw new PreconditionFailedException(e.getMessage());
+      }
+    }
+    for (GroupInfo include : groupInfo.includes) {
+      if (groupCache.get(new AccountGroup.UUID(include.id)) == null) {
+        throw new PreconditionFailedException(String.format(
+            "Included group with UUID %s does not exist", include.id));
+      }
+    }
+  }
+
+  private AccountGroup createGroup(GroupInfo info) throws OrmException,
+      ResourceConflictException, NoSuchAccountException, BadRequestException,
+      IOException {
+    AccountGroup.Id groupId = new AccountGroup.Id(db.nextAccountGroupId());
+    AccountGroup.UUID uuid = new AccountGroup.UUID(info.id);
+    AccountGroup group =
+        new AccountGroup(new AccountGroup.NameKey(info.name), groupId, uuid);
+    group.setVisibleToAll(cfg.getBoolean("groups", "newGroupsVisibleToAll",
+        false));
+    group.setDescription(info.description);
+    AccountGroupName gn = new AccountGroupName(group);
+    // first insert the group name to validate that the group name hasn't
+    // already been used to create another group
+    try {
+      db.accountGroupNames().insert(Collections.singleton(gn));
+    } catch (OrmDuplicateKeyException e) {
+      throw new ResourceConflictException(info.name);
+    }
+    db.accountGroups().insert(Collections.singleton(group));
+
+    addMembers(groupId, info.members);
+    addGroups(groupId, info.includes);
+
+    groupCache.evict(group);
+
+    return group;
+  }
+
+  private void addMembers(AccountGroup.Id groupId, List<AccountInfo> members)
+      throws OrmException, NoSuchAccountException, BadRequestException,
+      IOException {
+    List<AccountGroupMember> memberships = new ArrayList<>();
+    for (AccountInfo member : members) {
+      Account.Id userId = accountUtil.resolveUser(api, member);
+      AccountGroupMember membership =
+          new AccountGroupMember(new AccountGroupMember.Key(userId, groupId));
+      memberships.add(membership);
+    }
+    db.accountGroupMembers().insert(memberships);
+
+    for (AccountInfo member : members) {
+      accountCache.evict(accountUtil.resolveUser(api, member));
+    }
+  }
+
+  private void addGroups(AccountGroup.Id groupId, List<GroupInfo> includedGroups)
+      throws OrmException {
+    List<AccountGroupById> includeList = new ArrayList<>();
+    for (GroupInfo includedGroup : includedGroups) {
+      AccountGroup.UUID memberUUID = new AccountGroup.UUID(includedGroup.id);
+      AccountGroupById groupInclude =
+          new AccountGroupById(new AccountGroupById.Key(groupId, memberUUID));
+      includeList.add(groupInclude);
+    }
+    db.accountGroupById().insert(includeList);
+
+    for (GroupInfo member : includedGroups) {
+      groupIncludeCache.evictParentGroupsOf(new AccountGroup.UUID(member.id));
+    }
   }
 
 }

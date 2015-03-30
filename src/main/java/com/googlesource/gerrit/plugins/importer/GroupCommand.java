@@ -19,17 +19,14 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
-import com.google.gerrit.extensions.restapi.Response;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.project.NoSuchChangeException;
-import com.google.gerrit.server.validators.ValidationException;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
@@ -60,18 +57,19 @@ public class GroupCommand extends SshCommand {
   private ImportGroup.Factory importGroupFactory;
 
   @Override
-  protected void run() throws OrmException, IOException, UnloggedFailure,
-      ValidationException, GitAPIException, NoSuchChangeException,
+  protected void run() throws UnloggedFailure, OrmException, IOException,
       NoSuchAccountException {
     ImportGroup.Input input = new ImportGroup.Input();
     input.from = url;
     input.user = user;
     input.pass = getPassword();
 
-    Response<String> response = importGroupFactory.create(new AccountGroup.NameKey(group)).apply(
-        new ConfigResource(), input);
-    stdout.println(response);
-
+    try {
+      importGroupFactory.create(new AccountGroup.NameKey(group)).apply(
+          new ConfigResource(), input);
+    } catch (RestApiException e){
+      throw die(e.getMessage());
+    }
   }
 
   private String getPassword() throws IOException, UnloggedFailure {
