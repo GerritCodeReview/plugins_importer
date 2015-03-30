@@ -41,9 +41,6 @@ _GET /config/server/@PLUGIN@~projects/_
 
 Lists the imported projects.
 
-As result a map is returned that maps the project name to
-[ImportProjectInfo](#import-project-info) entity.
-
 Caller must be a member of a group that is granted the 'Import'
 capability (provided by this plugin) or the 'Administrate Server'
 capability.
@@ -57,6 +54,9 @@ name contains the given `match` substring, case insensitive.
 ```
   GET /config/server/@PLUGIN@~projects/?match=my HTTP/1.0
 ```
+
+As result a map is returned that maps the project name to
+[ImportProjectInfo](#import-project-info) entity.
 
 #### Response
 
