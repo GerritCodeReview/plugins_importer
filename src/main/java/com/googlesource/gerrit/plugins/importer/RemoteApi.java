@@ -84,6 +84,7 @@ public class RemoteApi {
 
   public GroupInfo getGroup(String groupName) throws IOException,
       BadRequestException {
+    groupName = encode(groupName);
     String endPoint = "/groups/" + groupName + "/detail";
     try (RestResponse r = checkedGet(endPoint)) {
       return newGson().fromJson(r.getReader(),
