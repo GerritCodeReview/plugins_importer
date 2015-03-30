@@ -87,6 +87,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private final GitFetchStep gitFetchStep;
   private final ConfigureProjectStep configProjectStep;
   private final ReplayChangesStep.Factory replayChangesFactory;
+  private final ImportGroupsStep.Factory importGroupsStepFactory;
   private final Provider<CurrentUser> currentUser;
   private final ImportJson importJson;
   private final ImportLog importLog;
@@ -107,6 +108,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       GitFetchStep gitFetchStep,
       ConfigureProjectStep configProjectStep,
       ReplayChangesStep.Factory replayChangesFactory,
+      ImportGroupsStep.Factory importGroupsStepFactory,
       Provider<CurrentUser> currentUser,
       ImportJson importJson,
       ImportLog importLog,
@@ -118,6 +120,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     this.gitFetchStep = gitFetchStep;
     this.configProjectStep = configProjectStep;
     this.replayChangesFactory = replayChangesFactory;
+    this.importGroupsStepFactory = importGroupsStepFactory;
     this.currentUser = currentUser;
     this.importJson = importJson;
     this.importLog = importLog;
@@ -195,6 +198,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
         configProjectStep.configure(targetProject, parent, pm);
         replayChangesFactory.create(input.from, input.user, input.pass, repo,
             srcProject, targetProject, force, resume, statistic, pm).replay();
+        importGroupsStepFactory.create(input.from, input.user, input.pass,
+            targetProject, pm).importGroups();
       } finally {
         repo.close();
       }
