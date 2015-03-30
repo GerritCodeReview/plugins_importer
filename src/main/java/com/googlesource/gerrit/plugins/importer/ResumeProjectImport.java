@@ -50,6 +50,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
   public static class Input {
     public String user;
     public String pass;
+    public boolean force;
   }
 
   private final ImportProject.Factory importProjectFactory;
@@ -74,7 +75,8 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
 
     ImportProject importer = importProjectFactory.create(rsrc.getName());
     importer.setErr(err);
-    return importer.resume(input.user, input.pass, rsrc.getImportStatus());
+    return importer.resume(input.user, input.pass, input.force,
+        rsrc.getImportStatus());
   }
 
   public static class OnProjects implements

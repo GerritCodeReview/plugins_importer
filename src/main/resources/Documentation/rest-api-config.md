@@ -272,6 +272,9 @@ resume.
 
 * _user_: User on remote system.
 * _pass_: Password of remote user.
+* _force_: Whether the resume should be done forcefully. On resume with
+force changes that have the same last modified timestamp in the source
+and target system are resumed, otherwise they will be skipped.
 
 
 SEE ALSO

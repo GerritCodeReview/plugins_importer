@@ -11,6 +11,7 @@ SYNOPSIS
 ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ resume-project \
   --user <USER> | -u <USER> \
   --pass - | <PASS> \
+  [--force] \
   [--quiet] \
   <NAME>
 ```
@@ -37,6 +38,11 @@ OPTIONS
 
 `--user`
 :	User on remote system.
+
+`--force`
+:	Whether the resume should be done forcefully. On resume with force
+	changes that have the same last modified timestamp in the source
+	and target system are resumed, otherwise they will be skipped.
 
 `--quiet`
 :	Suppress progress messages.

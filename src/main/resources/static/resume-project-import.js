@@ -17,10 +17,11 @@ Gerrit.install(function(self) {
       var u = c.textfield();
       var p = c.textfield();
       p.type = 'password';
+      var f = c.checkbox();
       var b = c.button('Resume',
         {onclick: function(){
           c.call(
-            {user: u.value, pass: p.value},
+            {user: u.value, pass: p.value, force: f.checked},
             function(r) {
               c.hide();
               window.alert('Import for project "'
@@ -37,6 +38,8 @@ Gerrit.install(function(self) {
         c.prependLabel('User:', u),
         c.br(),
         c.prependLabel('Password:', p),
+        c.br(),
+        c.label(f, 'Force Resume'),
         c.br(),
         c.br(),
         b));

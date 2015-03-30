@@ -35,6 +35,9 @@ public class ResumeProjectCommand extends SshCommand {
       usage = "password of remote user")
   private String pass;
 
+  @Option(name = "--force", usage = "Whether the resume should be done forcefully.")
+  private boolean force;
+
   @Option(name = "--quiet", usage = "suppress progress messages")
   private boolean quiet;
 
@@ -58,6 +61,7 @@ public class ResumeProjectCommand extends SshCommand {
       ResumeProjectImport.Input input = new ResumeProjectImport.Input();
       input.user = user;
       input.pass = pass;
+      input.force = force;
       resume.apply(rsrc, input);
     } catch (RestApiException e) {
       throw die(e.getMessage());
