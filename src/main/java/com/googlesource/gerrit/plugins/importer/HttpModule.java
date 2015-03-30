@@ -29,6 +29,8 @@ public class HttpModule extends HttpPluginModule {
         .toInstance(new JavaScriptPlugin("resume-copy-project.js"));
     DynamicSet.bind(binder(), WebUiPlugin.class)
         .toInstance(new JavaScriptPlugin("resume-project-import.js"));
+    DynamicSet.bind(binder(), WebUiPlugin.class)
+        .toInstance(new JavaScriptPlugin("complete-project-import.js"));
 
     DynamicSet.bind(binder(), WebUiPlugin.class)
         .toInstance(new GwtPlugin("importer"));

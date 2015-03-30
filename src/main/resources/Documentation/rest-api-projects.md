@@ -73,6 +73,25 @@ capability.
   }
 ```
 
+### <a id="complete-project-import"> Complete Project Import
+_POST /projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)/@PLUGIN@~delete)_
+
+Mark a project import as completed.
+
+Once a project import is completed it cannot be resumed any more.
+
+#### Request
+
+```
+  POST /projects/myProject/@PLUGIN@~delete HTTP/1.0
+```
+
+#### Response
+
+```
+  HTTP/1.1 204 No Content
+```
+
 
 <a id="json-entities">JSON Entities
 -----------------------------------

@@ -15,12 +15,21 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.extensions.annotations.PluginData;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.CurrentUser;
+import com.google.gerrit.server.account.CapabilityControl;
+import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.project.ProjectResource;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 import com.googlesource.gerrit.plugins.importer.CompleteProjectImport.Input;
 
@@ -65,6 +74,59 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
       }
     } catch (IOException e) {
       throw new ResourceConflictException("failed to lock project for delete");
+    }
+  }
+
+  public static class OnProjects implements
+      RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
+    private final ProjectsCollection projectsCollection;
+    private final CompleteProjectImport completeProjectImport;
+    private final Provider<CurrentUser> currentUserProvider;
+    private final String pluginName;
+
+    @Inject
+    public OnProjects(ProjectsCollection projectsCollection,
+        CompleteProjectImport completeProjectImport,
+        Provider<CurrentUser> currentUserProvider,
+        @PluginName String pluginName) {
+      this.projectsCollection = projectsCollection;
+      this.completeProjectImport = completeProjectImport;
+      this.currentUserProvider = currentUserProvider;
+      this.pluginName = pluginName;
+    }
+
+    @Override
+    public Response<?> apply(ProjectResource rsrc, Input input)
+        throws ResourceNotFoundException, ResourceConflictException {
+      ImportProjectResource projectResource =
+          projectsCollection.parse(new ConfigResource(),
+              IdString.fromDecoded(rsrc.getName()));
+      return completeProjectImport.apply(projectResource, input);
+    }
+
+    @Override
+    public UiAction.Description getDescription(ProjectResource rsrc) {
+      UiAction.Description desc = new UiAction.Description()
+          .setLabel("Complete Import...")
+          .setTitle("Complete the project import."
+              + " After completion, resume is not possible anymore.");
+
+      try {
+        projectsCollection.parse(new ConfigResource(),
+            IdString.fromDecoded(rsrc.getName()));
+        desc.setVisible(canCompleteImport(rsrc));
+      } catch (ResourceNotFoundException e) {
+        desc.setVisible(false);
+      }
+
+      return desc;
+    }
+
+    private boolean canCompleteImport(ProjectResource rsrc) {
+      CapabilityControl ctl = currentUserProvider.get().getCapabilities();
+      return ctl.canAdministrateServer()
+          || (ctl.canPerform(pluginName + "-" + ImportCapability.ID)
+              && rsrc.getControl().isOwner());
     }
   }
 }
