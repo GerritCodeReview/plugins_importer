@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.common.AccountInfo;
+import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.PreconditionFailedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
@@ -29,11 +30,14 @@ import com.google.gerrit.reviewdb.client.AccountGroupMember;
 import com.google.gerrit.reviewdb.client.AccountGroupName;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.account.AccountCache;
+import com.google.gerrit.server.account.CreateGroupArgs;
 import com.google.gerrit.server.account.GroupCache;
 import com.google.gerrit.server.account.GroupIncludeCache;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.config.GerritServerConfig;
 import com.google.gerrit.server.group.GroupJson.GroupInfo;
+import com.google.gerrit.server.validators.GroupCreationValidationListener;
+import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
@@ -46,7 +50,9 @@ import org.eclipse.jgit.lib.Config;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RequiresCapability(ImportCapability.ID)
 class ImportGroup implements RestModifyView<ConfigResource, Input> {
@@ -67,19 +73,22 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   private final AccountCache accountCache;
   private final GroupIncludeCache groupIncludeCache;
   private final Config cfg;
+  private final DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners;
   private RemoteApi api;
 
   @Inject
   ImportGroup(AccountUtil accountUtil, GroupCache groupCache,
       AccountCache accountCache, GroupIncludeCache groupIncludeCache,
       ReviewDb db, @Assisted AccountGroup.NameKey group,
-      @GerritServerConfig Config cfg) {
+      @GerritServerConfig Config cfg,
+      DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners) {
     this.db = db;
     this.accountUtil = accountUtil;
     this.groupCache = groupCache;
     this.accountCache = accountCache;
     this.groupIncludeCache = groupIncludeCache;
     this.cfg = cfg;
+    this.groupCreationValidationListeners = groupCreationValidationListeners;
     this.group = group;
   }
 
@@ -98,7 +107,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private void validate(GroupInfo groupInfo) throws ResourceConflictException,
       PreconditionFailedException, BadRequestException, IOException,
-      OrmException {
+      OrmException, NoSuchAccountException {
     if (groupCache.get(new AccountGroup.NameKey(groupInfo.name)) != null) {
       throw new ResourceConflictException(String.format(
           "Group with name %s already exists", groupInfo.name));
@@ -125,6 +134,38 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
             "Included group with UUID %s does not exist", include.id));
       }
     }
+
+    for (GroupCreationValidationListener l : groupCreationValidationListeners) {
+      try {
+        l.validateNewGroup(toCreateGroupArgs(groupInfo));
+      } catch (ValidationException e) {
+        throw new ResourceConflictException(e.getMessage(), e);
+      }
+    }
+  }
+
+  private CreateGroupArgs toCreateGroupArgs(GroupInfo groupInfo)
+      throws IOException, OrmException, BadRequestException,
+      NoSuchAccountException {
+    CreateGroupArgs args = new CreateGroupArgs();
+    args.setGroupName(groupInfo.name);
+    args.groupDescription = groupInfo.description;
+    args.visibleToAll = cfg.getBoolean("groups", "newGroupsVisibleToAll", false);
+    if (!groupInfo.ownerId.equals(groupInfo.id)) {
+      args.ownerGroupId =
+          groupCache.get(new AccountGroup.UUID(groupInfo.ownerId)).getId();
+    }
+    Set<Account.Id> initialMembers = new HashSet<>();
+    for (AccountInfo member : groupInfo.members) {
+      initialMembers.add(accountUtil.resolveUser(api, member));
+    }
+    args.initialMembers = initialMembers;
+    Set<AccountGroup.UUID> initialGroups = new HashSet<>();
+    for (GroupInfo member : groupInfo.includes) {
+      initialGroups.add(new AccountGroup.UUID(member.id));
+    }
+    args.initialGroups = initialGroups;
+    return args;
   }
 
   private AccountGroup createGroup(GroupInfo info) throws OrmException,
