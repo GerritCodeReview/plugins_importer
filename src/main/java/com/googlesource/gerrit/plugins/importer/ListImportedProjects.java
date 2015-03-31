@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
-import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.server.config.ConfigResource;
@@ -37,7 +36,7 @@ import java.util.Map;
 @RequiresCapability(ImportCapability.ID)
 public class ListImportedProjects implements RestReadView<ConfigResource> {
 
-  private final File lockRoot;
+  private final ProjectsCollection projects;
 
   @Option(name = "--match", metaVar = "MATCH",
       usage = "List only projects containing this substring, case insensitive")
@@ -48,8 +47,8 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   private String match;
 
   @Inject
-  ListImportedProjects(@PluginData File data) {
-    this.lockRoot = data;
+  ListImportedProjects(ProjectsCollection projects) {
+    this.projects = projects;
   }
 
   @Override
@@ -57,7 +56,7 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
       throws IOException {
     Map<String, ImportProjectInfo> importedProjects = Maps.newTreeMap();
     for (File f : listImportFiles()) {
-      importedProjects.put(f.getName(), ImportJson.parse(f));
+      importedProjects.put(projects.FS_LAYOUT.resolveProjectName(f), ImportJson.parse(f));
     }
     return importedProjects;
   }
@@ -65,7 +64,7 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   private Collection<File> listImportFiles() {
     match = Strings.nullToEmpty(match).toLowerCase(Locale.ENGLISH);
     Collection<File> importFiles = new HashSet<>();
-    for (File f : Files.fileTreeTraverser().preOrderTraversal(lockRoot)) {
+    for (File f : Files.fileTreeTraverser().preOrderTraversal(projects.FS_LAYOUT.getLockRoot())) {
       if (f.isFile()
           && !f.getName().endsWith(".lock")
           && f.getName().toLowerCase(Locale.ENGLISH).contains(match)) {
