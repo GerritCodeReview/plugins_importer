@@ -34,7 +34,7 @@ import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-import com.googlesource.gerrit.plugins.importer.CopyProject.Input;
+import com.googlesource.gerrit.plugins.importer.ResumeCopyProject.Input;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -44,6 +44,10 @@ import java.io.Writer;
 @RequiresCapability(CopyProjectCapability.ID)
 class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
     UiAction<ProjectResource> {
+  public static class Input {
+    public boolean force;
+  }
+
   private final Provider<ResumeProjectImport> resumeProjectImport;
   private final ProjectsCollection projectsCollection;
   private final Provider<CurrentUser> currentUserProvider;
@@ -78,10 +82,12 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
     ImportProjectResource projectResource =
         projectsCollection.parse(new ConfigResource(),
             IdString.fromDecoded(rsrc.getName()));
+    ResumeProjectImport.Input in = new ResumeProjectImport.Input();
+    in.force = input.force;
     return resumeProjectImport.get()
         .setCopy(true)
         .setErr(err)
-        .apply(projectResource, new ResumeProjectImport.Input());
+        .apply(projectResource, in);
   }
 
   @Override

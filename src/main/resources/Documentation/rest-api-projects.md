@@ -58,6 +58,9 @@ Caller must be a member of a group that is granted the 'CopyProject'
 capability (provided by this plugin) or the 'Administrate Server'
 capability.
 
+Options may be specified in the request body as a
+[CopyResumeInput](#copy-resume-input) entity.
+
 #### Request
 
 ```
@@ -152,6 +155,14 @@ The `CopyProjectInput` entity contains information about a the copy
 target.
 
 * _name_: The target project name.
+
+### <a id="copy-resume-input"></a>CopyResumeInput
+
+The `CopyResumeInput` entity contains information about an copy resume.
+
+* _force_: Whether the resume should be done forcefully. On resume with
+force changes that have the same last modified timestamp in the source
+and target project are resumed, otherwise they will be skipped.
 
 
 SEE ALSO
