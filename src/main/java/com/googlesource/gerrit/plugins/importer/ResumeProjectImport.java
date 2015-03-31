@@ -26,7 +26,6 @@ import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
-import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
@@ -48,10 +47,31 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     public String user;
     public String pass;
     public boolean force;
+
+    private void validateResumeImport() throws BadRequestException {
+      if (Strings.isNullOrEmpty(user)) {
+        throw new BadRequestException("user is required");
+      }
+      if (Strings.isNullOrEmpty(pass)) {
+        throw new BadRequestException("pass is required");
+      }
+    }
+
+    private void validateResumeCopy() throws BadRequestException {
+      user = Strings.emptyToNull(user);
+      pass = Strings.emptyToNull(pass);
+      if (user != null) {
+        throw new BadRequestException("user must not be set");
+      }
+      if (pass != null) {
+        throw new BadRequestException("pass must not be set");
+      }
+    }
   }
 
   private final ImportProject.Factory importProjectFactory;
 
+  private boolean copy;
   private Writer err;
 
   @Inject
@@ -59,21 +79,31 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     this.importProjectFactory = importProjectFactory;
   }
 
+  ResumeProjectImport setCopy(boolean copy) {
+    this.copy = copy;
+    return this;
+  }
+
+  ResumeProjectImport setErr(Writer err) {
+    this.err = err;
+    return this;
+  }
+
   @Override
   public ResumeImportStatistic apply(ImportProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException {
-    if (Strings.isNullOrEmpty(input.user)) {
-      throw new BadRequestException("user is required");
-    }
-    if (Strings.isNullOrEmpty(input.pass)) {
-      throw new BadRequestException("pass is required");
+    if (copy) {
+      input.validateResumeCopy();
+    } else {
+      input.validateResumeImport();
     }
 
-    ImportProject importer = importProjectFactory.create(rsrc.getName());
-    importer.setErr(err);
-    return importer.resume(input.user, input.pass, input.force,
-        rsrc.getImportStatus());
+    return importProjectFactory.create(rsrc.getName())
+        .setCopy(copy)
+        .setErr(err)
+        .resume(input.user, input.pass, input.force,
+            rsrc.getImportStatus());
   }
 
   public static class OnProjects implements
@@ -82,20 +112,17 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     private final ResumeProjectImport resumeProjectImport;
     private final Provider<CurrentUser> currentUserProvider;
     private final String pluginName;
-    private final String canonicalWebUrl;
 
     @Inject
     public OnProjects(
         ProjectsCollection projectsCollection,
         ResumeProjectImport resumeProjectImport,
         Provider<CurrentUser> currentUserProvider,
-        @PluginName String pluginName,
-        @CanonicalWebUrl String canonicalWebUrl) {
+        @PluginName String pluginName) {
       this.projectsCollection = projectsCollection;
       this.resumeProjectImport = resumeProjectImport;
       this.currentUserProvider = currentUserProvider;
       this.pluginName = pluginName;
-      this.canonicalWebUrl = canonicalWebUrl;
     }
 
     @Override
@@ -130,7 +157,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
             projectsCollection.parse(new ConfigResource(),
                 IdString.fromDecoded(rsrc.getName()));
         ImportProjectInfo info = projectResource.getInfo();
-        if (canonicalWebUrl.equals(info.from)) {
+        if (info.from == null) {
           // no import, but a copy within the same system
           return false;
         }
@@ -140,9 +167,5 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
         return false;
       }
     }
-  }
-
-  void setErr(Writer err) {
-    this.err = err;
   }
 }

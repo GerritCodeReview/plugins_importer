@@ -83,7 +83,7 @@ class ReplayRevisionsStep {
     this.changeInfo = changeInfo;
   }
 
-  void replay(RemoteApi api) throws IOException, OrmException, NoSuchAccountException,
+  void replay(GerritApi api) throws IOException, OrmException, NoSuchAccountException,
       BadRequestException {
     List<RevisionInfo> revisions = new ArrayList<>(changeInfo.revisions.values());
     sortRevisionInfoByNumber(revisions);

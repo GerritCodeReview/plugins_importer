@@ -24,10 +24,7 @@ import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
-import com.google.gerrit.server.IdentifiedUser;
-import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.account.CapabilityControl;
-import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
@@ -54,7 +51,6 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
   }
 
   private final ImportProject.Factory importProjectFactory;
-  private final String canonicalWebUrl;
   private final Provider<CurrentUser> currentUserProvider;
   private final String pluginName;
 
@@ -63,11 +59,9 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
   @Inject
   CopyProject(
       ImportProject.Factory importProjectFactory,
-      @CanonicalWebUrl String canonicalWebUrl,
       Provider<CurrentUser> currentUserProvider,
       @PluginName String pluginName) {
     this.importProjectFactory = importProjectFactory;
-    this.canonicalWebUrl = canonicalWebUrl;
     this.currentUserProvider = currentUserProvider;
     this.pluginName = pluginName;
   }
@@ -80,18 +74,13 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
       throw new BadRequestException("name is required");
     }
 
-    AccountState s = ((IdentifiedUser) currentUserProvider.get()).state();
-
     ImportProject.Input in = new ImportProject.Input();
-    in.from = canonicalWebUrl;
     in.name = rsrc.getName();
-    in.user = s.getUserName();
-    in.pass = s.getPassword(s.getUserName());
 
-    ImportProject importer = importProjectFactory.create(
-        new Project.NameKey(input.name));
-    importer.setErr(err);
-    return importer.apply(new ConfigResource(), in);
+    return importProjectFactory.create(new Project.NameKey(input.name))
+        .setCopy(true)
+        .setErr(err)
+        .apply(new ConfigResource(), in);
   }
 
   @Override

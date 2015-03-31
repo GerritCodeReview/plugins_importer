@@ -58,7 +58,7 @@ class AccountUtil {
     this.db = db;
   }
 
-  Account.Id resolveUser(RemoteApi api, AccountInfo acc)
+  Account.Id resolveUser(GerritApi api, AccountInfo acc)
       throws NoSuchAccountException, BadRequestException, IOException,
       OrmException {
     AccountState a = accountCache.getByUsername(acc.username);
@@ -83,7 +83,7 @@ class AccountUtil {
     return a.getAccount().getId();
   }
 
-  private Account.Id createAccountByLdapAndAddSshKeys(RemoteApi api,
+  private Account.Id createAccountByLdapAndAddSshKeys(GerritApi api,
       AccountInfo acc)
       throws NoSuchAccountException, BadRequestException, IOException,
       OrmException {
@@ -104,7 +104,7 @@ class AccountUtil {
     }
   }
 
-  private void addSshKeys(RemoteApi api, AccountInfo acc) throws
+  private void addSshKeys(GerritApi api, AccountInfo acc) throws
   BadRequestException, IOException, OrmException {
     List<SshKeyInfo> sshKeys = api.getSshKeys(acc.username);
     AccountState a = accountCache.getByUsername(acc.username);

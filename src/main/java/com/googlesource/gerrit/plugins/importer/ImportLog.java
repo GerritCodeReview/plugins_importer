@@ -23,6 +23,7 @@ import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.systemstatus.ServerInformation;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.IdentifiedUser;
+import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.util.SystemLog;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -48,15 +49,18 @@ class ImportLog implements LifecycleListener {
   private final SystemLog systemLog;
   private final ServerInformation serverInfo;
   private final AuditService auditService;
+  private final String canonicalWebUrl;
   private boolean started;
 
   @Inject
   public ImportLog(SystemLog systemLog,
       ServerInformation serverInfo,
-      AuditService auditService) {
+      AuditService auditService,
+      @CanonicalWebUrl String canonicalWebUrl) {
     this.systemLog = systemLog;
     this.serverInfo = serverInfo;
     this.auditService = auditService;
+    this.canonicalWebUrl = canonicalWebUrl;
   }
 
   public void onImport(IdentifiedUser user, Project.NameKey srcProject,
@@ -86,7 +90,13 @@ class ImportLog implements LifecycleListener {
 
     event.setProperty(ACCOUNT_ID, user.getAccountId().toString());
     event.setProperty(USER_NAME, user.getUserName());
-    event.setProperty(FROM, from);
+
+    if (from != null) {
+      event.setProperty(FROM, from);
+    } else {
+      event.setProperty(FROM, canonicalWebUrl);
+    }
+
     event.setProperty(SRC_PROJECT_NAME, srcProject.get());
     event.setProperty(TARGET_PROJECT_NAME, targetProject.get());
 

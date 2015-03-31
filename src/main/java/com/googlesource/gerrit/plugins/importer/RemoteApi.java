@@ -36,7 +36,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
-public class RemoteApi {
+class RemoteApi implements GerritApi {
 
   private final RestSession restSession;
 

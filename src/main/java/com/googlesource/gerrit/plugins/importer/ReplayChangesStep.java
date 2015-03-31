@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.collect.Iterators;
+import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -47,9 +48,8 @@ class ReplayChangesStep {
 
   interface Factory {
     ReplayChangesStep create(
-        @Assisted("from") String fromGerrit,
-        @Assisted("user") String user,
-        @Assisted("password") String password,
+        @Nullable String fromGerrit,
+        GerritApi api,
         Repository repo,
         @Assisted("srcProject") Project.NameKey srcProject,
         @Assisted("targetProject") Project.NameKey targetProject,
@@ -70,7 +70,7 @@ class ReplayChangesStep {
   private final ChangeIndexer indexer;
   private final Provider<InternalChangeQuery> queryProvider;
   private final String fromGerrit;
-  private final RemoteApi api;
+  private final GerritApi api;
   private final Repository repo;
   private final Project.NameKey srcProject;
   private final Project.NameKey targetProject;
@@ -91,9 +91,8 @@ class ReplayChangesStep {
       ReviewDb db,
       ChangeIndexer indexer,
       Provider<InternalChangeQuery> queryProvider,
-      @Assisted("from") String fromGerrit,
-      @Assisted("user") String user,
-      @Assisted("password") String password,
+      @Assisted @Nullable String fromGerrit,
+      @Assisted GerritApi api,
       @Assisted Repository repo,
       @Assisted("srcProject") Project.NameKey srcProject,
       @Assisted("targetProject") Project.NameKey targetProject,
@@ -112,7 +111,7 @@ class ReplayChangesStep {
     this.indexer = indexer;
     this.queryProvider = queryProvider;
     this.fromGerrit = fromGerrit;
-    this.api = new RemoteApi(fromGerrit, user, password);
+    this.api = api;
     this.repo = repo;
     this.srcProject = srcProject;
     this.targetProject = targetProject;
@@ -168,7 +167,7 @@ class ReplayChangesStep {
     addApprovalsFactory.create(change, c, resume).add(api);
     addHashtagsFactory.create(change, c, resumeChange).add();
 
-    insertLinkToOriginalFactory.create(fromGerrit,change, c, resumeChange).insert();
+    insertLinkToOriginalFactory.create(fromGerrit, change, c, resumeChange).insert();
 
     indexer.index(db, change);
 

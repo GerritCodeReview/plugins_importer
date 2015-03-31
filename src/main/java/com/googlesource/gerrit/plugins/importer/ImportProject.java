@@ -62,7 +62,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     public String pass;
     public String parent;
 
-    private void validate() throws BadRequestException {
+    private void validateImport() throws BadRequestException {
       if (Strings.isNullOrEmpty(from)) {
         throw new BadRequestException("from is required");
       }
@@ -71,6 +71,21 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       }
       if (Strings.isNullOrEmpty(pass)) {
         throw new BadRequestException("pass is required");
+      }
+    }
+
+    private void validateCopy() throws BadRequestException {
+      from = Strings.emptyToNull(from);
+      user = Strings.emptyToNull(user);
+      pass = Strings.emptyToNull(pass);
+      if (from != null) {
+        throw new BadRequestException("from must not be set");
+      }
+      if (user != null) {
+        throw new BadRequestException("user must not be set");
+      }
+      if (pass != null) {
+        throw new BadRequestException("pass must not be set");
       }
     }
   }
@@ -88,6 +103,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private final ConfigureProjectStep configProjectStep;
   private final ReplayChangesStep.Factory replayChangesFactory;
   private final ImportGroupsStep.Factory importGroupsStepFactory;
+  private final GerritApi.Factory apiFactory;
   private final Provider<CurrentUser> currentUser;
   private final ImportJson importJson;
   private final ImportLog importLog;
@@ -97,7 +113,9 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private Project.NameKey srcProject;
   private Project.NameKey parent;
   private boolean force;
+  private GerritApi api;
 
+  private boolean copy;
   private Writer err;
 
   @Inject
@@ -109,6 +127,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       ConfigureProjectStep configProjectStep,
       ReplayChangesStep.Factory replayChangesFactory,
       ImportGroupsStep.Factory importGroupsStepFactory,
+      GerritApi.Factory apiFactory,
       Provider<CurrentUser> currentUser,
       ImportJson importJson,
       ImportLog importLog,
@@ -121,6 +140,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     this.configProjectStep = configProjectStep;
     this.replayChangesFactory = replayChangesFactory;
     this.importGroupsStepFactory = importGroupsStepFactory;
+    this.apiFactory = apiFactory;
     this.currentUser = currentUser;
     this.importJson = importJson;
     this.importLog = importLog;
@@ -129,8 +149,14 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     this.targetProject = targetProject;
   }
 
-  void setErr(Writer err) {
+  ImportProject setCopy(boolean copy) {
+    this.copy = copy;
+    return this;
+  }
+
+  ImportProject setErr(Writer err) {
     this.err = err;
+    return this;
   }
 
   @Override
@@ -178,13 +204,18 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       NoSuchAccountException {
     boolean resume = info != null;
 
-    input.validate();
+    if (copy) {
+      input.validateCopy();
+    } else {
+      input.validateImport();
+    }
 
     ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
         NullProgressMonitor.INSTANCE;
 
     ResumeImportStatistic statistic = new ResumeImportStatistic();
     try {
+      api = apiFactory.create(input.from, input.user, input.pass);
       srcProject = !Strings.isNullOrEmpty(input.name)
           ? new Project.NameKey(input.name) : targetProject;
       checkProjectInSource(input, pm);
@@ -196,7 +227,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
         configRepoStep.configure(repo, srcProject, input.from, pm);
         gitFetchStep.fetch(input.user, input.pass, repo, pm);
         configProjectStep.configure(targetProject, parent, pm);
-        replayChangesFactory.create(input.from, input.user, input.pass, repo,
+        replayChangesFactory.create(input.from, api, repo,
             srcProject, targetProject, force, resume, statistic, pm).replay();
         importGroupsStepFactory.create(input.from, input.user, input.pass,
             targetProject, pm).importGroups();
@@ -210,9 +241,13 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     } catch (Exception e) {
       importLog.onImport((IdentifiedUser) currentUser.get(), srcProject,
           targetProject, input.from, e);
-      log.error(format("Unable to transfer project '%s' from"
-          + " source gerrit host '%s'.",
-          srcProject.get(), input.from), e);
+      String msg = input.from != null
+          ? format("Unable to transfer project '%s' from"
+              + " source gerrit host '%s'.",
+              srcProject.get(), input.from)
+          : format("Unable to copy project '%s'.",
+              srcProject.get());
+      log.error(msg, e);
       throw e;
     }
 
@@ -222,7 +257,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private void checkProjectInSource(Input input, ProgressMonitor pm)
       throws IOException, BadRequestException {
     pm.beginTask("Check source project", 1);
-    new RemoteApi(input.from, input.user, input.pass).getProject(srcProject.get());
+    api.getProject(srcProject.get());
     updateAndEnd(pm);
   }
 
@@ -234,8 +269,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
         parent = new Project.NameKey(input.parent);
       } else {
         parent = new Project.NameKey(
-            new RemoteApi(input.from, input.user, input.pass)
-                .getProject(srcProject.get()).parent);
+            api.getProject(srcProject.get()).parent);
       }
     }
     updateAndEnd(pm);

@@ -74,7 +74,7 @@ class ReplayMessagesStep {
     this.resume = resume;
   }
 
-  void replay(RemoteApi api) throws NoSuchAccountException, NoSuchChangeException,
+  void replay(GerritApi api) throws NoSuchAccountException, NoSuchChangeException,
       OrmException, IOException, BadRequestException {
     for (ChangeMessageInfo msg : changeInfo.messages) {
       ChangeMessage.Key msgKey = new ChangeMessage.Key(change.getId(), msg.id);

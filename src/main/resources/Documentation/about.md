@@ -202,9 +202,6 @@ To be able to copy a project the user must be a member of a group that
 is granted the 'Copy Project' capability (provided by this plugin) or
 the 'Administrate Server' capability.
 
-Please note, due the implementation doing a project import internally
-the user doing the copy must have an HTTP password generated.
-
 <a id="project-copy-commands">
 #### Commands
 
