@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static java.lang.String.format;
+
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.registration.DynamicMap;
@@ -38,8 +40,11 @@ public class ProjectsCollection implements
     AcceptsCreate<ConfigResource> {
 
   class FileSystemLayout {
+
+    private String SUFFIX_IMPORT_STATUS_FILE = ".$importstatus";
+
     File getImportStatusFile(String id) {
-      return new File(lockRoot, id);
+      return new File(lockRoot, format("%s%s", id, SUFFIX_IMPORT_STATUS_FILE));
     }
   }
 
