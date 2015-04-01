@@ -80,13 +80,14 @@ public class ImportGroupScreen extends VerticalPanel {
     in.user(getValue(userTxt));
     in.pass(getValue(passTxt));
 
+    final String groupName = getValue(nameTxt);
     new RestApi("config").id("server").view(Plugin.get().getName(), "groups")
-        .id(getValue(nameTxt)).put(in, new AsyncCallback<JavaScriptObject>() {
+        .id(groupName).put(in, new AsyncCallback<JavaScriptObject>() {
 
       @Override
       public void onSuccess(JavaScriptObject result) {
         clearForm();
-        Plugin.get().go("/admin/groups/" + getValue(nameTxt));
+        Plugin.get().go("/admin/groups/" + groupName);
 
         final DialogBox successDialog = new DialogBox();
         successDialog.setText("Group Import");
