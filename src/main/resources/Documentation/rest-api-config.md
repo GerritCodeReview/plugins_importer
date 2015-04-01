@@ -262,6 +262,8 @@ imported.
 * _pass_: Password of remote user.
 * _import\_owner\_group_: Whether missing owner groups should be
 imported automatically (by default false).
+* _import\_included\_groups_: Whether missing included groups should be
+imported automatically (by default false).
 
 ### <a id="import-info"></a>ImportInfo
 

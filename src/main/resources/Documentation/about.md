@@ -259,7 +259,6 @@ on the target Gerrit server is applied to each imported group.
 
 Preconditions for a group import:
 
-* Included groups must already exist in the target Gerrit server.
 * Member accounts must have a username and an email set.
 * Member accounts must exist in the target Gerrit server unless auth
   type is 'LDAP', 'HTTP\_LDAP' or 'CLIENT\_SSL\_CERT\_LDAP'.
@@ -273,8 +272,8 @@ Gerrit internal users (e.g. service users) are never automatically
 created but must be created in the target Gerrit server before the
 import.
 
-Missing owner groups can be automatically imported into the target
-Gerrit server.
+Missing owner groups and missing included groups can be automatically
+imported into the target Gerrit server.
 
 <a id="group-import-commands">
 #### Commands

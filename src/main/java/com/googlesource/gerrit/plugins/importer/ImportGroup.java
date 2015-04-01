@@ -61,6 +61,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     public String user;
     public String pass;
     public boolean importOwnerGroup;
+    public boolean importIncludedGroups;
   }
 
   interface Factory {
@@ -139,10 +140,12 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
         throw new PreconditionFailedException(e.getMessage());
       }
     }
-    for (GroupInfo include : groupInfo.includes) {
-      if (getGroupByUUID(include.id) == null) {
-        throw new PreconditionFailedException(String.format(
-            "Included group with UUID %s does not exist", include.id));
+    if (!input.importIncludedGroups) {
+      for (GroupInfo include : groupInfo.includes) {
+        if (getGroupByUUID(include.id) == null) {
+          throw new PreconditionFailedException(String.format(
+              "Included group with UUID %s does not exist", include.id));
+        }
       }
     }
 
@@ -224,7 +227,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     }
 
     addMembers(groupId, info.members);
-    addGroups(groupId, info.includes);
+    addGroups(input, groupId, info.name, info.includes);
 
     groupCache.evict(group);
 
@@ -248,10 +251,24 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     }
   }
 
-  private void addGroups(AccountGroup.Id groupId, List<GroupInfo> includedGroups)
-      throws OrmException {
+  private void addGroups(Input input, AccountGroup.Id groupId,
+      String groupName, List<GroupInfo> includedGroups)
+      throws BadRequestException, ResourceConflictException,
+      PreconditionFailedException, NoSuchAccountException, OrmException,
+      IOException {
     List<AccountGroupById> includeList = new ArrayList<>();
     for (GroupInfo includedGroup : includedGroups) {
+      if (getGroupByUUID(includedGroup.id) == null) {
+        String includedGroupName = api.getGroup(includedGroup.id).name;
+        if (input.importIncludedGroups) {
+          importGroupFactory.create(new AccountGroup.NameKey(includedGroupName))
+              .apply(new ConfigResource(), input);
+        } else {
+          throw new IllegalStateException(String.format(
+              "Cannot include non-existing group %s into group %s.",
+              includedGroupName, groupName));
+        }
+      }
       AccountGroup.UUID memberUUID = new AccountGroup.UUID(includedGroup.id);
       AccountGroupById groupInclude =
           new AccountGroupById(new AccountGroupById.Key(groupId, memberUUID));

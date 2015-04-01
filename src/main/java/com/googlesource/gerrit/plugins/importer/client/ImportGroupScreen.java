@@ -49,6 +49,7 @@ public class ImportGroupScreen extends VerticalPanel {
   private TextBox userTxt;
   private TextBox passTxt;
   private CheckBox importOwnerGroupCheckBox;
+  private CheckBox importIncludedGroupsCheckBox;
 
   ImportGroupScreen() {
     setStyleName("importer-import-panel");
@@ -58,6 +59,7 @@ public class ImportGroupScreen extends VerticalPanel {
     userTxt = addTextBox(this, "Remote User*", "user on remote system");
     passTxt = addPasswordTextBox(this, "Password*", "password of remote user");
     importOwnerGroupCheckBox = addCheckBox("import owner group", "also import missing owner groups");
+    importIncludedGroupsCheckBox = addCheckBox("import included groups", "also import missing included groups");
 
     HorizontalPanel buttons = new HorizontalPanel();
     add(buttons);
@@ -96,6 +98,7 @@ public class ImportGroupScreen extends VerticalPanel {
     in.user(getValue(userTxt));
     in.pass(getValue(passTxt));
     in.importOwnerGroup(importOwnerGroupCheckBox.getValue());
+    in.importIncludedGroups(importIncludedGroupsCheckBox.getValue());
 
     final String groupName = getValue(nameTxt);
     new RestApi("config").id("server").view(Plugin.get().getName(), "groups")
@@ -139,5 +142,6 @@ public class ImportGroupScreen extends VerticalPanel {
     userTxt.setValue("");
     passTxt.setValue("");
     importOwnerGroupCheckBox.setValue(false);
+    importIncludedGroupsCheckBox.setValue(false);
   }
 }

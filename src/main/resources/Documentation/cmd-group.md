@@ -13,6 +13,7 @@ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ group \
   --user <USER> | -u <USER> \
   --pass - | <PASS> \
   [--import-owner-group | -o] \
+  [--import-included-groups | -i] \
   <NAME>
 ```
 
@@ -44,6 +45,9 @@ OPTIONS
 
 `--import-owner-group`
 :	Whether missing owner groups should be imported automatically.
+
+`--import-included-groups`
+:	Whether missing included groups should be imported automatically.
 
 EXAMPLES
 --------
