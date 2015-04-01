@@ -245,6 +245,10 @@ plugin to delete the source project, a project can be renamed.
 The import group functionality allows to import a Gerrit group from one
 Gerrit server to another Gerrit server.
 
+The flag whether a group is visible to all registered users is *not*
+preserved on import, but the default that is configured for this option
+on the target Gerrit server is applied to each imported group.
+
 <a id="group-import-preconditions">
 #### Preconditions
 
