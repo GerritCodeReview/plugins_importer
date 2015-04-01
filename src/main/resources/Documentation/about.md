@@ -145,7 +145,8 @@ Replaying a change is done by:
 
 At a point in time a project can be imported only by a single process.
 To protect a running import from other processes the import creates an
-import file 'review\_site/data/@PLUGIN@/\<target-project-name\>' and
+import file
+'review\_site/data/@PLUGIN@/\<target-project-name\>.$importstatus' and
 locks this file. In the import file an
 [ImportProjectInfo](rest-api-config.html#import-project-info) entity is
 persisted that stores the input parameters and records the past
