@@ -131,7 +131,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     if (!groupInfo.id.equals(groupInfo.ownerId))
       if (!input.importOwnerGroup && getGroupByUUID(groupInfo.ownerId) == null) {
         throw new PreconditionFailedException(String.format(
-            "Owner group with UUID %s does not exist", groupInfo.ownerId));
+            "Owner group %s with UUID %s does not exist",
+            getGroupName(groupInfo.ownerId), groupInfo.ownerId));
       }
     for (AccountInfo member : groupInfo.members) {
       try {
@@ -144,7 +145,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       for (GroupInfo include : groupInfo.includes) {
         if (getGroupByUUID(include.id) == null) {
           throw new PreconditionFailedException(String.format(
-              "Included group with UUID %s does not exist", include.id));
+              "Included group %s with UUID %s does not exist",
+              getGroupName(include.id), include.id));
         }
       }
     }
@@ -212,7 +214,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
     if (!info.id.equals(info.ownerId)) {
       if (getGroupByUUID(info.ownerId) == null) {
-        String ownerGroupName = api.getGroup(info.ownerId).name;
+        String ownerGroupName = getGroupName(info.ownerId);
         if (input.importOwnerGroup) {
           importGroupFactory.create(new AccountGroup.NameKey(ownerGroupName))
               .apply(new ConfigResource(), input);
@@ -259,7 +261,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     List<AccountGroupById> includeList = new ArrayList<>();
     for (GroupInfo includedGroup : includedGroups) {
       if (getGroupByUUID(includedGroup.id) == null) {
-        String includedGroupName = api.getGroup(includedGroup.id).name;
+        String includedGroupName = getGroupName(includedGroup.id);
         if (input.importIncludedGroups) {
           importGroupFactory.create(new AccountGroup.NameKey(includedGroupName))
               .apply(new ConfigResource(), input);
@@ -281,4 +283,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     }
   }
 
+  private String getGroupName(String uuid) throws BadRequestException,
+      IOException, OrmException {
+    return api.getGroup(uuid).name;
+  }
 }
