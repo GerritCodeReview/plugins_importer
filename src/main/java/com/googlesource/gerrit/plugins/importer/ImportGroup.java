@@ -108,16 +108,16 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   private void validate(GroupInfo groupInfo) throws ResourceConflictException,
       PreconditionFailedException, BadRequestException, IOException,
       OrmException, NoSuchAccountException {
-    if (groupCache.get(new AccountGroup.NameKey(groupInfo.name)) != null) {
+    if (getGroupByName(groupInfo.name) != null) {
       throw new ResourceConflictException(String.format(
           "Group with name %s already exists", groupInfo.name));
     }
-    if (groupCache.get(new AccountGroup.UUID(groupInfo.id)) != null) {
+    if (getGroupByUUID(groupInfo.id) != null) {
       throw new ResourceConflictException(String.format(
           "Group with UUID %s already exists", groupInfo.id));
     }
     if (!groupInfo.id.equals(groupInfo.ownerId))
-      if (groupCache.get(new AccountGroup.UUID(groupInfo.ownerId)) == null) {
+      if (getGroupByUUID(groupInfo.ownerId) == null) {
         throw new PreconditionFailedException(String.format(
             "Owner group with UUID %s does not exist", groupInfo.ownerId));
       }
@@ -129,7 +129,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       }
     }
     for (GroupInfo include : groupInfo.includes) {
-      if (groupCache.get(new AccountGroup.UUID(include.id)) == null) {
+      if (getGroupByUUID(include.id) == null) {
         throw new PreconditionFailedException(String.format(
             "Included group with UUID %s does not exist", include.id));
       }
@@ -144,6 +144,14 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     }
   }
 
+  private AccountGroup getGroupByName(String groupName) {
+    return groupCache.get(new AccountGroup.NameKey(groupName));
+  }
+
+  private AccountGroup getGroupByUUID(String uuid) {
+    return groupCache.get(new AccountGroup.UUID(uuid));
+  }
+
   private CreateGroupArgs toCreateGroupArgs(GroupInfo groupInfo)
       throws IOException, OrmException, BadRequestException,
       NoSuchAccountException {
@@ -152,8 +160,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     args.groupDescription = groupInfo.description;
     args.visibleToAll = cfg.getBoolean("groups", "newGroupsVisibleToAll", false);
     if (!groupInfo.ownerId.equals(groupInfo.id)) {
-      args.ownerGroupId =
-          groupCache.get(new AccountGroup.UUID(groupInfo.ownerId)).getId();
+      args.ownerGroupId = getGroupByUUID(groupInfo.ownerId).getId();
     }
     Set<Account.Id> initialMembers = new HashSet<>();
     for (AccountInfo member : groupInfo.members) {
