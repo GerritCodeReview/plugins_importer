@@ -61,6 +61,11 @@ class AccountUtil {
   Account.Id resolveUser(RemoteApi api, AccountInfo acc)
       throws NoSuchAccountException, BadRequestException, IOException,
       OrmException {
+    if (acc.username == null) {
+      throw new NoSuchAccountException(String.format(
+          "User %s <%s> (%s) doesn't have a username and cannot be looked up.",
+          acc.name, acc.email, acc._accountId));
+    }
     AccountState a = accountCache.getByUsername(acc.username);
 
     if (a == null) {
@@ -73,6 +78,11 @@ class AccountUtil {
           throw new NoSuchAccountException(String.format("User %s not found",
               acc.username));
       }
+    }
+    if (acc.email == null) {
+      throw new NoSuchAccountException(String.format(
+          "User %s doesn't have an email and cannot be verified.",
+          acc.username));
     }
     if (!Objects.equals(a.getAccount().getPreferredEmail(), acc.email)) {
       throw new NoSuchAccountException(String.format(
