@@ -71,6 +71,7 @@ import.
 
 Preconditions for a project import:
 
+* The version of the source Gerrit server is 2.11 or newer.
 * The parent project of the imported project must already exist in the
   target Gerrit server.
 * User accounts must exist in the target Gerrit server unless auth type
