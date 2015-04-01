@@ -62,7 +62,9 @@ public class ResumeProjectCommand extends SshCommand {
       input.user = user;
       input.pass = pass;
       input.force = force;
-      resume.apply(rsrc, input);
+      ResumeImportStatistic stats = resume.apply(rsrc, input);
+      stdout.print("Created Changes: " + stats.numChangesCreated + "\n");
+      stdout.print("Updated Changes: " + stats.numChangesUpdated + "\n");
     } catch (RestApiException e) {
       throw die(e.getMessage());
     }

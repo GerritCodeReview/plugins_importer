@@ -33,6 +33,22 @@ capability.
   }
 ```
 
+As result a [ImportStatisticInfo](rest-api-config.html#import-statistic-info)
+entity is returned.
+
+#### Response
+
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "num\_changes\_created": 5
+  }
+```
+
 ### <a id="resume-copy-project"> Resume Copy Project
 _PUT /projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)/@PLUGIN@~copy.resume_
 
@@ -46,6 +62,23 @@ capability.
 
 ```
   PUT /projects/myProjectCopy/@PLUGIN@~copy.resume HTTP/1.0
+```
+
+As result a [ResumeImportStatisticInfo](rest-api-config.html#resume-import-statistic-info)
+entity is returned.
+
+#### Response
+
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "num\_changes\_created": 1,
+    "num\_changes\_updated": 2
+  }
 ```
 
 ### <a id="resume-project-import"> Resume Project Import
@@ -70,6 +103,23 @@ capability.
   {
     "user": "myUser",
     "pass": "myPassword"
+  }
+```
+
+As result a [ResumeImportStatisticInfo](rest-api-config.html#resume-import-statistic-info)
+entity is returned.
+
+#### Response
+
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "num\_changes\_created": 1,
+    "num\_changes\_updated": 2
   }
 ```
 

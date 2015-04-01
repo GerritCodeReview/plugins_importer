@@ -20,7 +20,6 @@ import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.getVal
 
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -61,9 +60,9 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
 
         new RestApi("config").id("server")
             .view(Plugin.get().getName(), "projects").id(project)
-            .view("resume").put(in, new AsyncCallback<JavaScriptObject>() {
+            .view("resume").put(in, new AsyncCallback<ResumeImportStatisticInfo>() {
               @Override
-              public void onSuccess(JavaScriptObject result) {
+              public void onSuccess(ResumeImportStatisticInfo result) {
                 Plugin.get().go("/admin/projects/" + project);
 
                 final DialogBox successDialog = new DialogBox();
@@ -73,6 +72,8 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
                 Panel p = new VerticalPanel();
                 p.setStyleName("importer-message-panel");
                 p.add(new Label("The project import was resumed."));
+                p.add(new Label("Created Changes: " + result.numChangesCreated()));
+                p.add(new Label("Updated Changes: " + result.numChangesUpdated()));
                 Button okButton = new Button("OK");
                 okButton.addClickHandler(new ClickHandler() {
                   public void onClick(ClickEvent event) {

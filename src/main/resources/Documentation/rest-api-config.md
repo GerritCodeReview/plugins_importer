@@ -36,6 +36,22 @@ capability.
   }
 ```
 
+As result a [ImportStatisticInfo](#import-statistic-info) entity is
+returned.
+
+#### Response
+
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "num\_changes\_created": 5
+  }
+```
+
 ### <a id="list-imported-projects"> List Imported Projects
 _GET /config/server/@PLUGIN@~projects/_
 
@@ -170,6 +186,23 @@ capability.
   }
 ```
 
+As result a [ResumeImportStatisticInfo](#resume-import-statistic-info)
+entity is returned.
+
+#### Response
+
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "num\_changes\_created": 1,
+    "num\_changes\_updated": 2
+  }
+```
+
 ### <a id="import-group"> Import Group
 _PUT /config/server/@PLUGIN@~groups/[\{group-name\}](../../../Documentation/rest-api-groups.html#group-name)_
 
@@ -275,6 +308,21 @@ resume.
 * _force_: Whether the resume should be done forcefully. On resume with
 force changes that have the same last modified timestamp in the source
 and target system are resumed, otherwise they will be skipped.
+
+### <a id="import-statistic-info"></a>ImportStatisticInfo
+
+The `ImportStatisticInfo` entity contains statistics about a project
+import.
+
+* _num\_changes\_created_: Number of created changes.
+
+### <a id="resume-import-statistic-info"></a>ResumeImportStatisticInfo
+
+The `ResumeImportStatisticInfo` entity contains statistics about a
+project import resume.
+
+* _num\_changes\_created_: Number of created changes.
+* _num\_changes\_updated_: Number of updated changes.
 
 
 SEE ALSO

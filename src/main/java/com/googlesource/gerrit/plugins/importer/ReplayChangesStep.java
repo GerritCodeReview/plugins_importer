@@ -55,6 +55,7 @@ class ReplayChangesStep {
         @Assisted("targetProject") Project.NameKey targetProject,
         @Assisted("force") boolean force,
         @Assisted("resume") boolean resume,
+        ResumeImportStatistic importStatistic,
         ProgressMonitor pm);
   }
 
@@ -75,6 +76,7 @@ class ReplayChangesStep {
   private final Project.NameKey targetProject;
   private final boolean force;
   private final boolean resume;
+  private final ResumeImportStatistic importStatistic;
   private final ProgressMonitor pm;
 
   @Inject
@@ -97,6 +99,7 @@ class ReplayChangesStep {
       @Assisted("targetProject") Project.NameKey targetProject,
       @Assisted("force") boolean force,
       @Assisted("resume") boolean resume,
+      @Assisted ResumeImportStatistic importStatistic,
       @Assisted ProgressMonitor pm) {
     this.replayRevisionsFactory = replayRevisionsFactory;
     this.replayInlineCommentsFactory = replayInlineCommentsFactory;
@@ -115,6 +118,7 @@ class ReplayChangesStep {
     this.targetProject = targetProject;
     this.force = force;
     this.resume = resume;
+    this.importStatistic = importStatistic;
     this.pm = pm;
   }
 
@@ -167,6 +171,12 @@ class ReplayChangesStep {
     insertLinkToOriginalFactory.create(fromGerrit,change, c, resumeChange).insert();
 
     indexer.index(db, change);
+
+    if (resumeChange) {
+      importStatistic.numChangesUpdated++;
+    } else {
+      importStatistic.numChangesCreated++;
+    }
   }
 
   private Change findChange(ChangeInfo c) throws OrmException {

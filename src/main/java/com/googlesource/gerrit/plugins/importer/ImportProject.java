@@ -22,7 +22,6 @@ import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
-import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.reviewdb.client.Project;
@@ -132,7 +131,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   @Override
-  public Response<String> apply(ConfigResource rsrc, Input input)
+  public ImportStatistic apply(ConfigResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException {
     if (input == null) {
@@ -147,7 +146,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     }
   }
 
-  public Response<String> resume(String user, String pass, boolean force,
+  public ResumeImportStatistic resume(String user, String pass, boolean force,
       File importStatus) throws RestApiException, OrmException, IOException,
       ValidationException, GitAPIException, NoSuchChangeException,
       NoSuchAccountException {
@@ -170,9 +169,10 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     }
   }
 
-  private Response<String> apply(LockFile lockFile, Input input, ImportProjectInfo info)
-      throws RestApiException, OrmException, IOException, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException {
+  private ResumeImportStatistic apply(LockFile lockFile, Input input,
+      ImportProjectInfo info) throws RestApiException, OrmException,
+      IOException, ValidationException, GitAPIException, NoSuchChangeException,
+      NoSuchAccountException {
     boolean resume = info != null;
 
     input.validate();
@@ -180,6 +180,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
         NullProgressMonitor.INSTANCE;
 
+    ResumeImportStatistic statistic = new ResumeImportStatistic();
     try {
       srcProject = !Strings.isNullOrEmpty(input.name)
           ? new Project.NameKey(input.name) : targetProject;
@@ -193,7 +194,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
         gitFetchStep.fetch(input.user, input.pass, repo, pm);
         configProjectStep.configure(targetProject, parent, pm);
         replayChangesFactory.create(input.from, input.user, input.pass, repo,
-            srcProject, targetProject, force, resume, pm).replay();
+            srcProject, targetProject, force, resume, statistic, pm).replay();
       } finally {
         repo.close();
       }
@@ -210,7 +211,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       throw e;
     }
 
-    return Response.<String> ok("OK");
+    return statistic;
   }
 
   private void checkProjectInSource(Input input, ProgressMonitor pm)

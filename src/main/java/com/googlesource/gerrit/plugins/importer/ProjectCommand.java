@@ -90,7 +90,8 @@ public class ProjectCommand extends SshCommand {
       if (!quiet) {
         importer.setErr(stderr);
       }
-      importer.apply(new ConfigResource(), input);
+      ImportStatistic stats = importer.apply(new ConfigResource(), input);
+      stdout.print("Created Changes: " + stats.numChangesCreated + "\n");
     } catch (RestApiException e) {
       throw die(e.getMessage());
     }

@@ -55,7 +55,8 @@ public class CopyProjectCommand extends SshCommand {
       }
       CopyProject.Input input = new CopyProject.Input();
       input.name = target;
-      copy.apply(srcProject, input);
+      ImportStatistic stats = copy.apply(srcProject, input);
+      stdout.print("Created Changes: " + stats.numChangesCreated + "\n");
     } catch (RestApiException e) {
       throw die(e.getMessage());
     }

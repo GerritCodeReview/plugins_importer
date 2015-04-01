@@ -21,7 +21,6 @@ import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.getVal
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;
 import com.google.gerrit.plugin.client.screen.Screen;
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -92,10 +91,10 @@ public class ImportProjectScreen extends VerticalPanel {
     in.parent(getValue(parentTxt));
 
     new RestApi("config").id("server").view(Plugin.get().getName(), "projects")
-        .id(targetName).put(in, new AsyncCallback<JavaScriptObject>() {
+        .id(targetName).put(in, new AsyncCallback<ImportStatisticInfo>() {
 
       @Override
-      public void onSuccess(JavaScriptObject result) {
+      public void onSuccess(ImportStatisticInfo result) {
         clearForm();
         Plugin.get().go("/admin/projects/" + targetName);
 
@@ -106,6 +105,7 @@ public class ImportProjectScreen extends VerticalPanel {
         Panel p = new VerticalPanel();
         p.setStyleName("importer-message-panel");
         p.add(new Label("The project was imported."));
+        p.add(new Label("Created Changes: " + result.numChangesCreated()));
         Button okButton = new Button("OK");
         okButton.addClickHandler(new ClickHandler() {
           public void onClick(ClickEvent event) {

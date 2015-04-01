@@ -21,7 +21,6 @@ import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
-import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
@@ -63,7 +62,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
   }
 
   @Override
-  public Response<String> apply(ImportProjectResource rsrc, Input input)
+  public ResumeImportStatistic apply(ImportProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException {
     if (Strings.isNullOrEmpty(input.user)) {
@@ -102,7 +101,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     }
 
     @Override
-    public Response<String> apply(ProjectResource rsrc, Input input)
+    public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
         throws RestApiException, IOException, OrmException,
         ValidationException, GitAPIException, NoSuchChangeException,
         NoSuchAccountException {
