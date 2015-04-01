@@ -15,14 +15,15 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.extensions.annotations.RequiresCapability;
-import com.google.gerrit.extensions.restapi.ResourceConflictException;
-import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;
 
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.kohsuke.args4j.Argument;
+
+import java.io.IOException;
 
 @RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "complete-project", description = "Completes project import")
@@ -39,8 +40,8 @@ class CompleteProjectImportCommand extends SshCommand {
   private ProjectsCollection projects;
 
   @Override
-  protected void run() throws ResourceConflictException,
-      ResourceNotFoundException, UnloggedFailure {
+  protected void run() throws UnloggedFailure, RepositoryNotFoundException,
+      IOException {
     try {
       ImportProjectResource rsrc = projects.parse(project);
       completeProjectImport.apply(rsrc, new CompleteProjectImport.Input());

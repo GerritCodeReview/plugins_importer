@@ -126,7 +126,9 @@ the original timestamps.
 A project import consists of the following steps:
 
 * creation of the Git repository and project in the target Gerrit server
-* fetch all refs from the source Gerrit server
+* fetch all refs from the source Gerrit server under the
+  'refs/imports/' namespace
+* create the refs for all branches and tags
 * [optional] reparent project in the target Gerrit server
 * replay all changes (changes in the target Gerrit server get new
   numeric ID's)
@@ -192,10 +194,11 @@ Gerrit server is overridden if the import of a change is resumed.
 <a id="complete-project-import">
 #### Complete Project Import
 
-Completing the project import deletes the [import file](#import-file)
-for that project. Afterwards it's not possible to resume the project
-import anymore. Also the project doesn't appear in the list of imported
-projects anymore.
+Completing the project import deletes all refs under the
+'refs/imports/' namespace. In addition the [import file](#import-file)
+for the project is deleted. Afterwards it's not possible to resume the
+project import anymore. Also the project doesn't appear in the list of
+imported projects anymore.
 
 <a id="project-copy">
 ### Project Copy

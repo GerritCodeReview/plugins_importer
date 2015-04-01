@@ -26,17 +26,23 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectResource;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import com.googlesource.gerrit.plugins.importer.CompleteProjectImport.Input;
 
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefUpdate;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.util.FS;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 @RequiresCapability(ImportCapability.ID)
 class CompleteProjectImport implements RestModifyView<ImportProjectResource, Input> {
@@ -44,16 +50,23 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
   }
 
   private final ProjectsCollection projects;
+  private final GitRepositoryManager repoManager;
 
   @Inject
-  CompleteProjectImport(ProjectsCollection projects) {
+  CompleteProjectImport(
+      ProjectsCollection projects,
+      GitRepositoryManager repoManager) {
     this.projects = projects;
+    this.repoManager = repoManager;
   }
 
   @Override
-  public Response<?> apply(ImportProjectResource rsrc, Input input) throws ResourceConflictException {
+  public Response<?> apply(ImportProjectResource rsrc, Input input)
+      throws ResourceConflictException, RepositoryNotFoundException,
+      IOException {
     LockFile lock = lockForDelete(rsrc.getName());
     try {
+      deleteImportRefs(rsrc.getName());
       rsrc.getImportStatus().delete();
       return Response.none();
     } finally {
@@ -77,6 +90,32 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     }
   }
 
+  private void deleteImportRefs(Project.NameKey project)
+      throws RepositoryNotFoundException, IOException {
+    Repository repo = repoManager.openRepository(project);
+    try {
+      Map<String, Ref> refs = repo.getRefDatabase().getRefs(
+          ConfigureRepositoryStep.R_IMPORTS);
+      for (Ref ref : refs.values()) {
+        RefUpdate ru = repo.updateRef(ref.getName());
+        ru.setForceUpdate(true);
+        RefUpdate.Result result = ru.delete();
+        switch (result) {
+          case NEW:
+          case NO_CHANGE:
+          case FAST_FORWARD:
+          case FORCED:
+            break;
+          default:
+            throw new IOException(String.format(
+                "Failed to delete %s, RefUpdate.Result = %s", ref, result));
+        }
+      }
+    } finally {
+      repo.close();
+    }
+  }
+
   public static class OnProjects implements
       RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
     private final ProjectsCollection projectsCollection;
@@ -97,7 +136,8 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
 
     @Override
     public Response<?> apply(ProjectResource rsrc, Input input)
-        throws ResourceNotFoundException, ResourceConflictException {
+        throws ResourceNotFoundException, ResourceConflictException,
+        RepositoryNotFoundException, IOException {
       ImportProjectResource projectResource =
           projectsCollection.parse(new ConfigResource(),
               IdString.fromDecoded(rsrc.getName()));
