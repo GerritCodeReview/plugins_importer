@@ -60,6 +60,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     public String from;
     public String user;
     public String pass;
+    public boolean importOwnerGroup;
   }
 
   interface Factory {
@@ -73,6 +74,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   private final GroupCache groupCache;
   private final GroupIncludeCache groupIncludeCache;
   private final DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners;
+  private final ImportGroup.Factory importGroupFactory;
   private final GerritApi.Factory apiFactory;
   private final AccountGroup.NameKey group;
   private GerritApi api;
@@ -86,15 +88,17 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       GroupCache groupCache,
       GroupIncludeCache groupIncludeCache,
       DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners,
+      ImportGroup.Factory importGroupFactory,
       GerritApi.Factory apiFactory,
       @Assisted AccountGroup.NameKey group) {
+    this.cfg = cfg;
     this.db = db;
     this.accountUtil = accountUtil;
     this.groupCache = groupCache;
     this.accountCache = accountCache;
     this.groupIncludeCache = groupIncludeCache;
     this.groupCreationValidationListeners = groupCreationValidationListeners;
-    this.cfg = cfg;
+    this.importGroupFactory = importGroupFactory;
     this.apiFactory = apiFactory;
     this.group = group;
   }
@@ -106,13 +110,13 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     GroupInfo groupInfo;
     this.api = apiFactory.create(input.from, input.user, input.pass);
     groupInfo = api.getGroup(group.get());
-    validate(groupInfo);
-    createGroup(groupInfo);
+    validate(input, groupInfo);
+    createGroup(input, groupInfo);
 
     return Response.<String> ok("OK");
   }
 
-  private void validate(GroupInfo groupInfo) throws ResourceConflictException,
+  private void validate(Input input, GroupInfo groupInfo) throws ResourceConflictException,
       PreconditionFailedException, BadRequestException, IOException,
       OrmException, NoSuchAccountException {
     if (getGroupByName(groupInfo.name) != null) {
@@ -124,7 +128,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
           "Group with UUID %s already exists", groupInfo.id));
     }
     if (!groupInfo.id.equals(groupInfo.ownerId))
-      if (getGroupByUUID(groupInfo.ownerId) == null) {
+      if (!input.importOwnerGroup && getGroupByUUID(groupInfo.ownerId) == null) {
         throw new PreconditionFailedException(String.format(
             "Owner group with UUID %s does not exist", groupInfo.ownerId));
       }
@@ -182,9 +186,9 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     return args;
   }
 
-  private AccountGroup createGroup(GroupInfo info) throws OrmException,
+  private AccountGroup createGroup(Input input, GroupInfo info) throws OrmException,
       ResourceConflictException, NoSuchAccountException, BadRequestException,
-      IOException {
+      IOException, PreconditionFailedException {
     AccountGroup.Id groupId = new AccountGroup.Id(db.nextAccountGroupId());
     AccountGroup.UUID uuid = new AccountGroup.UUID(info.id);
     AccountGroup group =
@@ -192,7 +196,6 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     group.setVisibleToAll(cfg.getBoolean("groups", "newGroupsVisibleToAll",
         false));
     group.setDescription(info.description);
-    group.setOwnerGroupUUID(new AccountGroup.UUID(info.ownerId));
     AccountGroupName gn = new AccountGroupName(group);
     // first insert the group name to validate that the group name hasn't
     // already been used to create another group
@@ -202,6 +205,23 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       throw new ResourceConflictException(info.name);
     }
     db.accountGroups().insert(Collections.singleton(group));
+    groupCache.evict(group);
+
+    if (!info.id.equals(info.ownerId)) {
+      if (getGroupByUUID(info.ownerId) == null) {
+        String ownerGroupName = api.getGroup(info.ownerId).name;
+        if (input.importOwnerGroup) {
+          importGroupFactory.create(new AccountGroup.NameKey(ownerGroupName))
+              .apply(new ConfigResource(), input);
+        } else {
+          throw new IllegalStateException(String.format(
+              "Cannot set non-existing group %s as owner of group %s.",
+              ownerGroupName, info.name));
+        }
+      }
+      group.setOwnerGroupUUID(new AccountGroup.UUID(info.ownerId));
+      db.accountGroups().upsert(Collections.singleton(group));
+    }
 
     addMembers(groupId, info.members);
     addGroups(groupId, info.includes);

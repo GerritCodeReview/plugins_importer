@@ -84,6 +84,7 @@ public class ImportGroupsStep {
         input.from = fromGerrit;
         input.user = user;
         input.pass = password;
+        input.importOwnerGroup = true;
         try {
           importGroupFactory.create(
               new AccountGroup.NameKey(projectConfig.getGroup(groupUUID).getName()))

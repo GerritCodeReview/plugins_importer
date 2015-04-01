@@ -26,8 +26,10 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
@@ -46,6 +48,7 @@ public class ImportGroupScreen extends VerticalPanel {
   private TextBox nameTxt;
   private TextBox userTxt;
   private TextBox passTxt;
+  private CheckBox importOwnerGroupCheckBox;
 
   ImportGroupScreen() {
     setStyleName("importer-import-panel");
@@ -54,6 +57,7 @@ public class ImportGroupScreen extends VerticalPanel {
     nameTxt = addTextBox(this, "Group Name*", "name of the group");
     userTxt = addTextBox(this, "Remote User*", "user on remote system");
     passTxt = addPasswordTextBox(this, "Password*", "password of remote user");
+    importOwnerGroupCheckBox = addCheckBox("import owner group", "also import missing owner groups");
 
     HorizontalPanel buttons = new HorizontalPanel();
     add(buttons);
@@ -74,11 +78,24 @@ public class ImportGroupScreen extends VerticalPanel {
     importButton.setEnabled(false);
   }
 
+  private CheckBox addCheckBox(String label, String infoMsg) {
+    HorizontalPanel hp = new HorizontalPanel();
+    CheckBox cb = new CheckBox(label);
+    cb.setText(label);
+    hp.add(cb);
+    Image info = new Image(ImporterPlugin.RESOURCES.info());
+    info.setTitle(infoMsg);
+    hp.add(info);
+    add(hp);
+    return cb;
+  }
+
   private void doImport() {
     ImportGroupInput in = ImportGroupInput.create();
     in.from(getValue(fromTxt));
     in.user(getValue(userTxt));
     in.pass(getValue(passTxt));
+    in.importOwnerGroup(importOwnerGroupCheckBox.getValue());
 
     final String groupName = getValue(nameTxt);
     new RestApi("config").id("server").view(Plugin.get().getName(), "groups")
@@ -121,5 +138,6 @@ public class ImportGroupScreen extends VerticalPanel {
     nameTxt.setValue("");
     userTxt.setValue("");
     passTxt.setValue("");
+    importOwnerGroupCheckBox.setValue(false);
   }
 }

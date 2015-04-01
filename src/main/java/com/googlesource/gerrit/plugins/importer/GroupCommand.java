@@ -49,6 +49,10 @@ public class GroupCommand extends SshCommand {
       usage = "password of remote user")
   private String pass;
 
+  @Option(name = "--import-owner-group", aliases = {"-o"},
+      usage = "whether missing owner groups should be imported automatically")
+  private boolean importOwnerGroup;
+
   @Argument(index = 0, required = true, metaVar = "NAME",
       usage = "name of the group to be imported")
   private String group;
@@ -63,6 +67,7 @@ public class GroupCommand extends SshCommand {
     input.from = url;
     input.user = user;
     input.pass = getPassword();
+    input.importOwnerGroup = importOwnerGroup;
 
     try {
       importGroupFactory.create(new AccountGroup.NameKey(group)).apply(

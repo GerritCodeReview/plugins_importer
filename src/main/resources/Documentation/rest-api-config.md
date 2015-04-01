@@ -260,6 +260,8 @@ The `ImportGroupInput` entity contains information about a group import.
 imported.
 * _user_: User on remote system.
 * _pass_: Password of remote user.
+* _import\_owner\_group_: Whether missing owner groups should be
+imported automatically (by default false).
 
 ### <a id="import-info"></a>ImportInfo
 

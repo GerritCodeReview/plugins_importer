@@ -12,6 +12,7 @@ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ group \
   --from <URL> | -f <URL> \
   --user <USER> | -u <USER> \
   --pass - | <PASS> \
+  [--import-owner-group | -o] \
   <NAME>
 ```
 
@@ -40,6 +41,9 @@ OPTIONS
 
 `--user`
 :	User on remote system.
+
+`--import-owner-group`
+:	Whether missing owner groups should be imported automatically.
 
 EXAMPLES
 --------
