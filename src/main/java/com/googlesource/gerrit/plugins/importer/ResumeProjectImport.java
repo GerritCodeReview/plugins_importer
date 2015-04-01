@@ -34,7 +34,6 @@ import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.Singleton;
 
 import com.googlesource.gerrit.plugins.importer.ResumeProjectImport.Input;
 
@@ -43,7 +42,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import java.io.IOException;
 import java.io.Writer;
 
-@Singleton
 @RequiresCapability(ImportCapability.ID)
 public class ResumeProjectImport implements RestModifyView<ImportProjectResource, Input> {
   public static class Input {

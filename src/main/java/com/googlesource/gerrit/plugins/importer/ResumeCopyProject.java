@@ -48,7 +48,7 @@ import java.io.IOException;
 @RequiresCapability(CopyProjectCapability.ID)
 class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
     UiAction<ProjectResource> {
-  private final ResumeProjectImport resumeProjectImport;
+  private final Provider<ResumeProjectImport> resumeProjectImport;
   private final ProjectsCollection projectsCollection;
   private final Provider<CurrentUser> currentUserProvider;
   private final String pluginName;
@@ -57,7 +57,7 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
 
   @Inject
   ResumeCopyProject(
-      ResumeProjectImport resumeProjectImport,
+      Provider<ResumeProjectImport> resumeProjectImport,
       ProjectsCollection projectsCollection,
       Provider<CurrentUser> currentUserProvider,
       @PluginName String pluginName,
@@ -84,7 +84,7 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
     ImportProjectResource projectResource =
         projectsCollection.parse(new ConfigResource(),
             IdString.fromDecoded(rsrc.getName()));
-    return resumeProjectImport.apply(projectResource, in);
+    return resumeProjectImport.get().apply(projectResource, in);
   }
 
   @Override
