@@ -14,7 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.IdString;
@@ -44,11 +43,11 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
   public static class Input {
   }
 
-  private final File lockRoot;
+  private final ProjectsCollection projects;
 
   @Inject
-  CompleteProjectImport(@PluginData File data) {
-    lockRoot = data;
+  CompleteProjectImport(ProjectsCollection projects) {
+    this.projects = projects;
   }
 
   @Override
@@ -62,8 +61,9 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     }
   }
 
-  private LockFile lockForDelete(Project.NameKey project) throws ResourceConflictException {
-    File importStatus = new File(lockRoot, project.get());
+  private LockFile lockForDelete(Project.NameKey project)
+      throws ResourceConflictException {
+    File importStatus = projects.FS_LAYOUT.getImportStatusFile(project.get());
     LockFile lockFile = new LockFile(importStatus, FS.DETECTED);
     try {
       if (lockFile.lock()) {
