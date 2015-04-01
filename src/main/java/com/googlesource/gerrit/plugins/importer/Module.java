@@ -74,7 +74,7 @@ class Module extends FactoryModule {
     factory(AddHashtagsStep.Factory.class);
     factory(InsertLinkToOriginalChangeStep.Factory.class);
     factory(ImportGroupsStep.Factory.class);
-    DynamicSet.bind(binder(), TopMenu.class).to(ImportProjectMenu.class);
+    DynamicSet.bind(binder(), TopMenu.class).to(ImportMenu.class);
     factory(ImportGroup.Factory.class);
   }
 }

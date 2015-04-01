@@ -269,5 +269,6 @@ import.
 
 Importing a group can be done via
 
-* [REST](rest-api-config.html#import-group) and
-* [SSH](cmd-group.html)
+* [REST](rest-api-config.html#import-group)
+* [SSH](cmd-group.html) and
+* UI from menu 'People' > 'Import Group'

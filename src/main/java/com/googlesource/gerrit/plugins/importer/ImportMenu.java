@@ -24,13 +24,13 @@ import com.google.inject.Provider;
 
 import java.util.List;
 
-public class ImportProjectMenu implements TopMenu {
+public class ImportMenu implements TopMenu {
   private final String pluginName;
   private final Provider<CurrentUser> userProvider;
   private final List<MenuEntry> menuEntries;
 
   @Inject
-  ImportProjectMenu(
+  ImportMenu(
       @PluginName String pluginName,
       Provider<CurrentUser> userProvider) {
     this.pluginName = pluginName;
@@ -38,12 +38,17 @@ public class ImportProjectMenu implements TopMenu {
     menuEntries = Lists.newArrayList();
 
     List<MenuItem> projectItems = Lists.newArrayListWithExpectedSize(2);
+    List<MenuItem> peopleItems = Lists.newArrayListWithExpectedSize(1);
     if (canImport()) {
       projectItems.add(new MenuItem("Import Project", "#/x/" + pluginName + "/project", ""));
       projectItems.add(new MenuItem("List Imports", "#/x/" + pluginName + "/list", ""));
+      peopleItems.add(new MenuItem("Import Group", "#/x/" + pluginName + "/group", ""));
     }
     if (!projectItems.isEmpty()) {
       menuEntries.add(new MenuEntry("Projects", projectItems));
+    }
+    if (!peopleItems.isEmpty()) {
+      menuEntries.add(new MenuEntry("People", peopleItems));
     }
   }
 
