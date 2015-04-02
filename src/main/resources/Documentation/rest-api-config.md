@@ -280,8 +280,9 @@ entity.
 The `ImportProjectInfo` entity contains information about the past
 imports of a project.
 
-* _from_: URL of the remote system from where the project should be
-imported.
+* _from_: (Optional) URL of the remote system from where the project
+should be imported (not set if it is a project copy within one Gerrit
+server).
 * _name_: Name of the project in the source system.
 * _parent_: (Optional) Name of the parent project in the target system.
 * _imports_: List of past imports as [ImportInfo](#import-info)
