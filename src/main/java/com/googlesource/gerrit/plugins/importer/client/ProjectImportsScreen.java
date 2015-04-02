@@ -63,6 +63,7 @@ public class ProjectImportsScreen extends VerticalPanel {
     MyTable t = new MyTable();
     t.setStyleName("importer-projectImportInfoTable");
     t.addRow("Project Name", project);
+    t.addRow("Type", info.from() != null ? "IMPORT" : "COPY");
 
     if (info.from() != null) {
       String srcProjectUrl = projectUrl(info, project);

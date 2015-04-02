@@ -56,7 +56,7 @@ public class ImportProjectListScreen extends VerticalPanel {
   }
 
   private void display(NativeMap<ImportProjectInfo> map) {
-    int columns = 5;
+    int columns = 6;
     FlexTable t = new FlexTable();
     t.setStyleName("importer-importProjectTable");
     FlexCellFormatter fmt = t.getFlexCellFormatter();
@@ -67,10 +67,11 @@ public class ImportProjectListScreen extends VerticalPanel {
     fmt.addStyleName(0, 0, "leftMostCell");
 
     t.setText(0, 0, "Project Name");
-    t.setText(0, 1, "From");
-    t.setText(0, 2, "Last Import By");
-    t.setText(0, 3, "Last Import At");
-    t.setText(0, 4, "Actions");
+    t.setText(0, 1, "Type");
+    t.setText(0, 2, "From");
+    t.setText(0, 3, "Last Import By");
+    t.setText(0, 4, "Last Import At");
+    t.setText(0, 5, "Actions");
 
     int row = 1;
     for (final String project : map.keySet()) {
@@ -83,26 +84,27 @@ public class ImportProjectListScreen extends VerticalPanel {
 
       t.setWidget(row, 0, new InlineHyperlink(
           project, "/x/" + Plugin.get().getName() + "/projects/" + project));
+      t.setText(row, 1, info.from() != null ? "IMPORT" : "COPY");
 
       if (info.from() != null) {
         String srcProjectUrl = projectUrl(info, project);
-        t.setWidget(row, 1, new Anchor(srcProjectUrl, srcProjectUrl));
+        t.setWidget(row, 2, new Anchor(srcProjectUrl, srcProjectUrl));
       } else {
-        t.setWidget(row, 1,
+        t.setWidget(row, 2,
             new InlineHyperlink(project, "/admin/projects/" + project));
       }
 
       List<ImportInfo> importList = Natives.asList(info.imports());
       if (!importList.isEmpty()) {
         ImportInfo lastImportInfo = importList.get(importList.size() - 1);
-        t.setText(row, 2, lastImportInfo.user().username());
-        t.setText(row, 3, removeNs(lastImportInfo.timestamp()));
+        t.setText(row, 3, lastImportInfo.user().username());
+        t.setText(row, 4, removeNs(lastImportInfo.timestamp()));
       } else {
-        t.setText(row, 2, "N/A");
         t.setText(row, 3, "N/A");
+        t.setText(row, 4, "N/A");
       }
 
-      t.setWidget(row, 4, new ImportActionPanel(project));
+      t.setWidget(row, 5, new ImportActionPanel(project));
 
       row++;
     }
