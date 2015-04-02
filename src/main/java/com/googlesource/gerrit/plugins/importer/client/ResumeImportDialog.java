@@ -39,8 +39,8 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
 
   private final Button cancelButton;
   private final Button resumeButton;
-  private final TextBox userTxt;
-  private final TextBox passTxt;
+  private TextBox userTxt;
+  private TextBox passTxt;
   private final CheckBox forceCheckBox;
 
   public ResumeImportDialog(final String project, final boolean copy) {
@@ -57,14 +57,21 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
       public void onClick(ClickEvent event) {
         hide();
 
+        RestApi restApi;
         ResumeImportProjectInput in = ResumeImportProjectInput.create();
-        in.user(getValue(userTxt));
-        in.pass(getValue(passTxt));
         in.force(forceCheckBox.getValue());
+        if (copy) {
+          restApi = new RestApi("projects").id(project)
+              .view(Plugin.get().getName(), "copy.resume");
+        } else {
+          restApi = new RestApi("config").id("server")
+              .view(Plugin.get().getName(), "projects").id(project)
+              .view("resume");
+          in.user(getValue(userTxt));
+          in.pass(getValue(passTxt));
+        }
 
-        new RestApi("config").id("server")
-            .view(Plugin.get().getName(), "projects").id(project)
-            .view("resume").put(in, new AsyncCallback<ResumeImportStatisticInfo>() {
+        restApi.put(in, new AsyncCallback<ResumeImportStatisticInfo>() {
               @Override
               public void onSuccess(ResumeImportStatisticInfo result) {
                 Plugin.get().go("/admin/projects/" + project);
@@ -117,8 +124,10 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
     msg.addStyleName("importer-resume-message");
     center.add(msg);
 
-    userTxt = addTextBox(center, "Remote User*", "user on remote system");
-    passTxt = addPasswordTextBox(center, "Password*", "password of remote user");
+    if (!copy) {
+      userTxt = addTextBox(center, "Remote User*", "user on remote system");
+      passTxt = addPasswordTextBox(center, "Password*", "password of remote user");
+    }
     forceCheckBox = addCheckBox(center, "Force", "whether resume should be done forcefully");
 
     center.add(buttons);

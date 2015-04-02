@@ -14,14 +14,15 @@
 
 package com.googlesource.gerrit.plugins.importer.client;
 
-public class ResumeImportProjectInput extends ResumeCopyProjectInput {
-  final native void user(String u) /*-{ this.user = u; }-*/;
-  final native void pass(String p) /*-{ this.pass = p; }-*/;
+import com.google.gwt.core.client.JavaScriptObject;
 
-  static ResumeImportProjectInput create() {
-    return (ResumeImportProjectInput) createObject();
+public class ResumeCopyProjectInput extends JavaScriptObject {
+  final native void force(boolean f) /*-{ this.force = f; }-*/;
+
+  static ResumeCopyProjectInput create() {
+    return (ResumeCopyProjectInput) createObject();
   }
 
-  protected ResumeImportProjectInput() {
+  protected ResumeCopyProjectInput() {
   }
 }
