@@ -38,6 +38,9 @@ send audit events.
 The import project functionality allows to import (move) a project from
 one Gerrit server to another Gerrit server.
 
+On project import the configured max object size on the target Gerrit
+server is ignored.
+
 <a id="project-import-process">
 #### Process
 
