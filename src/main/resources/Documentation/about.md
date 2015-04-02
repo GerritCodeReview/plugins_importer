@@ -77,7 +77,7 @@ Preconditions for a project import:
 * The version of the source Gerrit server is 2.11 or newer.
 * The parent project of the imported project must already exist in the
   target Gerrit server.
-* User accounts must have a username and an email set.
+* User accounts must have a username set.
 * User accounts must exist in the target Gerrit server unless auth type
   is 'LDAP', 'HTTP\_LDAP' or 'CLIENT\_SSL\_CERT\_LDAP'.
 
@@ -259,7 +259,7 @@ on the target Gerrit server is applied to each imported group.
 
 Preconditions for a group import:
 
-* Member accounts must have a username and an email set.
+* Member accounts must have a username set.
 * Member accounts must exist in the target Gerrit server unless auth
   type is 'LDAP', 'HTTP\_LDAP' or 'CLIENT\_SSL\_CERT\_LDAP'.
 
