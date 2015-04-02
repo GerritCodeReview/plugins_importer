@@ -32,6 +32,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.http.HttpStatus;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -137,9 +138,13 @@ class RemoteApi implements GerritApi {
 
   private RestResponse checkedGet(String endPoint) throws IOException,
       BadRequestException {
-    RestResponse r = restSession.get(endPoint);
-    assertOK(HttpMethod.GET, endPoint, r);
-    return r;
+    try {
+      RestResponse r = restSession.get(endPoint);
+      assertOK(HttpMethod.GET, endPoint, r);
+      return r;
+    } catch (UnknownHostException e) {
+      throw new BadRequestException("Unknown host: " + e.getMessage());
+    }
   }
 
   private static void assertOK(HttpMethod method, String endPoint,
