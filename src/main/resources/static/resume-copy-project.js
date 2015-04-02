@@ -14,10 +14,11 @@
 
 Gerrit.install(function(self) {
     function onResumeCopyProject(c) {
+      var f = c.checkbox();
       var b = c.button('Resume',
         {onclick: function(){
           c.call(
-            {},
+            {force: f.checked},
             function(r) {
               c.hide();
               window.alert('Copy for project "'
@@ -30,6 +31,8 @@ Gerrit.install(function(self) {
         c.msg('Resume copy for project "'
           + c.project
           + '" ?'),
+        c.br(),
+        c.label(f, 'Force Resume'),
         c.br(),
         c.br(),
         b));

@@ -31,6 +31,9 @@ import org.kohsuke.args4j.Option;
 @CommandMetaData(name = "resume-copy", description = "Resumes project copy")
 public class ResumeCopyCommand extends SshCommand {
 
+  @Option(name = "--force", usage = "Whether the resume should be done forcefully.")
+  private boolean force;
+
   @Option(name = "--quiet", usage = "suppress progress messages")
   private boolean quiet;
 
@@ -53,7 +56,8 @@ public class ResumeCopyCommand extends SshCommand {
       if (!quiet) {
         resume.setErr(stderr);
       }
-      CopyProject.Input input = new CopyProject.Input();
+      ResumeCopyProject.Input input = new ResumeCopyProject.Input();
+      input.force = force;
       resume.apply(rsrc, input);
     } catch (RestApiException e) {
       throw die(e.getMessage());
