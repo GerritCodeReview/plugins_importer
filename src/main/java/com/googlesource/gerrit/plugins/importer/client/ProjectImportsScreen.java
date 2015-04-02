@@ -25,6 +25,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
+import com.google.gwt.user.client.ui.InlineHyperlink;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -62,8 +63,16 @@ public class ProjectImportsScreen extends VerticalPanel {
     MyTable t = new MyTable();
     t.setStyleName("importer-projectImportInfoTable");
     t.addRow("Project Name", project);
-    String srcProjectUrl = projectUrl(info, project);
-    t.addRow("From", new Anchor(srcProjectUrl, srcProjectUrl));
+
+    if (info.from() != null) {
+      String srcProjectUrl = projectUrl(info, project);
+      t.addRow("From", new Anchor(srcProjectUrl, srcProjectUrl));
+    } else {
+      t.addRow("From",
+          new InlineHyperlink(project, "/admin/projects/" + project));
+    }
+
+
     t.addRow("Parent", info.parent());
     t.addRow("Actions", new ImportActionPanel(project));
     add(t);

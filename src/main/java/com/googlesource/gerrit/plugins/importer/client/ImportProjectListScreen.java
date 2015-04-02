@@ -84,8 +84,13 @@ public class ImportProjectListScreen extends VerticalPanel {
       t.setWidget(row, 0, new InlineHyperlink(
           project, "/x/" + Plugin.get().getName() + "/projects/" + project));
 
-      String srcProjectUrl = projectUrl(info, project);
-      t.setWidget(row, 1, new Anchor(srcProjectUrl, srcProjectUrl));
+      if (info.from() != null) {
+        String srcProjectUrl = projectUrl(info, project);
+        t.setWidget(row, 1, new Anchor(srcProjectUrl, srcProjectUrl));
+      } else {
+        t.setWidget(row, 1,
+            new InlineHyperlink(project, "/admin/projects/" + project));
+      }
 
       List<ImportInfo> importList = Natives.asList(info.imports());
       if (!importList.isEmpty()) {
