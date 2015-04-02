@@ -75,7 +75,7 @@ public class ProjectImportsScreen extends VerticalPanel {
 
 
     t.addRow("Parent", info.parent());
-    t.addRow("Actions", new ImportActionPanel(project));
+    t.addRow("Actions", new ImportActionPanel(project, info.from() == null));
     add(t);
 
     add(new Label("Imports:"));

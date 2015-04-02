@@ -43,10 +43,10 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
   private final TextBox passTxt;
   private final CheckBox forceCheckBox;
 
-  public ResumeImportDialog(final String project) {
+  public ResumeImportDialog(final String project, final boolean copy) {
     super(/* auto hide */false, /* modal */true);
     setGlassEnabled(true);
-    setText("Resume Project Import");
+    setText("Resume Project " + (copy ? "Copy" : "Import"));
 
     FlowPanel buttons = new FlowPanel();
 
@@ -70,12 +70,12 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
                 Plugin.get().go("/admin/projects/" + project);
 
                 final DialogBox successDialog = new DialogBox();
-                successDialog.setText("Resume Project Import");
+                successDialog.setText("Resume " + (copy ? "Copy" : "Import") + " Import");
                 successDialog.setAnimationEnabled(true);
 
                 Panel p = new VerticalPanel();
                 p.setStyleName("importer-message-panel");
-                p.add(new Label("The project import was resumed."));
+                p.add(new Label("The project " + (copy ? "copy" : "import") + " was resumed."));
                 p.add(new Label("Created Changes: " + result.numChangesCreated()));
                 p.add(new Label("Updated Changes: " + result.numChangesUpdated()));
                 Button okButton = new Button("OK");
@@ -112,7 +112,8 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
     buttons.add(cancelButton);
 
     FlowPanel center = new FlowPanel();
-    Label msg = new Label("Resume import of project '" + project + "'");
+    Label msg = new Label("Resume " + (copy ? "copy" : "import")
+        + " of project '" + project + "'");
     msg.addStyleName("importer-resume-message");
     center.add(msg);
 

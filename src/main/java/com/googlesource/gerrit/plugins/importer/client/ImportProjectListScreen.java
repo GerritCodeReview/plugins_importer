@@ -104,7 +104,7 @@ public class ImportProjectListScreen extends VerticalPanel {
         t.setText(row, 4, "N/A");
       }
 
-      t.setWidget(row, 5, new ImportActionPanel(project));
+      t.setWidget(row, 5, new ImportActionPanel(project, info.from() == null));
 
       row++;
     }

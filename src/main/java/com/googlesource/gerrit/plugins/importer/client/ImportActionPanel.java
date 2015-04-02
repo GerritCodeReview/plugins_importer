@@ -21,18 +21,18 @@ import com.google.gwt.user.client.ui.FlowPanel;
 
 public class ImportActionPanel extends FlowPanel {
 
-  ImportActionPanel(final String project) {
+  ImportActionPanel(final String project, final boolean copy) {
     setStyleName("importer-action-panel");
     add(new Button("Resume...", new ClickHandler() {
       @Override
       public void onClick(ClickEvent event) {
-        (new ResumeImportDialog(project)).center();
+        (new ResumeImportDialog(project, copy)).center();
       }
     }));
     add(new Button("Complete...", new ClickHandler() {
       @Override
       public void onClick(ClickEvent event) {
-        (new CompleteImportDialog(project)).center();
+        (new CompleteImportDialog(project, copy)).center();
       }
     }));
   }

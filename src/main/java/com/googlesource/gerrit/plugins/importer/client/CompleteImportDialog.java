@@ -34,10 +34,10 @@ public class CompleteImportDialog extends AutoCenterDialogBox {
   private final Button cancelButton;
   private final Button completeButton;
 
-  public CompleteImportDialog(final String project) {
+  public CompleteImportDialog(final String project, final boolean copy) {
     super(/* auto hide */false, /* modal */true);
     setGlassEnabled(true);
-    setText("Complete Project Import");
+    setText("Complete Project " + (copy ? "Copy" : "Import"));
 
     FlowPanel buttons = new FlowPanel();
 
@@ -56,12 +56,14 @@ public class CompleteImportDialog extends AutoCenterDialogBox {
                 Plugin.get().go("/x/" + Plugin.get().getName() + "/list");
 
                 final DialogBox successDialog = new DialogBox();
-                successDialog.setText("Project Import Completed");
+                successDialog.setText("Project "
+                    + (copy ? "Copy" : "Import") + " Completed");
                 successDialog.setAnimationEnabled(true);
 
                 Panel p = new VerticalPanel();
                 p.setStyleName("importer-message-panel");
-                p.add(new Label("The project import was completed."));
+                p.add(new Label("The project "
+                  + (copy ? "copy" : "import") + " was completed."));
                 Button okButton = new Button("OK");
                 okButton.addClickHandler(new ClickHandler() {
                   public void onClick(ClickEvent event) {
@@ -96,7 +98,8 @@ public class CompleteImportDialog extends AutoCenterDialogBox {
     buttons.add(cancelButton);
 
     FlowPanel center = new FlowPanel();
-    Label msg = new Label("Complete import of project '" + project + "'");
+    Label msg = new Label("Complete " + (copy ? "copy" : "import")
+        + " of project '" + project + "'");
     msg.addStyleName("importer-complete-message");
     center.add(msg);
 
