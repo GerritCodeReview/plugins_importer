@@ -229,8 +229,10 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
         configProjectStep.configure(targetProject, parent, pm);
         replayChangesFactory.create(input.from, api, repo,
             srcProject, targetProject, force, resume, statistic, pm).replay();
-        importGroupsStepFactory.create(input.from, input.user, input.pass,
-            targetProject, pm).importGroups();
+        if (!copy) {
+          importGroupsStepFactory.create(input.from, input.user, input.pass,
+              targetProject, pm).importGroups();
+        }
       } finally {
         repo.close();
       }
