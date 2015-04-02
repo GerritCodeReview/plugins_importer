@@ -79,11 +79,6 @@ class AccountUtil {
               acc.username));
       }
     }
-    if (acc.email == null) {
-      throw new NoSuchAccountException(String.format(
-          "User %s doesn't have an email and cannot be verified.",
-          acc.username));
-    }
     if (!Objects.equals(a.getAccount().getPreferredEmail(), acc.email)) {
       throw new NoSuchAccountException(String.format(
           "User %s not found: Email mismatch, expected %s but found %s",
