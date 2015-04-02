@@ -19,6 +19,7 @@ import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.dom.client.KeyPressEvent;
 import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -27,7 +28,7 @@ import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
-public class TextBoxUtil {
+public class InputUtil {
   public static TextBox addTextBox(Panel p, String label, String infoMsg) {
     return addTextBox(p, label, infoMsg, false);
   }
@@ -97,5 +98,17 @@ public class TextBoxUtil {
 
   public static String getValue(TextBox tb) {
     return tb.getValue().trim();
+  }
+
+  public static CheckBox addCheckBox(Panel p, String label, String infoMsg) {
+    HorizontalPanel hp = new HorizontalPanel();
+    CheckBox cb = new CheckBox(label);
+    cb.setText(label);
+    hp.add(cb);
+    Image info = new Image(ImporterPlugin.RESOURCES.info());
+    info.setTitle(infoMsg);
+    hp.add(info);
+    p.add(hp);
+    return cb;
   }
 }

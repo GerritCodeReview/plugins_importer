@@ -14,9 +14,9 @@
 
 package com.googlesource.gerrit.plugins.importer.client;
 
-import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.addPasswordTextBox;
-import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.addTextBox;
-import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.getValue;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addPasswordTextBox;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addTextBox;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.getValue;
 
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;

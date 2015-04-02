@@ -14,9 +14,10 @@
 
 package com.googlesource.gerrit.plugins.importer.client;
 
-import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.addPasswordTextBox;
-import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.addTextBox;
-import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.getValue;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addPasswordTextBox;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addCheckBox;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addTextBox;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.getValue;
 
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;
@@ -24,6 +25,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -39,6 +41,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
   private final Button resumeButton;
   private final TextBox userTxt;
   private final TextBox passTxt;
+  private final CheckBox forceCheckBox;
 
   public ResumeImportDialog(final String project) {
     super(/* auto hide */false, /* modal */true);
@@ -57,6 +60,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
         ResumeImportProjectInput in = ResumeImportProjectInput.create();
         in.user(getValue(userTxt));
         in.pass(getValue(passTxt));
+        in.force(forceCheckBox.getValue());
 
         new RestApi("config").id("server")
             .view(Plugin.get().getName(), "projects").id(project)
@@ -114,6 +118,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
 
     userTxt = addTextBox(center, "Remote User*", "user on remote system");
     passTxt = addPasswordTextBox(center, "Password*", "password of remote user");
+    forceCheckBox = addCheckBox(center, "Force", "whether resume should be done forcefully");
 
     center.add(buttons);
     add(center);

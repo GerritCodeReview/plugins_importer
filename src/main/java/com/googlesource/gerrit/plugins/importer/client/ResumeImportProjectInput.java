@@ -19,6 +19,7 @@ import com.google.gwt.core.client.JavaScriptObject;
 public class ResumeImportProjectInput extends JavaScriptObject {
   final native void user(String u) /*-{ this.user = u; }-*/;
   final native void pass(String p) /*-{ this.pass = p; }-*/;
+  final native void force(boolean f) /*-{ this.force = f; }-*/;
 
   static ResumeImportProjectInput create() {
     return (ResumeImportProjectInput) createObject();

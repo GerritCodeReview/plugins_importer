@@ -14,9 +14,10 @@
 
 package com.googlesource.gerrit.plugins.importer.client;
 
-import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.addPasswordTextBox;
-import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.addTextBox;
-import static com.googlesource.gerrit.plugins.importer.client.TextBoxUtil.getValue;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addCheckBox;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addPasswordTextBox;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addTextBox;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.getValue;
 
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;
@@ -29,7 +30,6 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
@@ -58,8 +58,8 @@ public class ImportGroupScreen extends VerticalPanel {
     nameTxt = addTextBox(this, "Group Name*", "name of the group");
     userTxt = addTextBox(this, "Remote User*", "user on remote system");
     passTxt = addPasswordTextBox(this, "Password*", "password of remote user");
-    importOwnerGroupCheckBox = addCheckBox("import owner group", "also import missing owner groups");
-    importIncludedGroupsCheckBox = addCheckBox("import included groups", "also import missing included groups");
+    importOwnerGroupCheckBox = addCheckBox(this, "import owner group", "also import missing owner groups");
+    importIncludedGroupsCheckBox = addCheckBox(this, "import included groups", "also import missing included groups");
 
     HorizontalPanel buttons = new HorizontalPanel();
     add(buttons);
@@ -78,18 +78,6 @@ public class ImportGroupScreen extends VerticalPanel {
 
     fromTxt.setFocus(true);
     importButton.setEnabled(false);
-  }
-
-  private CheckBox addCheckBox(String label, String infoMsg) {
-    HorizontalPanel hp = new HorizontalPanel();
-    CheckBox cb = new CheckBox(label);
-    cb.setText(label);
-    hp.add(cb);
-    Image info = new Image(ImporterPlugin.RESOURCES.info());
-    info.setTitle(infoMsg);
-    hp.add(info);
-    add(hp);
-    return cb;
   }
 
   private void doImport() {
