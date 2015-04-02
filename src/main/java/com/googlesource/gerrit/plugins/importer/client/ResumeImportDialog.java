@@ -74,7 +74,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
         restApi.put(in, new AsyncCallback<ResumeImportStatisticInfo>() {
               @Override
               public void onSuccess(ResumeImportStatisticInfo result) {
-                Plugin.get().go("/admin/projects/" + project);
+                Plugin.get().go("/x/" + Plugin.get().getName() + "/list");
 
                 final DialogBox successDialog = new DialogBox();
                 successDialog.setText("Resume " + (copy ? "Copy" : "Import") + " Import");
