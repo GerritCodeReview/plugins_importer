@@ -192,6 +192,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     group.setVisibleToAll(cfg.getBoolean("groups", "newGroupsVisibleToAll",
         false));
     group.setDescription(info.description);
+    group.setOwnerGroupUUID(new AccountGroup.UUID(info.ownerId));
     AccountGroupName gn = new AccountGroupName(group);
     // first insert the group name to validate that the group name hasn't
     // already been used to create another group
