@@ -106,16 +106,22 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
 
     @Override
     public UiAction.Description getDescription(ProjectResource rsrc) {
-      UiAction.Description desc = new UiAction.Description()
-          .setLabel("Complete Import...")
-          .setTitle("Complete the project import."
-              + " After completion, resume is not possible anymore.");
+      UiAction.Description desc = new UiAction.Description();
 
       try {
-        projectsCollection.parse(new ConfigResource(),
+        ImportProjectResource importRsrc = projectsCollection.parse(new ConfigResource(),
             IdString.fromDecoded(rsrc.getName()));
+        if (importRsrc.getInfo().from != null) {
+          desc.setLabel("Complete Import...")
+              .setTitle("Complete the project import."
+                  + " After completion, resume is not possible anymore.");
+        } else {
+          desc.setLabel("Complete Copy...")
+              .setTitle("Complete the project copy."
+                  + " After completion, resume is not possible anymore.");
+        }
         desc.setVisible(canCompleteImport(rsrc));
-      } catch (ResourceNotFoundException e) {
+      } catch (IOException | ResourceNotFoundException e) {
         desc.setVisible(false);
       }
 
