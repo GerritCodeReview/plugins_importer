@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.common.base.MoreObjects;
+import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.reviewdb.client.Account;
@@ -24,6 +26,7 @@ import com.google.gerrit.server.ChangeMessagesUtil;
 import com.google.gerrit.server.ChangeUtil;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
+import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
@@ -41,14 +44,18 @@ class InsertLinkToOriginalChangeStep {
   private final ChangeControl.GenericFactory changeControlFactory;
   private final ReviewDb db;
   private final ChangeMessagesUtil cmUtil;
+  private final String canonicalWebUrl;
   private final String fromGerrit;
   private final Change change;
   private final ChangeInfo changeInfo;
   private final boolean resume;
 
   interface Factory {
-    InsertLinkToOriginalChangeStep create(String fromGerrit, Change change,
-        ChangeInfo changeInfo, boolean resume);
+    InsertLinkToOriginalChangeStep create(
+        @Nullable String fromGerrit,
+        Change change,
+        ChangeInfo changeInfo,
+        boolean resume);
   }
 
   @Inject
@@ -58,7 +65,8 @@ class InsertLinkToOriginalChangeStep {
       ChangeControl.GenericFactory changeControlFactory,
       ReviewDb db,
       ChangeMessagesUtil cmUtil,
-      @Assisted String fromGerrit,
+      @CanonicalWebUrl String canonicalWebUrl,
+      @Assisted @Nullable String fromGerrit,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
       @Assisted boolean resume) {
@@ -68,6 +76,7 @@ class InsertLinkToOriginalChangeStep {
     this.changeControlFactory = changeControlFactory;
     this.db = db;
     this.cmUtil = cmUtil;
+    this.canonicalWebUrl = canonicalWebUrl;
     this.fromGerrit = fromGerrit;
     this.change = change;
     this.changeInfo = changeInfo;
@@ -81,7 +90,9 @@ class InsertLinkToOriginalChangeStep {
 
   private String changeUrl(ChangeInfo c) {
     StringBuilder url = new StringBuilder();
-    url.append(ensureSlash(fromGerrit)).append(c._number);
+    url.append(ensureSlash(
+        MoreObjects.firstNonNull(fromGerrit, canonicalWebUrl)));
+    url.append(c._number);
     return url.toString();
   }
 

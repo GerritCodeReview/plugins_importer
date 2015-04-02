@@ -18,6 +18,7 @@ import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updat
 
 import com.google.inject.Singleton;
 
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -27,7 +28,6 @@ import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
@@ -40,12 +40,12 @@ class GitFetchStep {
       throws InvalidRemoteException, TransportException, GitAPIException,
       IOException {
     pm.beginTask("Fetch project", 1);
-    CredentialsProvider cp =
-        new UsernamePasswordCredentialsProvider(user, password);
-    Git.wrap(repo).fetch()
-        .setCredentialsProvider(cp)
-        .setRemote("origin")
-        .call();
+    FetchCommand fetch = Git.wrap(repo).fetch();
+    if (user != null) {
+      fetch.setCredentialsProvider(
+          new UsernamePasswordCredentialsProvider(user, password));
+    }
+    fetch.setRemote("origin").call();
     updateNonChangeRefs(repo);
     updateAndEnd(pm);
   }

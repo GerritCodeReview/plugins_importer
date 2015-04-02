@@ -17,12 +17,17 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
 
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.config.GerritServerConfig;
+import com.google.gerrit.server.config.SitePaths;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 
+import java.io.File;
 import java.io.IOException;
 
 @Singleton
@@ -30,13 +35,28 @@ class ConfigureRepositoryStep {
 
   static final String R_IMPORTS = "refs/imports/";
 
+  private final File gitDir;
+
+  @Inject
+  ConfigureRepositoryStep(
+      SitePaths site,
+      @GerritServerConfig Config cfg) {
+    this.gitDir = site.resolve(cfg.getString("gerrit", null, "basePath"));
+  }
+
   void configure(Repository repo, Project.NameKey name, String originUrl, ProgressMonitor pm)
       throws IOException {
     pm.beginTask("Configure repository", 1);
     StoredConfig config = repo.getConfig();
-    config.setString("remote", "origin", "url", originUrl
-        .concat("/")
-        .concat(name.get()));
+    if (originUrl != null) {
+      config.setString("remote", "origin", "url", originUrl
+          .concat("/")
+          .concat(name.get()));
+    } else {
+      config.setString("remote", "origin", "url",
+          new File(gitDir, name.get() + ".git").getCanonicalPath());
+
+    }
     config.setString("remote", "origin", "fetch", "+refs/*:" + R_IMPORTS + "*");
     config.setString("http", null, "sslVerify", Boolean.FALSE.toString());
     config.save();

@@ -84,7 +84,7 @@ class AddApprovalsStep {
     this.pluginName = pluginName;
   }
 
-  void add(RemoteApi api) throws OrmException, NoSuchChangeException, IOException,
+  void add(GerritApi api) throws OrmException, NoSuchChangeException, IOException,
       NoSuchAccountException, BadRequestException {
     if (resume) {
       db.patchSetApprovals().delete(

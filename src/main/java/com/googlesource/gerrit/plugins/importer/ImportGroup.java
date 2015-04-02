@@ -66,29 +66,36 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     ImportGroup create(AccountGroup.NameKey group);
   }
 
-  private final GroupCache groupCache;
-  private final AccountGroup.NameKey group;
+  private final Config cfg;
   private final ReviewDb db;
   private final AccountUtil accountUtil;
   private final AccountCache accountCache;
+  private final GroupCache groupCache;
   private final GroupIncludeCache groupIncludeCache;
-  private final Config cfg;
   private final DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners;
-  private RemoteApi api;
+  private final GerritApi.Factory apiFactory;
+  private final AccountGroup.NameKey group;
+  private GerritApi api;
 
   @Inject
-  ImportGroup(AccountUtil accountUtil, GroupCache groupCache,
-      AccountCache accountCache, GroupIncludeCache groupIncludeCache,
-      ReviewDb db, @Assisted AccountGroup.NameKey group,
+  ImportGroup(
       @GerritServerConfig Config cfg,
-      DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners) {
+      ReviewDb db,
+      AccountUtil accountUtil,
+      AccountCache accountCache,
+      GroupCache groupCache,
+      GroupIncludeCache groupIncludeCache,
+      DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners,
+      GerritApi.Factory apiFactory,
+      @Assisted AccountGroup.NameKey group) {
     this.db = db;
     this.accountUtil = accountUtil;
     this.groupCache = groupCache;
     this.accountCache = accountCache;
     this.groupIncludeCache = groupIncludeCache;
-    this.cfg = cfg;
     this.groupCreationValidationListeners = groupCreationValidationListeners;
+    this.cfg = cfg;
+    this.apiFactory = apiFactory;
     this.group = group;
   }
 
@@ -97,7 +104,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       throws ResourceConflictException, PreconditionFailedException,
       BadRequestException, NoSuchAccountException, OrmException, IOException {
     GroupInfo groupInfo;
-    this.api = new RemoteApi(input.from, input.user, input.pass);
+    this.api = apiFactory.create(input.from, input.user, input.pass);
     groupInfo = api.getGroup(group.get());
     validate(groupInfo);
     createGroup(groupInfo);

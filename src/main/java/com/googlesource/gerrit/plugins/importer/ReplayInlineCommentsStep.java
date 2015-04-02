@@ -60,7 +60,7 @@ class ReplayInlineCommentsStep {
 
   interface Factory {
     ReplayInlineCommentsStep create(Change change, ChangeInfo changeInfo,
-        RemoteApi api, boolean resume);
+        GerritApi api, boolean resume);
   }
 
   private static final Logger log = LoggerFactory
@@ -76,7 +76,7 @@ class ReplayInlineCommentsStep {
   private final String pluginName;
   private final Change change;
   private final ChangeInfo changeInfo;
-  private final RemoteApi api;
+  private final GerritApi api;
   private final boolean resume;
 
   @Inject
@@ -90,7 +90,7 @@ class ReplayInlineCommentsStep {
       @PluginName String pluginName,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
-      @Assisted RemoteApi api,
+      @Assisted GerritApi api,
       @Assisted boolean resume) {
     this.accountUtil = accountUtil;
     this.db = db;

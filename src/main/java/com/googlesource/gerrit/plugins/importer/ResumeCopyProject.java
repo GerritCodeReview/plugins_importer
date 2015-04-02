@@ -24,10 +24,7 @@ import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
-import com.google.gerrit.server.IdentifiedUser;
-import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.account.CapabilityControl;
-import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
@@ -52,7 +49,6 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
   private final ProjectsCollection projectsCollection;
   private final Provider<CurrentUser> currentUserProvider;
   private final String pluginName;
-  private final String canonicalWebUrl;
   private final ProjectCache projectCache;
 
   @Inject
@@ -61,13 +57,11 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
       ProjectsCollection projectsCollection,
       Provider<CurrentUser> currentUserProvider,
       @PluginName String pluginName,
-      @CanonicalWebUrl String canonicalWebUrl,
       ProjectCache projectCache) {
     this.resumeProjectImport = resumeProjectImport;
     this.projectsCollection = projectsCollection;
     this.currentUserProvider = currentUserProvider;
     this.pluginName = pluginName;
-    this.canonicalWebUrl = canonicalWebUrl;
     this.projectCache = projectCache;
   }
 
@@ -75,16 +69,12 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
   public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException {
-    AccountState s = ((IdentifiedUser) currentUserProvider.get()).state();
-
-    ResumeProjectImport.Input in = new ResumeProjectImport.Input();
-    in.user = s.getUserName();
-    in.pass = s.getPassword(s.getUserName());
-
     ImportProjectResource projectResource =
         projectsCollection.parse(new ConfigResource(),
             IdString.fromDecoded(rsrc.getName()));
-    return resumeProjectImport.get().apply(projectResource, in);
+    return resumeProjectImport.get()
+        .setCopy(true)
+        .apply(projectResource, new ResumeProjectImport.Input());
   }
 
   @Override
@@ -109,7 +99,7 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
           projectsCollection.parse(new ConfigResource(),
               IdString.fromDecoded(rsrc.getName()));
       ImportProjectInfo info = projectResource.getInfo();
-      if (!canonicalWebUrl.equals(info.from)) {
+      if (info.from != null) {
         // no copy, but an import from another system
         return false;
       }
