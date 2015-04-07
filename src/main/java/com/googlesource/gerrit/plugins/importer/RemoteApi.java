@@ -45,6 +45,7 @@ class RemoteApi implements GerritApi {
     restSession = new RestSession(url, user, pass);
   }
 
+  @Override
   public ProjectInfo getProject(String projectName) throws IOException,
       BadRequestException {
     projectName = encode(projectName);
@@ -55,6 +56,7 @@ class RemoteApi implements GerritApi {
     }
   }
 
+  @Override
   public List<ChangeInfo> queryChanges(String projectName) throws IOException,
       BadRequestException {
     String endPoint =
@@ -83,6 +85,7 @@ class RemoteApi implements GerritApi {
     return result;
   }
 
+  @Override
   public GroupInfo getGroup(String groupName) throws IOException,
       BadRequestException {
     groupName = encode(groupName);
@@ -93,17 +96,7 @@ class RemoteApi implements GerritApi {
     }
   }
 
-  /**
-   * Retrieves inline comments of a patch set.
-   *
-   * @param changeId numeric change ID
-   * @param rev the revision
-   * @return Iterable that provides the inline comments, or {@code null} if the
-   *         revision does not exist
-   * @throws IOException thrown if sending the request fails
-   * @throws BadRequestException thrown if the response is neither
-   *         {@code 200 OK} nor {@code 404 Not Found}
-   */
+  @Override
   public Iterable<CommentInfo> getComments(int changeId, String rev)
       throws IOException, BadRequestException {
     String endPoint = "/changes/" + changeId + "/revisions/" + rev + "/comments";
@@ -124,6 +117,7 @@ class RemoteApi implements GerritApi {
     return Iterables.concat(result.values());
   }
 
+  @Override
   public List<SshKeyInfo> getSshKeys(String userId) throws BadRequestException, IOException {
     String endPoint = "/accounts/" + userId + "/sshkeys/";
     try (RestResponse r = checkedGet(endPoint)) {
