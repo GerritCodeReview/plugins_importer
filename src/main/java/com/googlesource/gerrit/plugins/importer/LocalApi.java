@@ -156,4 +156,9 @@ public class LocalApi implements GerritApi {
       throw new BadRequestException(e.getMessage());
     }
   }
+
+  @Override
+  public Version getVersion() throws BadRequestException, IOException {
+    return new Version(com.google.gerrit.common.Version.getVersion());
+  }
 }

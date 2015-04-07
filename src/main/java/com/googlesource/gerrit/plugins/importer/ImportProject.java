@@ -37,6 +37,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
+import com.googlesource.gerrit.plugins.importer.GerritApi.Version;
 import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -95,6 +96,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   private static Logger log = LoggerFactory.getLogger(ImportProject.class);
+  private static Version v2_11 = new Version("2.11");
 
   private final ProjectCache projectCache;
   private final OpenRepositoryStep openRepoStep;
@@ -203,11 +205,19 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       IOException, ValidationException, GitAPIException, NoSuchChangeException,
       NoSuchAccountException {
     boolean resume = info != null;
+    api = apiFactory.create(input.from, input.user, input.pass);
 
     if (copy) {
       input.validateCopy();
     } else {
       input.validateImport();
+      Version v = api.getVersion();
+      if (v.compareTo(v2_11) < 0) {
+        throw new BadRequestException(String.format(
+            "The version of the source Gerrit server %s is too old. "
+            + "Its version is %s, but required is a version >= %s.",
+            input.from, v.formatted, v2_11));
+      }
     }
 
     ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
@@ -215,7 +225,6 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
 
     ResumeImportStatistic statistic = new ResumeImportStatistic();
     try {
-      api = apiFactory.create(input.from, input.user, input.pass);
       srcProject = !Strings.isNullOrEmpty(input.name)
           ? new Project.NameKey(input.name) : targetProject;
       checkProjectInSource(input, pm);

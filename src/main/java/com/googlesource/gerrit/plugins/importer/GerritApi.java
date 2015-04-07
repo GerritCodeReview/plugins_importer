@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.common.base.Objects;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.common.ProjectInfo;
@@ -25,6 +26,8 @@ import com.google.inject.Inject;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 interface GerritApi {
 
@@ -70,4 +73,69 @@ interface GerritApi {
 
   public List<SshKeyInfo> getSshKeys(String userId) throws BadRequestException,
       IOException, OrmException;
+
+  public Version getVersion() throws BadRequestException, IOException;
+
+  class Version implements Comparable<Version> {
+    final String formatted;
+    final Integer major;
+    final Integer minor;
+    final Integer patch;
+    final String qualifier;
+
+    Version(String formatted) {
+      this.formatted = formatted;
+
+      Matcher m = Pattern.compile("(\\d+)\\.(\\d+)(\\.(\\d+))?(-(.+))?")
+          .matcher(formatted);
+      if (m.matches()) {
+        this.major = Integer.parseInt(m.group(1));
+        this.minor = Integer.parseInt(m.group(2));
+        this.patch = m.group(3) != null ? Integer.parseInt(m.group(4)) : null;
+        this.qualifier = m.group(5) != null ? m.group(6) : null;
+      } else {
+        this.major = null;
+        this.minor = null;
+        this.patch = null;
+        this.qualifier = null;
+      }
+    }
+
+    @Override
+    public int compareTo(Version o) {
+      if (major == null || o.major == null) {
+        // either of the compared version is not valid
+        return -1;
+      }
+      if (major == o.major) {
+        if (Objects.equal(minor, o.minor)) {
+          if (Objects.equal(patch, o.patch)) {
+            return 0;
+          }
+          if (o.patch == null) {
+            return 1;
+          }
+          if (patch == null) {
+            return -1;
+          }
+          return patch - o.patch;
+        } else {
+          if (o.minor == null) {
+            return 1;
+          }
+          if (minor == null) {
+            return -1;
+          }
+          return minor - o.minor;
+        }
+      } else {
+        return major - o.major;
+      }
+    }
+
+    @Override
+    public String toString() {
+      return formatted;
+    }
+  }
 }
