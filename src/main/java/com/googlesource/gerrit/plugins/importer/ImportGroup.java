@@ -134,19 +134,23 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
             "Owner group %s with UUID %s does not exist",
             getGroupName(groupInfo.ownerId), groupInfo.ownerId));
       }
-    for (AccountInfo member : groupInfo.members) {
-      try {
-        accountUtil.resolveUser(api, member);
-      } catch (NoSuchAccountException e) {
-        throw new PreconditionFailedException(e.getMessage());
+    if (groupInfo.members != null) {
+      for (AccountInfo member : groupInfo.members) {
+        try {
+          accountUtil.resolveUser(api, member);
+        } catch (NoSuchAccountException e) {
+          throw new PreconditionFailedException(e.getMessage());
+        }
       }
     }
     if (!input.importIncludedGroups) {
-      for (GroupInfo include : groupInfo.includes) {
-        if (getGroupByUUID(include.id) == null) {
-          throw new PreconditionFailedException(String.format(
-              "Included group %s with UUID %s does not exist",
-              getGroupName(include.id), include.id));
+      if (groupInfo.includes != null) {
+        for (GroupInfo include : groupInfo.includes) {
+          if (getGroupByUUID(include.id) == null) {
+            throw new PreconditionFailedException(String.format(
+                "Included group %s with UUID %s does not exist",
+                getGroupName(include.id), include.id));
+          }
         }
       }
     }
