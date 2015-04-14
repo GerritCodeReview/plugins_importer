@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.registration.DynamicSet;
@@ -49,6 +50,8 @@ import com.google.inject.assistedinject.Assisted;
 import com.googlesource.gerrit.plugins.importer.ImportGroup.Input;
 
 import org.eclipse.jgit.lib.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -71,6 +74,9 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     ImportGroup create(AccountGroup.NameKey group);
   }
 
+  private static Logger log = LoggerFactory.getLogger(ImportGroup.class);
+
+  private final String pluginName;
   private final Config cfg;
   private final ReviewDb db;
   private final AccountUtil accountUtil;
@@ -85,6 +91,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   @Inject
   ImportGroup(
+      @PluginName String pluginName,
       @GerritServerConfig Config cfg,
       ReviewDb db,
       AccountUtil accountUtil,
@@ -95,6 +102,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       ImportGroup.Factory importGroupFactory,
       GerritApi.Factory apiFactory,
       @Assisted AccountGroup.NameKey group) {
+    this.pluginName = pluginName;
     this.cfg = cfg;
     this.db = db;
     this.accountUtil = accountUtil;
@@ -128,10 +136,6 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       throw new MethodNotAllowedException(String.format(
           "Group with name %s is not an internal group and cannot be imported",
           groupInfo.name));
-    }
-    if (getGroupByName(groupInfo.name) != null) {
-      throw new ResourceConflictException(String.format(
-          "Group with name %s already exists", groupInfo.name));
     }
     if (getGroupByUUID(groupInfo.id) != null) {
       throw new ResourceConflictException(String.format(
@@ -207,8 +211,15 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   private AccountGroup createGroup(Input input, GroupInfo info) throws OrmException,
       ResourceConflictException, NoSuchAccountException, BadRequestException,
       IOException, PreconditionFailedException, MethodNotAllowedException {
+    String uniqueName = getUniqueGroupName(info.name);
+    if (!info.name.equals(uniqueName)) {
+      log.warn(String.format("[%s] Group %s with UUID %s is imported with name %s",
+          pluginName, info.name, info.id, uniqueName));
+      info.name = uniqueName;
+    }
     AccountGroup group = createAccountGroup(info);
     AccountGroupName gn = new AccountGroupName(group);
+
     // first insert the group name to validate that the group name hasn't
     // already been used to create another group
     try {
@@ -245,6 +256,26 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     return group;
   }
 
+  private String getUniqueGroupName(String name) {
+    return getUniqueGroupName(name, false);
+  }
+
+  private String getUniqueGroupName(String name, boolean appendIndex) {
+    if (getGroupByName(name) == null) {
+      return name;
+    }
+    if (appendIndex) {
+      int i = 0;
+      while (true) {
+        String groupName = String.format("%s-%d", name, ++i);
+        if (getGroupByName(groupName) == null) {
+          return groupName;
+        }
+      }
+    }
+    return getUniqueGroupName(String.format("%s_imported", name), true);
+
+  }
   private AccountGroup createAccountGroup(GroupInfo info) throws OrmException {
     AccountGroup.Id groupId = new AccountGroup.Id(db.nextAccountGroupId());
     AccountGroup.UUID uuid = new AccountGroup.UUID(info.id);
