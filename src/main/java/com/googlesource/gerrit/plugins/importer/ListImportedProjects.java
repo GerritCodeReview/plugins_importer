@@ -14,7 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
@@ -27,6 +26,7 @@ import org.kohsuke.args4j.Option;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
@@ -63,13 +63,20 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
 
   private Collection<File> listImportFiles() {
     Collection<File> importFiles = new HashSet<>();
-    for (File f : Files.fileTreeTraverser().preOrderTraversal(projects.FS_LAYOUT.getLockRoot())) {
+    File lockRoot = projects.FS_LAYOUT.getLockRoot();
+    Path lockRootPath = lockRoot.toPath();
+    for (File f : Files.fileTreeTraverser().preOrderTraversal(lockRoot)) {
       if (f.isFile()
           && !f.getName().endsWith(".lock")
-          && (match == null || f.getName().toLowerCase(Locale.ENGLISH).contains(match))) {
+          && matches(lockRootPath.relativize(f.toPath()))) {
         importFiles.add(f);
       }
     }
     return importFiles;
+  }
+
+  private boolean matches(Path p) {
+    return match == null
+        || p.toString().toLowerCase(Locale.ENGLISH).contains(match);
   }
 }
