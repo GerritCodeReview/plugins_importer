@@ -80,6 +80,9 @@ Preconditions for a project import:
 * User accounts must have a username set.
 * User accounts must exist in the target Gerrit server unless auth type
   is 'LDAP', 'HTTP\_LDAP' or 'CLIENT\_SSL\_CERT\_LDAP'.
+* For auth type 'LDAP', 'HTTP\_LDAP' or 'CLIENT\_SSL\_CERT\_LDAP' both,
+  the source and the target Gerrit server must be connected to the same
+  LDAP instance.
 
 For auth type 'LDAP', 'HTTP\_LDAP' or 'CLIENT\_SSL\_CERT\_LDAP' missing
 user accounts are automatically created. The public SSH keys of a user
