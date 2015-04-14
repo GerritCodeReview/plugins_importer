@@ -14,11 +14,14 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
+
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.MethodNotAllowedException;
 import com.google.gerrit.extensions.restapi.PreconditionFailedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
@@ -107,7 +110,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   @Override
   public Response<String> apply(ConfigResource rsrc, Input input)
       throws ResourceConflictException, PreconditionFailedException,
-      BadRequestException, NoSuchAccountException, OrmException, IOException {
+      BadRequestException, NoSuchAccountException, OrmException, IOException,
+      MethodNotAllowedException {
     GroupInfo groupInfo;
     this.api = apiFactory.create(input.from, input.user, input.pass);
     groupInfo = api.getGroup(group.get());
@@ -119,7 +123,12 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private void validate(Input input, GroupInfo groupInfo) throws ResourceConflictException,
       PreconditionFailedException, BadRequestException, IOException,
-      OrmException, NoSuchAccountException {
+      OrmException, NoSuchAccountException, MethodNotAllowedException {
+    if (!isInternalGroup(new AccountGroup.UUID(groupInfo.id))) {
+      throw new MethodNotAllowedException(String.format(
+          "Group with name %s is not an internal group and cannot be imported",
+          groupInfo.name));
+    }
     if (getGroupByName(groupInfo.name) != null) {
       throw new ResourceConflictException(String.format(
           "Group with name %s already exists", groupInfo.name));
@@ -197,7 +206,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private AccountGroup createGroup(Input input, GroupInfo info) throws OrmException,
       ResourceConflictException, NoSuchAccountException, BadRequestException,
-      IOException, PreconditionFailedException {
+      IOException, PreconditionFailedException, MethodNotAllowedException {
     AccountGroup.Id groupId = new AccountGroup.Id(db.nextAccountGroupId());
     AccountGroup.UUID uuid = new AccountGroup.UUID(info.id);
     AccountGroup group =
@@ -218,14 +227,16 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
     if (!info.id.equals(info.ownerId)) {
       if (getGroupByUUID(info.ownerId) == null) {
-        String ownerGroupName = getGroupName(info.ownerId);
-        if (input.importOwnerGroup) {
-          importGroupFactory.create(new AccountGroup.NameKey(ownerGroupName))
-              .apply(new ConfigResource(), input);
-        } else {
-          throw new IllegalStateException(String.format(
-              "Cannot set non-existing group %s as owner of group %s.",
-              ownerGroupName, info.name));
+        if (isInternalGroup(new AccountGroup.UUID(info.ownerId))) {
+          String ownerGroupName = getGroupName(info.ownerId);
+          if (input.importOwnerGroup) {
+            importGroupFactory.create(new AccountGroup.NameKey(ownerGroupName))
+                .apply(new ConfigResource(), input);
+          } else {
+            throw new IllegalStateException(String.format(
+                "Cannot set non-existing group %s as owner of group %s.",
+                ownerGroupName, info.name));
+          }
         }
       }
       group.setOwnerGroupUUID(new AccountGroup.UUID(info.ownerId));
@@ -261,18 +272,21 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       String groupName, List<GroupInfo> includedGroups)
       throws BadRequestException, ResourceConflictException,
       PreconditionFailedException, NoSuchAccountException, OrmException,
-      IOException {
+      IOException, MethodNotAllowedException {
     List<AccountGroupById> includeList = new ArrayList<>();
     for (GroupInfo includedGroup : includedGroups) {
-      if (getGroupByUUID(includedGroup.id) == null) {
-        String includedGroupName = getGroupName(includedGroup.id);
-        if (input.importIncludedGroups) {
-          importGroupFactory.create(new AccountGroup.NameKey(includedGroupName))
-              .apply(new ConfigResource(), input);
-        } else {
-          throw new IllegalStateException(String.format(
-              "Cannot include non-existing group %s into group %s.",
-              includedGroupName, groupName));
+      if (isInternalGroup(new AccountGroup.UUID(includedGroup.id))) {
+        if (getGroupByUUID(includedGroup.id) == null) {
+          String includedGroupName = getGroupName(includedGroup.id);
+          if (input.importIncludedGroups) {
+            importGroupFactory.create(
+                new AccountGroup.NameKey(includedGroupName)).apply(
+                new ConfigResource(), input);
+          } else {
+            throw new IllegalStateException(String.format(
+                "Cannot include non-existing group %s into group %s.",
+                includedGroupName, groupName));
+          }
         }
       }
       AccountGroup.UUID memberUUID = new AccountGroup.UUID(includedGroup.id);
