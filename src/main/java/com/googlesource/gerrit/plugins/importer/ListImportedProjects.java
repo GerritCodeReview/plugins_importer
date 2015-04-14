@@ -41,7 +41,7 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   @Option(name = "--match", metaVar = "MATCH",
       usage = "List only projects containing this substring, case insensitive")
   public void setMatch(String match) {
-    this.match = match.toLowerCase();
+    this.match = match.toLowerCase(Locale.ENGLISH);
   }
 
   private String match;
@@ -62,12 +62,11 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   }
 
   private Collection<File> listImportFiles() {
-    match = Strings.nullToEmpty(match).toLowerCase(Locale.ENGLISH);
     Collection<File> importFiles = new HashSet<>();
     for (File f : Files.fileTreeTraverser().preOrderTraversal(projects.FS_LAYOUT.getLockRoot())) {
       if (f.isFile()
           && !f.getName().endsWith(".lock")
-          && f.getName().toLowerCase(Locale.ENGLISH).contains(match)) {
+          && (match == null || f.getName().toLowerCase(Locale.ENGLISH).contains(match))) {
         importFiles.add(f);
       }
     }
