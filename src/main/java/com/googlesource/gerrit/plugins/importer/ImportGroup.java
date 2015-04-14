@@ -207,13 +207,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   private AccountGroup createGroup(Input input, GroupInfo info) throws OrmException,
       ResourceConflictException, NoSuchAccountException, BadRequestException,
       IOException, PreconditionFailedException, MethodNotAllowedException {
-    AccountGroup.Id groupId = new AccountGroup.Id(db.nextAccountGroupId());
-    AccountGroup.UUID uuid = new AccountGroup.UUID(info.id);
-    AccountGroup group =
-        new AccountGroup(new AccountGroup.NameKey(info.name), groupId, uuid);
-    group.setVisibleToAll(cfg.getBoolean("groups", "newGroupsVisibleToAll",
-        false));
-    group.setDescription(info.description);
+    AccountGroup group = createAccountGroup(info);
     AccountGroupName gn = new AccountGroupName(group);
     // first insert the group name to validate that the group name hasn't
     // already been used to create another group
@@ -243,11 +237,22 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       db.accountGroups().upsert(Collections.singleton(group));
     }
 
-    addMembers(groupId, info.members);
-    addGroups(input, groupId, info.name, info.includes);
+    addMembers(group.getId(), info.members);
+    addGroups(input, group.getId(), info.name, info.includes);
 
     groupCache.evict(group);
 
+    return group;
+  }
+
+  private AccountGroup createAccountGroup(GroupInfo info) throws OrmException {
+    AccountGroup.Id groupId = new AccountGroup.Id(db.nextAccountGroupId());
+    AccountGroup.UUID uuid = new AccountGroup.UUID(info.id);
+    AccountGroup group =
+        new AccountGroup(new AccountGroup.NameKey(info.name), groupId, uuid);
+    group.setVisibleToAll(cfg.getBoolean("groups", "newGroupsVisibleToAll",
+        false));
+    group.setDescription(info.description);
     return group;
   }
 
