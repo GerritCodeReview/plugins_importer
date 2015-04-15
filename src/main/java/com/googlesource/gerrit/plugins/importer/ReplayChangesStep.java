@@ -21,6 +21,7 @@ import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
+import com.google.gerrit.extensions.restapi.Url;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
@@ -39,6 +40,8 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -58,6 +61,8 @@ class ReplayChangesStep {
         ResumeImportStatistic importStatistic,
         ProgressMonitor pm);
   }
+
+  private static Logger log = LoggerFactory.getLogger(ReplayChangesStep.class);
 
   private final ReplayRevisionsStep.Factory replayRevisionsFactory;
   private final ReplayInlineCommentsStep.Factory replayInlineCommentsFactory;
@@ -130,7 +135,13 @@ class ReplayChangesStep {
     RevWalk rw = new RevWalk(repo);
     try {
       for (ChangeInfo c : changes) {
-        replayChange(rw, c);
+        try {
+          replayChange(rw, c);
+        } catch (Exception e) {
+          log.error(String.format("Failed to replay change %s.",
+              Url.decode(c.id)), e);
+          throw e;
+        }
         pm.update(1);
       }
     } finally {
