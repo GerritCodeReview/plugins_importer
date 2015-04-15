@@ -142,8 +142,8 @@ class ReplayChangesStep {
         try {
           replayChange(rw, c);
         } catch (Exception e) {
-          log.error(String.format("Failed to replay change %s.",
-              Url.decode(c.id)), e);
+          log.error(String.format("[%s] Failed to replay change %s.",
+              pluginName, Url.decode(c.id)), e);
           throw e;
         }
         pm.update(1);

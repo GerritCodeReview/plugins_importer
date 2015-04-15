@@ -19,6 +19,7 @@ import static java.lang.String.format;
 
 import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
@@ -98,6 +99,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private static Logger log = LoggerFactory.getLogger(ImportProject.class);
   private static Version v2_11 = new Version("2.11");
 
+  private final String pluginName;
   private final ProjectCache projectCache;
   private final OpenRepositoryStep openRepoStep;
   private final ConfigureRepositoryStep configRepoStep;
@@ -122,6 +124,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
 
   @Inject
   ImportProject(
+      @PluginName String pluginName,
       ProjectCache projectCache,
       OpenRepositoryStep openRepoStep,
       ConfigureRepositoryStep configRepoStep,
@@ -135,6 +138,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       ImportLog importLog,
       ProjectsCollection projects,
       @Assisted Project.NameKey targetProject) {
+    this.pluginName = pluginName;
     this.projectCache = projectCache;
     this.openRepoStep = openRepoStep;
     this.configRepoStep = configRepoStep;
@@ -253,11 +257,11 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       importLog.onImport((IdentifiedUser) currentUser.get(), srcProject,
           targetProject, input.from, e);
       String msg = input.from != null
-          ? format("Unable to transfer project '%s' from"
+          ? format("[%s] Unable to transfer project '%s' from"
               + " source gerrit host '%s'.",
-              srcProject.get(), input.from)
-          : format("Unable to copy project '%s'.",
-              srcProject.get());
+              pluginName, srcProject.get(), input.from)
+          : format("[%s] Unable to copy project '%s'.",
+              pluginName, srcProject.get());
       log.error(msg, e);
       throw e;
     }
