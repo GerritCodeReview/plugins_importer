@@ -288,6 +288,11 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
 
   private void checkPreconditions(ProgressMonitor pm) throws BadRequestException {
     pm.beginTask("Check preconditions", 1);
+    if (parent == null) {
+      throw new BadRequestException(
+          "The project has no parent in the source system. "
+              + "It can only be imported if a parent project is specified.");
+    }
     ProjectState p = projectCache.get(parent);
     if (p == null) {
       throw new BadRequestException(format(
