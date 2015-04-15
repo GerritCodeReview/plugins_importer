@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.reviewdb.client.Account;
@@ -33,6 +34,9 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -41,17 +45,22 @@ import java.util.Objects;
 
 @Singleton
 class AccountUtil {
+  private static Logger log = LoggerFactory.getLogger(AccountUtil.class);
 
+  private final String pluginName;
   private final AccountCache accountCache;
   private final AccountManager accountManager;
   private final AuthType authType;
   private final Provider<ReviewDb> db;
 
   @Inject
-  public AccountUtil(AccountCache accountCache,
+  public AccountUtil(
+      @PluginName String pluginName,
+      AccountCache accountCache,
       AccountManager accountManager,
       AuthConfig authConfig,
       Provider<ReviewDb> db) {
+    this.pluginName = pluginName;
     this.accountCache = accountCache;
     this.accountManager = accountManager;
     this.authType = authConfig.getAuthType();
@@ -80,9 +89,9 @@ class AccountUtil {
       }
     }
     if (!Objects.equals(a.getAccount().getPreferredEmail(), acc.email)) {
-      throw new NoSuchAccountException(String.format(
-          "User %s not found: Email mismatch, expected %s but found %s",
-          acc.username, acc.email, a.getAccount().getPreferredEmail()));
+      log.warn(String.format(
+          "[%s] Email mismatch for user %s: expected %s but found %s",
+          pluginName, acc.username, acc.email, a.getAccount().getPreferredEmail()));
     }
 
     return a.getAccount().getId();
