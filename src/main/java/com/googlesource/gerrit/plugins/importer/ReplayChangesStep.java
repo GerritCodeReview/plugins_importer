@@ -180,6 +180,12 @@ class ReplayChangesStep {
           pluginName, c.id));
       return;
     }
+    if (c.currentRevision == null) {
+      log.warn(String.format(
+          "[%s] Change %s has no current revision.",
+          pluginName, c.id));
+      return;
+    }
 
     replayRevisionsFactory.create(repo, rw, change, c).replay(api);
     upsertChange(resumeChange, change, c);
