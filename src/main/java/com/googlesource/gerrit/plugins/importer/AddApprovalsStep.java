@@ -105,7 +105,8 @@ class AddApprovalsStep {
                 + " This label was referenced by an approval provided from '%s'"
                 + " for change '%s'."
                 + " This approval will be skipped. In order to import this"
-                + " approval configure the missing label and resume the import."
+                + " approval configure the missing label and resume the import"
+                + " with the force option."
                 , pluginName, labelName, a.username, changeInfo.id));
             continue;
           }
