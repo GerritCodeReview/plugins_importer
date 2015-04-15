@@ -14,8 +14,11 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
+
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.MethodNotAllowedException;
 import com.google.gerrit.extensions.restapi.PreconditionFailedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.reviewdb.client.AccountGroup;
@@ -79,20 +82,22 @@ public class ImportGroupsStep {
     Set<AccountGroup.UUID> groupUUIDs = projectConfig.getAllGroupUUIDs();
     pm.beginTask("Import Groups", groupUUIDs.size());
     for (AccountGroup.UUID groupUUID : groupUUIDs) {
-      if (groupCache.get(groupUUID) == null) {
-        ImportGroup.Input input = new ImportGroup.Input();
-        input.from = fromGerrit;
-        input.user = user;
-        input.pass = password;
-        input.importOwnerGroup = true;
-        input.importIncludedGroups = true;
-        try {
-          importGroupFactory.create(
-              new AccountGroup.NameKey(projectConfig.getGroup(groupUUID).getName()))
-              .apply(new ConfigResource(), input);
-        } catch (ResourceConflictException e) {
-          // should not happen
-          throw new IllegalStateException(e);
+      if (isInternalGroup(groupUUID)) {
+        if (groupCache.get(groupUUID) == null) {
+          ImportGroup.Input input = new ImportGroup.Input();
+          input.from = fromGerrit;
+          input.user = user;
+          input.pass = password;
+          input.importOwnerGroup = true;
+          input.importIncludedGroups = true;
+          try {
+            importGroupFactory.create(
+                new AccountGroup.NameKey(projectConfig.getGroup(groupUUID)
+                    .getName())).apply(new ConfigResource(), input);
+          } catch (ResourceConflictException | MethodNotAllowedException e) {
+            // should not happen
+            throw new IllegalStateException(e);
+          }
         }
       }
       pm.update(1);
