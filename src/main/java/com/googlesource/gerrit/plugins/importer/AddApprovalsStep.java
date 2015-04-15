@@ -109,13 +109,13 @@ class AddApprovalsStep {
                 , pluginName, labelName, a.username, changeInfo.id));
             continue;
           }
-          approvals.add(new PatchSetApproval(
-              new PatchSetApproval.Key(change.currentPatchSetId(), user,
-                  labelType.getLabelId()), a.value.shortValue(),
-                  MoreObjects.firstNonNull(a.date, TimeUtil.nowTs())));
+          short shortValue = a.value != null ? a.value.shortValue() : 0;
+          approvals.add(new PatchSetApproval(new PatchSetApproval.Key(change
+              .currentPatchSetId(), user, labelType.getLabelId()), shortValue,
+              MoreObjects.firstNonNull(a.date, TimeUtil.nowTs())));
           ChangeUpdate update = updateFactory.create(ctrl);
-          if (a.value != 0) {
-            update.putApproval(labelName, a.value.shortValue());
+          if (shortValue != 0) {
+            update.putApproval(labelName, shortValue);
           } else {
             update.removeApproval(labelName);
           }
