@@ -275,6 +275,12 @@ Gerrit internal users (e.g. service users) are never automatically
 created but must be created in the target Gerrit server before the
 import.
 
+If the group name is occupied in the target system (a group with the
+same name, but a different UUID exists already), the group is
+automatically imported under the following name:
+'<group-name>\_imported'. If this name is also already occupied an
+index is appended: '<group-name>\_imported_<index>'.
+
 Missing owner groups and missing included groups can be automatically
 imported into the target Gerrit server.
 
