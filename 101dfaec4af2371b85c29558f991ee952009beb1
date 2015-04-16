@@ -16,6 +16,23 @@
       "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "505f6e27_eadcc7e8",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImporterSshCommand.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-04-16T10:28:24Z",
+      "side": 1,
+      "message": "I would rather move this method into an own utility class than factoring it out into a (common) superclass. Why? The utility methods from superclasses can only be used in their subclasses. Further, what if we need multiple utility methods and they are not all needed/used from every subclass? This would lead to an artificial class hierarchy derived from the utility method usage...",
+      "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
