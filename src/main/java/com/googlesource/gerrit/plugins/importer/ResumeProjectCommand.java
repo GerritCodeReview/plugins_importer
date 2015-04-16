@@ -60,7 +60,7 @@ public class ResumeProjectCommand extends SshCommand {
       }
       ResumeProjectImport.Input input = new ResumeProjectImport.Input();
       input.user = user;
-      input.pass = pass;
+      input.pass = PasswordUtil.readPassword(in, pass);
       input.force = force;
       ResumeImportStatistic stats = resume.apply(rsrc, input);
       stdout.print("Created Changes: " + stats.numChangesCreated + "\n");

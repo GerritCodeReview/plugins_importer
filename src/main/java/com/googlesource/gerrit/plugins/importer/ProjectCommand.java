@@ -14,8 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
@@ -24,6 +22,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.validators.ValidationException;
+import com.google.gerrit.sshd.BaseCommand.UnloggedFailure;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
@@ -33,10 +32,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 
 @RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "project", description = "Imports a project")
@@ -80,7 +76,7 @@ public class ProjectCommand extends SshCommand {
     input.from = url;
     input.name = name;
     input.user = user;
-    input.pass = readPassword();
+    input.pass = PasswordUtil.readPassword(in, pass);
     if (!Strings.isNullOrEmpty(parent)) {
       input.parent = parent;
     }
@@ -95,17 +91,5 @@ public class ProjectCommand extends SshCommand {
     } catch (RestApiException e) {
       throw die(e.getMessage());
     }
-  }
-
-  private String readPassword() throws UnsupportedEncodingException,
-      IOException, UnloggedFailure {
-    if ("-".equals(pass)) {
-      BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF_8));
-      pass = Strings.nullToEmpty(br.readLine());
-      if (br.readLine() != null) {
-        throw die("multi-line password not allowed");
-      }
-    }
-    return pass;
   }
 }
