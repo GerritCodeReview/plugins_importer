@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70471268_e35ab20a",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImporterSshCommand.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-16T10:20:25Z",
+      "side": 1,
+      "message": "licence header is missing",
+      "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
