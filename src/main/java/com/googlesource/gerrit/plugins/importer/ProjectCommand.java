@@ -14,8 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
@@ -25,7 +23,6 @@ import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gerrit.sshd.CommandMetaData;
-import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 
@@ -33,14 +30,11 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 
 @RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "project", description = "Imports a project")
-public class ProjectCommand extends SshCommand {
+public class ProjectCommand extends ImporterSshCommand {
   @Option(name = "--from", aliases = {"-f"}, required = true, metaVar = "URL",
       usage = "URL of the remote system from where the project should be imported")
   private String url;
@@ -53,10 +47,6 @@ public class ProjectCommand extends SshCommand {
   @Option(name = "--user", aliases = {"-u"}, required = true, metaVar = "NAME",
       usage = "user on remote system")
   private String user;
-
-  @Option(name = "--pass", aliases = {"-p"}, required = true, metaVar = "-|PASS",
-      usage = "password of remote user")
-  private String pass;
 
   @Option(name = "--parent", required = false, metaVar = "NAME",
       usage = "name of parent project in target system")
@@ -95,17 +85,5 @@ public class ProjectCommand extends SshCommand {
     } catch (RestApiException e) {
       throw die(e.getMessage());
     }
-  }
-
-  private String readPassword() throws UnsupportedEncodingException,
-      IOException, UnloggedFailure {
-    if ("-".equals(pass)) {
-      BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF_8));
-      pass = Strings.nullToEmpty(br.readLine());
-      if (br.readLine() != null) {
-        throw die("multi-line password not allowed");
-      }
-    }
-    return pass;
   }
 }

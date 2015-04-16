@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.sshd.CommandMetaData;
-import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;
 
 import org.kohsuke.args4j.Argument;
@@ -25,15 +24,11 @@ import org.kohsuke.args4j.Option;
 
 @RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "resume-project", description = "Resumes project import")
-public class ResumeProjectCommand extends SshCommand {
+public class ResumeProjectCommand extends ImporterSshCommand {
 
   @Option(name = "--user", aliases = {"-u"}, required = true, metaVar = "NAME",
       usage = "user on remote system")
   private String user;
-
-  @Option(name = "--pass", aliases = {"-p"}, required = true, metaVar = "-|PASS",
-      usage = "password of remote user")
-  private String pass;
 
   @Option(name = "--force", usage = "Whether the resume should be done forcefully.")
   private boolean force;
@@ -60,7 +55,7 @@ public class ResumeProjectCommand extends SshCommand {
       }
       ResumeProjectImport.Input input = new ResumeProjectImport.Input();
       input.user = user;
-      input.pass = pass;
+      input.pass = readPassword();
       input.force = force;
       ResumeImportStatistic stats = resume.apply(rsrc, input);
       stdout.print("Created Changes: " + stats.numChangesCreated + "\n");
