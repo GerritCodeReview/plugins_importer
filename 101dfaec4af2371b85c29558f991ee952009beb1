@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "70471268_23d32ada",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImporterSshCommand.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-04-16T10:43:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "70471268_e35ab20a",
+      "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "505f6e27_eadcc7e8",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImporterSshCommand.java",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-04-16T10:28:24Z",
       "side": 1,
       "message": "I would rather move this method into an own utility class than factoring it out into a (common) superclass. Why? The utility methods from superclasses can only be used in their subclasses. Further, what if we need multiple utility methods and they are not all needed/used from every subclass? This would lead to an artificial class hierarchy derived from the utility method usage...",
+      "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "505f6e27_2aeadf73",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImporterSshCommand.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-04-16T10:43:41Z",
+      "side": 1,
+      "message": "It it not only about the method that can go into a utility class.\nIt is also about the password field that is shared between import command and resume-import command which is also shared. This would not be possible when working with a utility class without common base class. May be it would be a good idea to share also other commonly used fields, like e.g. the user.",
+      "parentUuid": "505f6e27_eadcc7e8",
       "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
