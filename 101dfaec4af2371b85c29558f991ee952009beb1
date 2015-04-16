@@ -69,6 +69,24 @@
       "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "505f6e27_ea03a7c6",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImporterSshCommand.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-04-16T10:51:13Z",
+      "side": 1,
+      "message": "This also suffers from the same issue. While it works for a couple of commands soon we come to the situation where some commands need fields A,B some other commands need fields A,C and some others B,C (but not A). What would the a proper class hierarchy for this case? With Java\u0027s single inheritance I guess there is no a good solution.\n\nWhen we started this plugin I actually tried moving the common fields into base class(s) but gave up exactly because of this reason.",
+      "parentUuid": "505f6e27_2aeadf73",
+      "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
