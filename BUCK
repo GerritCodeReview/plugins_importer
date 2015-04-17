@@ -26,10 +26,10 @@ gerrit_plugin(
   ],
   deps = [
     HTTP_LIB,
-    GSON,
   ],
   provided_deps = [
     LOG4J,
+    GSON,
   ],
 )
 
