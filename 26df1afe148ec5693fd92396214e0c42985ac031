@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70471268_2381ea49",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-17T12:15:01Z",
+      "side": 1,
+      "message": "Done. Now this sentence can be removed here :-)",
+      "revId": "26df1afe148ec5693fd92396214e0c42985ac031",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "505f6e27_caea2320",
+        "filename": "BUCK",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-17T12:15:01Z",
+      "side": 1,
+      "message": "You also need to update the version in the pom.xml and in lib/gerrit/BUCK.",
+      "revId": "26df1afe148ec5693fd92396214e0c42985ac031",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "70471268_437ce6e5",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImportGroup.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-17T12:15:01Z",
+      "side": 1,
+      "message": "This is now unused and can be removed as well.",
+      "range": {
+        "startLine": 203,
+        "startChar": 4,
+        "endLine": 206,
+        "endChar": 5
+      },
+      "revId": "26df1afe148ec5693fd92396214e0c42985ac031",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
