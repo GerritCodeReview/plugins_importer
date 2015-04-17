@@ -16,6 +16,23 @@
       "revId": "0b76aee4912cc764a22d8bb5a14b4f45a8fcf98c",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "70471268_a374baf8",
+        "filename": "pom.xml",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-17T12:20:56Z",
+      "side": 1,
+      "message": "Here it should be 2.12-SNAPSHOT too.",
+      "revId": "0b76aee4912cc764a22d8bb5a14b4f45a8fcf98c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
