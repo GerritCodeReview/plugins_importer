@@ -18,28 +18,24 @@ import com.google.common.collect.Iterables;
 import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
-import com.google.gerrit.extensions.common.ProjectInfo;
 import com.google.gerrit.extensions.common.GroupInfo;
+import com.google.gerrit.extensions.common.ProjectInfo;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.TopLevelResource;
-import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.server.account.AccountResource;
 import com.google.gerrit.server.account.AccountsCollection;
 import com.google.gerrit.server.account.GetSshKeys;
 import com.google.gerrit.server.account.GetSshKeys.SshKeyInfo;
-import com.google.gerrit.server.account.GroupCache;
-import com.google.gerrit.server.account.GroupControl;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.ChangesCollection;
 import com.google.gerrit.server.change.ListComments;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.change.Revisions;
-import com.google.gerrit.server.group.GroupJson;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 
@@ -49,9 +45,6 @@ import java.util.Map;
 
 public class LocalApi implements GerritApi {
   private final com.google.gerrit.extensions.api.GerritApi gApi;
-  private final GroupCache groupCache;
-  private final GroupJson groupJson;
-  private final GroupControl.Factory groupControlFactory;
   private final ChangesCollection changes;
   private final Revisions revisions;
   private final ListComments listComments;
@@ -61,18 +54,12 @@ public class LocalApi implements GerritApi {
   @Inject
   LocalApi(
       com.google.gerrit.extensions.api.GerritApi gApi,
-      GroupCache groupCache,
-      GroupJson groupJson,
-      GroupControl.Factory groupControlFactory,
       ChangesCollection changes,
       Revisions revisions,
       ListComments listComments,
       AccountsCollection accounts,
       GetSshKeys getSshKeys) {
     this.gApi = gApi;
-    this.groupCache = groupCache;
-    this.groupJson = groupJson;
-    this.groupControlFactory = groupControlFactory;
     this.changes = changes;
     this.revisions = revisions;
     this.listComments = listComments;
@@ -112,13 +99,11 @@ public class LocalApi implements GerritApi {
   @Override
   public GroupInfo getGroup(String groupName) throws IOException,
       BadRequestException, OrmException {
-    AccountGroup group = groupCache.get(new AccountGroup.NameKey(groupName));
-    GroupControl groupControl = groupControlFactory.controlFor(group);
-    if (group == null || !groupControl.isVisible()) {
-      throw new BadRequestException(String.format("Group %s not found.",
-          groupName));
+    try {
+      return gApi.groups().id(groupName).get();
+    } catch (RestApiException e) {
+      throw new BadRequestException(e.getMessage());
     }
-    return groupJson.format(groupControl.getGroup());
   }
 
   @Override
