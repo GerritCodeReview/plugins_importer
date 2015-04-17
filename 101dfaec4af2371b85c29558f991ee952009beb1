@@ -87,6 +87,24 @@
       "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "70471268_83e41e52",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImporterSshCommand.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-04-17T08:51:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "505f6e27_ea03a7c6",
+      "revId": "101dfaec4af2371b85c29558f991ee952009beb1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
