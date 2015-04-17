@@ -20,12 +20,12 @@ import com.google.common.collect.Iterables;
 import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
+import com.google.gerrit.extensions.common.GroupInfo;
 import com.google.gerrit.extensions.common.ProjectInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.server.OutputFormat;
 import com.google.gerrit.server.account.GetSshKeys.SshKeyInfo;
-import com.google.gerrit.server.group.GroupJson.GroupInfo;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
