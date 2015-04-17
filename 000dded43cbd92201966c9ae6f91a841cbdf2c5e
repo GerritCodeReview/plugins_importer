@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70471268_638c828d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ProjectCommand.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-17T10:41:46Z",
+      "side": 1,
+      "message": "nit: unused import",
+      "revId": "000dded43cbd92201966c9ae6f91a841cbdf2c5e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
