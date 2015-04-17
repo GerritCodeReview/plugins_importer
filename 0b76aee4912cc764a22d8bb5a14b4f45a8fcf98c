@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70471268_c367b64e",
+        "filename": "lib/gerrit/BUCK",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2015-04-17T12:19:44Z",
+      "side": 1,
+      "message": "2.12-SNAPSHOT",
+      "revId": "0b76aee4912cc764a22d8bb5a14b4f45a8fcf98c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
