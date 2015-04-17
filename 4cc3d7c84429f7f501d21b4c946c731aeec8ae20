@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70471268_635ec27d",
+        "filename": "lib/gerrit/BUCK",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-17T12:37:22Z",
+      "side": 1,
+      "message": "Sorry to have missed this before, but since the SNAPSHOT version is not available on Maven Central, this must be changed to MAVEN_LOCAL.\n\nAnd the \u0027VERSION\u0027 file is one more place, where the version needs to be updated.",
+      "revId": "4cc3d7c84429f7f501d21b4c946c731aeec8ae20",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
