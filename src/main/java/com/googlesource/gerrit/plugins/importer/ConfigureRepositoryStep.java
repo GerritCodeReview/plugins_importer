@@ -27,7 +27,9 @@ import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import java.io.IOException;
 
 @Singleton
@@ -35,7 +37,7 @@ class ConfigureRepositoryStep {
 
   static final String R_IMPORTS = "refs/imports/";
 
-  private final File gitDir;
+  private final Path gitDir;
 
   @Inject
   ConfigureRepositoryStep(
@@ -54,7 +56,7 @@ class ConfigureRepositoryStep {
           .concat(name.get()));
     } else {
       config.setString("remote", "origin", "url",
-          new File(gitDir, name.get() + ".git").getCanonicalPath());
+          this.gitDir.resolve(name.get() + ".git").toString());
 
     }
     config.setString("remote", "origin", "fetch", "+refs/*:" + R_IMPORTS + "*");
