@@ -22,6 +22,30 @@
       "revId": "e46a69bed24d203a1005cc8a19bacb3f17167c3a",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "309bda8e_01b9aa0e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-22T08:11:13Z",
+      "side": 1,
+      "message": "Maybe this is not really clean at the moment. The interface allows currently only BadRequestException. This was designed for the remote case where we do requests against the source Gerrit server from where the import should be done. There this makes somehow sense, since the URL of the source system, user, password and the entity ID is part of the import request. This means if the request to the source system fails with Not Found or Unauthorized, this is due to wrong user input and hence Bad Request is appropriate. But yes, this exception handling can probably be improved. But this should be another change. For now this way of handling the exceptions is consistent with how it\u0027s done above in the getProject(...) method.",
+      "parentUuid": "70e472f7_1be0db12",
+      "range": {
+        "startLine": 104,
+        "startChar": 6,
+        "endLine": 105,
+        "endChar": 52
+      },
+      "revId": "e46a69bed24d203a1005cc8a19bacb3f17167c3a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
