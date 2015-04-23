@@ -91,6 +91,7 @@ class ReplayRevisionsStep {
 
     db.changes().beginTransaction(change.getId());
     try {
+      PatchSetInfo info = null;
       for (RevisionInfo r : revisions) {
         if (r.draft != null && r.draft) {
           // no import of draft patch sets
@@ -128,7 +129,7 @@ class ReplayRevisionsStep {
         ps.setRevision(new RevId(commit.name()));
         ps.setDraft(r.draft != null && r.draft);
 
-        PatchSetInfo info = patchSetInfoFactory.get(commit, ps.getId());
+        info = patchSetInfoFactory.get(commit, ps.getId());
         if (changeInfo.currentRevision.equals(info.getRevId())) {
           change.setCurrentPatchSet(info);
         }
@@ -136,6 +137,15 @@ class ReplayRevisionsStep {
         ChangeUtil.insertAncestors(db, ps.getId(), commit);
 
         updateRef(repo, ps);
+      }
+
+      if (change.currentPatchSetId() == null) {
+        log.warn(String.format(
+            "[%s] Current revision %s of change %s not found."
+            + " Setting lastest revision %s as current patch set.",
+            pluginName, changeInfo.currentRevision, changeInfo.id,
+            info.getRevId()));
+        change.setCurrentPatchSet(info);
       }
 
       db.patchSets().insert(patchSets);
