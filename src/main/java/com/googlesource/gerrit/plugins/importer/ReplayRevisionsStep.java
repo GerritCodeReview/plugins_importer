@@ -130,7 +130,7 @@ class ReplayRevisionsStep {
         ps.setDraft(r.draft != null && r.draft);
 
         info = patchSetInfoFactory.get(commit, ps.getId());
-        if (changeInfo.currentRevision.equals(info.getRevId())) {
+        if (info.getRevId().equals(changeInfo.currentRevision)) {
           change.setCurrentPatchSet(info);
         }
 
@@ -140,11 +140,18 @@ class ReplayRevisionsStep {
       }
 
       if (change.currentPatchSetId() == null) {
-        log.warn(String.format(
-            "[%s] Current revision %s of change %s not found."
-            + " Setting lastest revision %s as current patch set.",
-            pluginName, changeInfo.currentRevision, changeInfo.id,
-            info.getRevId()));
+        if (changeInfo.currentRevision != null) {
+          log.warn(String.format(
+              "[%s] Current revision %s of change %s not found."
+              + " Setting lastest revision %s as current patch set.",
+              pluginName, changeInfo.currentRevision, changeInfo.id,
+              info.getRevId()));
+        } else {
+          log.warn(String.format(
+              "[%s] Change %s has no current revision."
+              + " Setting lastest revision %s as current patch set.",
+              pluginName, changeInfo.id, info.getRevId()));
+        }
         change.setCurrentPatchSet(info);
       }
 
