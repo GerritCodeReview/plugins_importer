@@ -55,6 +55,12 @@ class GitFetchStep {
         ConfigureRepositoryStep.R_IMPORTS);
     for (Map.Entry<String, Ref> e : refs.entrySet()) {
       String name = e.getKey();
+      if (name.startsWith("imports/")) {
+        continue;
+      }
+      if (name.startsWith("cache-automerge/")) {
+        continue;
+      }
       if (name.startsWith("changes/")) {
         continue;
       }
