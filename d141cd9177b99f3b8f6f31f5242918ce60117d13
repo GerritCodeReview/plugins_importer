@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0ab5e9c_bed9f972",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayRevisionsStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2015-04-24T00:40:57Z",
+      "side": 1,
+      "message": "shouldn\u0027t the logger already be configured to include the plugin name?",
+      "range": {
+        "startLine": 144,
+        "startChar": 13,
+        "endLine": 144,
+        "endChar": 18
+      },
+      "revId": "d141cd9177b99f3b8f6f31f5242918ce60117d13",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0ab5e9c_9ede3d57",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayRevisionsStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2015-04-24T00:40:57Z",
+      "side": 1,
+      "message": "latest",
+      "range": {
+        "startLine": 145,
+        "startChar": 24,
+        "endLine": 145,
+        "endChar": 28
+      },
+      "revId": "d141cd9177b99f3b8f6f31f5242918ce60117d13",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
