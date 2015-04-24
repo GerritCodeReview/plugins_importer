@@ -55,13 +55,19 @@ class GitFetchStep {
         ConfigureRepositoryStep.R_IMPORTS);
     for (Map.Entry<String, Ref> e : refs.entrySet()) {
       String name = e.getKey();
+      if (name.startsWith("imports/")) {
+        continue;
+      }
+      if (name.startsWith("cache-automerge/")) {
+        continue;
+      }
       if (name.startsWith("changes/")) {
         continue;
       }
       if (name.startsWith("users/") && name.contains("/edit")) {
         continue;
       }
-      String targetRef = Constants.R_REFS + e.getKey();
+      String targetRef = Constants.R_REFS + name;
       RefUpdate ru = repo.updateRef(targetRef);
       ru.setNewObjectId(e.getValue().getObjectId());
       RefUpdate.Result result = ru.forceUpdate();
