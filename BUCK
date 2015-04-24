@@ -4,12 +4,8 @@ MODULE = 'com.googlesource.gerrit.plugins.importer.Importer'
 
 if STANDALONE_MODE:
   HTTP_LIB = '//lib/http:http_lib'
-  GSON = '//lib/gson:gson'
-  LOG4J = '//lib/log:log4j'
 else:
   HTTP_LIB = '//plugins/importer/lib/http:http_lib'
-  GSON = '//plugins/importer/lib/gson:gson'
-  LOG4J = '//plugins/importer/lib/log:log4j'
 
 gerrit_plugin(
   name = 'importer',
@@ -28,8 +24,8 @@ gerrit_plugin(
     HTTP_LIB,
   ],
   provided_deps = [
-    LOG4J,
-    GSON,
+    '//lib:gson',
+    '//lib/log:log4j',
   ],
 )
 
