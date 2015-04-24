@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "309bda8e_01964a4a",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayRevisionsStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-24T08:52:30Z",
+      "side": 1,
+      "message": "Yes, I will do this in an own change then.",
+      "parentUuid": "b0a6ead3_fd31c71e",
+      "range": {
+        "startLine": 144,
+        "startChar": 13,
+        "endLine": 144,
+        "endChar": 18
+      },
+      "revId": "d141cd9177b99f3b8f6f31f5242918ce60117d13",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d0ab5e9c_9ede3d57",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayRevisionsStep.java",
         "patchSetId": 1
