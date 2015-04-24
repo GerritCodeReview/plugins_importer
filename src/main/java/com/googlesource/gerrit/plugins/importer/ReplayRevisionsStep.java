@@ -15,7 +15,6 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
@@ -58,7 +57,6 @@ class ReplayRevisionsStep {
   private final AccountUtil accountUtil;
   private final ReviewDb db;
   private final PatchSetInfoFactory patchSetInfoFactory;
-  private final String pluginName;
   private final Repository repo;
   private final RevWalk rw;
   private final Change change;
@@ -68,7 +66,6 @@ class ReplayRevisionsStep {
   public ReplayRevisionsStep(AccountUtil accountUtil,
       ReviewDb db,
       PatchSetInfoFactory patchSetInfoFactory,
-      @PluginName String pluginName,
       @Assisted Repository repo,
       @Assisted RevWalk rw,
       @Assisted Change change,
@@ -76,7 +73,6 @@ class ReplayRevisionsStep {
     this.accountUtil = accountUtil;
     this.db = db;
     this.patchSetInfoFactory = patchSetInfoFactory;
-    this.pluginName = pluginName;
     this.repo = repo;
     this.rw = rw;
     this.change = change;
@@ -115,9 +111,9 @@ class ReplayRevisionsStep {
             // a patch set with the same number was created both in the source
             // and in the target system
             log.warn(String.format(
-                "[%s] Project %s was modified in target system: "
+                "Project %s was modified in target system: "
                     + "Skip replay revision for patch set %s.",
-                pluginName, change.getProject().get(), ps.getId().toString()));
+                change.getProject().get(), ps.getId().toString()));
             continue;
           }
         }
@@ -142,15 +138,14 @@ class ReplayRevisionsStep {
       if (change.currentPatchSetId() == null) {
         if (changeInfo.currentRevision != null) {
           log.warn(String.format(
-              "[%s] Current revision %s of change %s not found."
+              "Current revision %s of change %s not found."
               + " Setting lastest revision %s as current patch set.",
-              pluginName, changeInfo.currentRevision, changeInfo.id,
-              info.getRevId()));
+              changeInfo.currentRevision, changeInfo.id, info.getRevId()));
         } else {
           log.warn(String.format(
-              "[%s] Change %s has no current revision."
+              "Change %s has no current revision."
               + " Setting lastest revision %s as current patch set.",
-              pluginName, changeInfo.id, info.getRevId()));
+              changeInfo.id, info.getRevId()));
         }
         change.setCurrentPatchSet(info);
       }

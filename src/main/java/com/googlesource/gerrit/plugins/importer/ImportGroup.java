@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.registration.DynamicSet;
@@ -76,7 +75,6 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private static Logger log = LoggerFactory.getLogger(ImportGroup.class);
 
-  private final String pluginName;
   private final Config cfg;
   private final ReviewDb db;
   private final AccountUtil accountUtil;
@@ -91,7 +89,6 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   @Inject
   ImportGroup(
-      @PluginName String pluginName,
       @GerritServerConfig Config cfg,
       ReviewDb db,
       AccountUtil accountUtil,
@@ -102,7 +99,6 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       ImportGroup.Factory importGroupFactory,
       GerritApi.Factory apiFactory,
       @Assisted AccountGroup.NameKey group) {
-    this.pluginName = pluginName;
     this.cfg = cfg;
     this.db = db;
     this.accountUtil = accountUtil;
@@ -213,8 +209,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       IOException, PreconditionFailedException, MethodNotAllowedException {
     String uniqueName = getUniqueGroupName(info.name);
     if (!info.name.equals(uniqueName)) {
-      log.warn(String.format("[%s] Group %s with UUID %s is imported with name %s",
-          pluginName, info.name, info.id, uniqueName));
+      log.warn(String.format("Group %s with UUID %s is imported with name %s",
+          info.name, info.id, uniqueName));
       info.name = uniqueName;
     }
     AccountGroup group = createAccountGroup(info);

@@ -18,7 +18,6 @@ import com.google.common.base.MoreObjects;
 import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -61,7 +60,6 @@ class AddApprovalsStep {
   private final Change change;
   private final ChangeInfo changeInfo;
   private final boolean resume;
-  private final String pluginName;
 
   @Inject
   public AddApprovalsStep(AccountUtil accountUtil,
@@ -69,7 +67,6 @@ class AddApprovalsStep {
       ReviewDb db,
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
-      @PluginName String pluginName,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
       @Assisted boolean resume) {
@@ -81,7 +78,6 @@ class AddApprovalsStep {
     this.change = change;
     this.changeInfo = changeInfo;
     this.resume = resume;
-    this.pluginName = pluginName;
   }
 
   void add(GerritApi api) throws OrmException, NoSuchChangeException, IOException,
@@ -101,13 +97,13 @@ class AddApprovalsStep {
           ChangeControl ctrl = control(change, a);
           LabelType labelType = ctrl.getLabelTypes().byLabel(labelName);
           if(labelType == null) {
-            log.warn(String.format("[%s] Label '%s' not found in target system."
+            log.warn(String.format("Label '%s' not found in target system."
                 + " This label was referenced by an approval provided from '%s'"
                 + " for change '%s'."
                 + " This approval will be skipped. In order to import this"
                 + " approval configure the missing label and resume the import"
                 + " with the force option."
-                , pluginName, labelName, a.username, changeInfo.id));
+                , labelName, a.username, changeInfo.id));
             continue;
           }
           short shortValue = a.value != null ? a.value.shortValue() : 0;
