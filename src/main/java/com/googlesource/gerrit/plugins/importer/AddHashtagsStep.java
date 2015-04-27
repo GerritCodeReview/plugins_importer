@@ -14,7 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.api.changes.HashtagsInput;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.restapi.AuthException;
@@ -47,7 +46,6 @@ class AddHashtagsStep {
   private final HashtagsUtil hashtagsUtil;
   private final CurrentUser currentUser;
   private final ChangeControl.GenericFactory changeControlFactory;
-  private final String pluginName;
   private final Change change;
   private final ChangeInfo changeInfo;
   private final boolean resume;
@@ -56,14 +54,12 @@ class AddHashtagsStep {
   AddHashtagsStep(HashtagsUtil hashtagsUtil,
       CurrentUser currentUser,
       ChangeControl.GenericFactory changeControlFactory,
-      @PluginName String pluginName,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
       @Assisted boolean resume) {
     this.hashtagsUtil = hashtagsUtil;
     this.currentUser = currentUser;
     this.changeControlFactory = changeControlFactory;
-    this.pluginName = pluginName;
     this.change = change;
     this.changeInfo = changeInfo;
     this.resume = resume;
@@ -85,11 +81,11 @@ class AddHashtagsStep {
       hashtagsUtil.setHashtags(ctrl, input, false, false);
     } catch (AuthException e) {
       log.warn(String.format(
-          "[%s] Hashtags cannot be set on change %s because the importing"
+          "Hashtags cannot be set on change %s because the importing"
               + " user %s doesn't have permissions to edit hashtags"
               + " (e.g. assign the 'Edit Hashtags' global capability"
               + " and resume the import with the force option).",
-          pluginName, ChangeTriplet.format(change), currentUser.getUserName()));
+          ChangeTriplet.format(change), currentUser.getUserName()));
     }
   }
 }
