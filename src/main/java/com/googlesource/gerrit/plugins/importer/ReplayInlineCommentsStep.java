@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.errors.NoSuchAccountException;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.client.Side;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
@@ -73,7 +72,6 @@ class ReplayInlineCommentsStep {
   private final ChangeUpdate.Factory updateFactory;
   private final PatchLineCommentsUtil plcUtil;
   private final PatchListCache patchListCache;
-  private final String pluginName;
   private final Change change;
   private final ChangeInfo changeInfo;
   private final GerritApi api;
@@ -87,7 +85,6 @@ class ReplayInlineCommentsStep {
       ChangeUpdate.Factory updateFactory,
       PatchLineCommentsUtil plcUtil,
       PatchListCache patchListCache,
-      @PluginName String pluginName,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
       @Assisted GerritApi api,
@@ -99,7 +96,6 @@ class ReplayInlineCommentsStep {
     this.updateFactory = updateFactory;
     this.plcUtil = plcUtil;
     this.patchListCache = patchListCache;
-    this.pluginName = pluginName;
     this.change = change;
     this.changeInfo = changeInfo;
     this.api = api;
@@ -117,14 +113,22 @@ class ReplayInlineCommentsStep {
           // it must be a revision that was created in the target system after
           // the initial import
           log.warn(String.format(
-              "[%s] Project %s was modified in target system: "
+              "Project %s was modified in target system: "
                   + "Skip replay inline comments for patch set %s"
                   + " which doesn't exist in the source system.",
-              pluginName, change.getProject().get(), ps.getId().toString()));
+              change.getProject().get(), ps.getId().toString()));
           continue;
         }
 
         comments = filterComments(ps, comments);
+      } else if (comments == null) {
+        log.warn(String.format(
+            "Cannot retrieve comments for revision %s, "
+                + "revision not found in source system: "
+                + "Skip replay inline comments for patch set %s of project %s.",
+            ps.getRevision().get(), ps.getId().toString(),
+            change.getProject().get()));
+        continue;
       }
 
       Multimap<Account.Id, CommentInfo> commentsByAuthor = ArrayListMultimap.create();

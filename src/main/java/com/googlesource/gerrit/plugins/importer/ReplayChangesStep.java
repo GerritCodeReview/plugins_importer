@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.common.collect.Iterators;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.errors.NoSuchAccountException;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
@@ -65,7 +64,6 @@ class ReplayChangesStep {
 
   private static Logger log = LoggerFactory.getLogger(ReplayChangesStep.class);
 
-  private final String pluginName;
   private final ReplayRevisionsStep.Factory replayRevisionsFactory;
   private final ReplayInlineCommentsStep.Factory replayInlineCommentsFactory;
   private final ReplayMessagesStep.Factory replayMessagesFactory;
@@ -88,7 +86,6 @@ class ReplayChangesStep {
 
   @Inject
   ReplayChangesStep(
-      @PluginName String pluginName,
       ReplayRevisionsStep.Factory replayRevisionsFactory,
       ReplayInlineCommentsStep.Factory replayInlineCommentsFactory,
       ReplayMessagesStep.Factory replayMessagesFactory,
@@ -108,7 +105,6 @@ class ReplayChangesStep {
       @Assisted("resume") boolean resume,
       @Assisted ResumeImportStatistic importStatistic,
       @Assisted ProgressMonitor pm) {
-    this.pluginName = pluginName;
     this.replayRevisionsFactory = replayRevisionsFactory;
     this.replayInlineCommentsFactory = replayInlineCommentsFactory;
     this.replayMessagesFactory = replayMessagesFactory;
@@ -142,8 +138,8 @@ class ReplayChangesStep {
         try {
           replayChange(rw, c);
         } catch (Exception e) {
-          log.error(String.format("[%s] Failed to replay change %s.",
-              pluginName, Url.decode(c.id)), e);
+          log.error(String.format("Failed to replay change %s.",
+              Url.decode(c.id)), e);
           throw e;
         }
         pm.update(1);
@@ -176,14 +172,7 @@ class ReplayChangesStep {
     }
 
     if (c.revisions.isEmpty()) {
-      log.warn(String.format("[%s] Change %s has no revisions.",
-          pluginName, c.id));
-      return;
-    }
-    if (c.currentRevision == null) {
-      log.warn(String.format(
-          "[%s] Change %s has no current revision.",
-          pluginName, c.id));
+      log.warn(String.format("Change %s has no revisions.", c.id));
       return;
     }
 
