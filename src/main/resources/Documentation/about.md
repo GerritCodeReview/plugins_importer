@@ -87,7 +87,10 @@ Preconditions for a project import:
 For auth type 'LDAP', 'HTTP\_LDAP' or 'CLIENT\_SSL\_CERT\_LDAP' missing
 user accounts are automatically created. The public SSH keys of a user
 are automatically retrieved from the source Gerrit server and added to
-the new account in the target Gerrit server.
+the new account in the target Gerrit server. For this the remote user
+must have the link:access-control.html#capability_modifyAccount[Modify
+Account] or the link:access-control.html#capability_administrateServer[
+Administrate Server] capability assigned on the source system.
 
 Gerrit internal users (e.g. service users) are never automatically
 created but must be created in the target Gerrit server before the
