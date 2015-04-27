@@ -125,6 +125,14 @@ class ReplayInlineCommentsStep {
         }
 
         comments = filterComments(ps, comments);
+      } else if (comments == null) {
+        log.warn(String.format(
+            "[%s] Cannot retrieve comments for revision %s, "
+                + "revision not found in source system: "
+                + "Skip replay inline comments for patch set %s of project %s.",
+            pluginName, ps.getRevision().get(), ps.getId().toString(),
+            change.getProject().get()));
+        continue;
       }
 
       Multimap<Account.Id, CommentInfo> commentsByAuthor = ArrayListMultimap.create();
