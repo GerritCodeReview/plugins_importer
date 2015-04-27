@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "501daef5_daae2599",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-04-27T13:14:24Z",
+      "side": 1,
+      "message": "Both white and black list approach have own (dis)advantages. Maybe we should decide based on which (new) ref namespaces we expect in Gerrit in the future and how likely is that they have to be imported vs black listed?\n\nFor example, if we get a new ref namespace in the notedb, is it more likely that we will want to import it or skip it on import?",
+      "parentUuid": "b0426adc_7dfcb7b1",
+      "range": {
+        "startLine": 58,
+        "startChar": 6,
+        "endLine": 69,
+        "endChar": 7
+      },
+      "revId": "e7d56c011230dcb4e86e20e93cc6ef535ec6e7cc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9051e6aa_bc300118",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
         "patchSetId": 1
