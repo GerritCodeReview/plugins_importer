@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9051e6aa_5c269de5",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2015-04-27T09:53:54Z",
+      "side": 1,
+      "message": "This is defined as a constant REFS_CACHE_AUTOMERGE in core, but I\u0027m not sure if it\u0027s visible to plugins?  Also it includes the `refs/` prefix so that would need to be taken into account and would possibly just make it necessary to add more code here.",
+      "range": {
+        "startLine": 61,
+        "startChar": 26,
+        "endLine": 61,
+        "endChar": 44
+      },
+      "revId": "e7d56c011230dcb4e86e20e93cc6ef535ec6e7cc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b0426adc_7dfcb7b1",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2015-04-27T09:53:54Z",
+      "side": 1,
+      "message": "Instead of doing all these checks, isn\u0027t it possible to only get the refs that we\u0027re interested in in the first place?",
+      "range": {
+        "startLine": 58,
+        "startChar": 6,
+        "endLine": 69,
+        "endChar": 7
+      },
+      "revId": "e7d56c011230dcb4e86e20e93cc6ef535ec6e7cc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9051e6aa_bc300118",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2015-04-27T09:53:54Z",
+      "side": 1,
+      "message": "`name` can be used here.",
+      "range": {
+        "startLine": 70,
+        "startChar": 43,
+        "endLine": 70,
+        "endChar": 54
+      },
+      "revId": "e7d56c011230dcb4e86e20e93cc6ef535ec6e7cc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
