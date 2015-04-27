@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "501daef5_3a4f2194",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-27T13:29:28Z",
+      "side": 1,
+      "message": "It should be useable in a plugin, but I didn\u0027t use it due to the \u0027refs/\u0027 prefix.",
+      "parentUuid": "9051e6aa_5c269de5",
+      "range": {
+        "startLine": 61,
+        "startChar": 26,
+        "endLine": 61,
+        "endChar": 44
+      },
+      "revId": "e7d56c011230dcb4e86e20e93cc6ef535ec6e7cc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b0426adc_7dfcb7b1",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
         "patchSetId": 1
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "30203a2d_f9b3f7fb",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-27T13:29:28Z",
+      "side": 1,
+      "message": "Keeping the black list for now.",
+      "parentUuid": "501daef5_daae2599",
+      "range": {
+        "startLine": 58,
+        "startChar": 6,
+        "endLine": 69,
+        "endChar": 7
+      },
+      "revId": "e7d56c011230dcb4e86e20e93cc6ef535ec6e7cc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9051e6aa_bc300118",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
         "patchSetId": 1
@@ -83,6 +131,30 @@
       "writtenOn": "2015-04-27T09:53:54Z",
       "side": 1,
       "message": "`name` can be used here.",
+      "range": {
+        "startLine": 70,
+        "startChar": 43,
+        "endLine": 70,
+        "endChar": 54
+      },
+      "revId": "e7d56c011230dcb4e86e20e93cc6ef535ec6e7cc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30203a2d_99b8bbda",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitFetchStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-04-27T13:29:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9051e6aa_bc300118",
       "range": {
         "startLine": 70,
         "startChar": 43,
