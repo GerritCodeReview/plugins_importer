@@ -10,7 +10,7 @@ Two build modes are supported: Standalone and in Gerrit tree.
 The standalone build mode is recommended, as this mode doesn't require
 the Gerrit tree to exist locally.
 
-
+### Build standalone
 
 Clone bucklets library:
 
@@ -30,6 +30,11 @@ Add link to the .buckversion file:
   cd @PLUGIN@ && ln -s bucklets/buckversion .buckversion
 ```
 
+Add link to the .watchmanconfig file:
+```
+  cd @PLUGIN@ && ln -s bucklets/watchmanconfig .watchmanconfig
+```
+
 To build the plugin, issue the following command:
 
 
@@ -43,6 +48,7 @@ The output is created in
   buck-out/gen/@PLUGIN@.jar
 ```
 
+### Build in Gerrit tree
 
 Clone or link this plugin to the plugins directory of Gerrit's source
 tree, and issue the command:
