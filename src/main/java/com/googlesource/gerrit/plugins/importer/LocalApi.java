@@ -33,7 +33,7 @@ import com.google.gerrit.server.account.GetSshKeys;
 import com.google.gerrit.server.account.GetSshKeys.SshKeyInfo;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.ChangesCollection;
-import com.google.gerrit.server.change.ListComments;
+import com.google.gerrit.server.change.ListRevisionComments;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.change.Revisions;
 import com.google.gwtorm.server.OrmException;
@@ -47,7 +47,7 @@ public class LocalApi implements GerritApi {
   private final com.google.gerrit.extensions.api.GerritApi gApi;
   private final ChangesCollection changes;
   private final Revisions revisions;
-  private final ListComments listComments;
+  private final ListRevisionComments listComments;
   private final AccountsCollection accounts;
   private final GetSshKeys getSshKeys;
 
@@ -56,7 +56,7 @@ public class LocalApi implements GerritApi {
       com.google.gerrit.extensions.api.GerritApi gApi,
       ChangesCollection changes,
       Revisions revisions,
-      ListComments listComments,
+      ListRevisionComments listComments,
       AccountsCollection accounts,
       GetSshKeys getSshKeys) {
     this.gApi = gApi;
