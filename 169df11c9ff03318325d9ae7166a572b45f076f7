@@ -46,6 +46,30 @@
       "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30dafaa9_2936ad92",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-05-05T13:47:26Z",
+      "side": 1,
+      "message": "While this makes sense for the REST API (we don\u0027t want to transfer each path twice), RevisionApiImpl should probably set this field so that callers of the API don\u0027t need to worry about this. But the same is true for all kind of Maps that are returned. Would make sense to fix this in the API implementations.",
+      "parentUuid": "30dafaa9_c940b1f7",
+      "range": {
+        "startLine": 101,
+        "startChar": 6,
+        "endLine": 105,
+        "endChar": 7
+      },
+      "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
