@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "30dafaa9_e9765553",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2015-05-05T14:12:26Z",
+      "side": 1,
+      "message": "Looks lie we do:\n\n  /**\n   * Look up a change by numeric ID.\n   * \u003cp\u003e\n   * \u003cstrong\u003eNote:\u003c/strong\u003e This method eagerly reads the change. Methods that\n   * mutate the change do not necessarily re-read the change. Therefore, calling\n   * a getter method on an instance after calling a mutation method on that same\n   * instance is not guaranteed to reflect the mutation. It is not recommended\n   * to store references to {@code ChangeApi} instances.\n   *\n   * @param id change number.\n   * @return API for accessing the change.\n   * @throws RestApiException if an error occurred.\n   */\n  ChangeApi id(int id) throws RestApiException;\n\nWhy it isn\u0027t used here?",
+      "parentUuid": "50d76e7e_8a586bdf",
+      "range": {
+        "startLine": 99,
+        "startChar": 28,
+        "endLine": 99,
+        "endChar": 52
+      },
+      "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "50d76e7e_ea764753",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
         "patchSetId": 1
