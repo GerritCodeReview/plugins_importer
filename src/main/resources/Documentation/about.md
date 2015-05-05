@@ -41,7 +41,8 @@ one Gerrit server to another Gerrit server.
 On project import the configured max object size on the target Gerrit
 server is ignored.
 
-Draft changes, draft patch sets and change edits are *not* imported.
+Draft changes, draft patch sets, change edits and draft comments are
+*not* imported.
 
 <a id="project-import-process">
 #### Process
