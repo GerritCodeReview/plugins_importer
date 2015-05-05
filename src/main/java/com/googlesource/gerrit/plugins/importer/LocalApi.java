@@ -26,16 +26,10 @@ import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.TopLevelResource;
-import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.server.account.AccountResource;
 import com.google.gerrit.server.account.AccountsCollection;
 import com.google.gerrit.server.account.GetSshKeys;
 import com.google.gerrit.server.account.GetSshKeys.SshKeyInfo;
-import com.google.gerrit.server.change.ChangeResource;
-import com.google.gerrit.server.change.ChangesCollection;
-import com.google.gerrit.server.change.ListRevisionComments;
-import com.google.gerrit.server.change.RevisionResource;
-import com.google.gerrit.server.change.Revisions;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 
@@ -45,24 +39,15 @@ import java.util.Map;
 
 public class LocalApi implements GerritApi {
   private final com.google.gerrit.extensions.api.GerritApi gApi;
-  private final ChangesCollection changes;
-  private final Revisions revisions;
-  private final ListRevisionComments listComments;
   private final AccountsCollection accounts;
   private final GetSshKeys getSshKeys;
 
   @Inject
   LocalApi(
       com.google.gerrit.extensions.api.GerritApi gApi,
-      ChangesCollection changes,
-      Revisions revisions,
-      ListRevisionComments listComments,
       AccountsCollection accounts,
       GetSshKeys getSshKeys) {
     this.gApi = gApi;
-    this.changes = changes;
-    this.revisions = revisions;
-    this.listComments = listComments;
     this.accounts = accounts;
     this.getSshKeys = getSshKeys;
   }
@@ -110,10 +95,8 @@ public class LocalApi implements GerritApi {
   public Iterable<CommentInfo> getComments(int changeId, String rev)
       throws IOException, OrmException, BadRequestException {
     try {
-      ChangeResource changeRsrc = changes.parse(new Change.Id(changeId));
-      RevisionResource revRsrc =
-          revisions.parse(changeRsrc, IdString.fromDecoded(rev));
-      Map<String, List<CommentInfo>> result = listComments.apply(revRsrc);
+      Map<String, List<CommentInfo>> result =
+          gApi.changes().id(String.valueOf(changeId)).revision(rev).comments();
 
       for (Map.Entry<String, List<CommentInfo>> e : result.entrySet()) {
         for (CommentInfo i : e.getValue()) {
@@ -122,9 +105,7 @@ public class LocalApi implements GerritApi {
       }
 
       return Iterables.concat(result.values());
-    } catch (ResourceNotFoundException e) {
-      return null;
-    } catch (AuthException e) {
+    } catch (RestApiException e) {
       throw new BadRequestException(e.getMessage());
     }
   }
