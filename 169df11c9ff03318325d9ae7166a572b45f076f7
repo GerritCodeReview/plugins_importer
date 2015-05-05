@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "30dafaa9_c97b913b",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-05-05T14:29:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "30dafaa9_e9765553",
+      "range": {
+        "startLine": 99,
+        "startChar": 28,
+        "endLine": 99,
+        "endChar": 52
+      },
+      "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "50d76e7e_ea764753",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
         "patchSetId": 1
