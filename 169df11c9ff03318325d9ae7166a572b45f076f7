@@ -140,6 +140,30 @@
       "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30dafaa9_a96c5d89",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-05-05T13:58:24Z",
+      "side": 1,
+      "message": "+1 would be nice to have a commentsAsList() method in the API.",
+      "parentUuid": "50d76e7e_4a8833ba",
+      "range": {
+        "startLine": 107,
+        "startChar": 6,
+        "endLine": 107,
+        "endChar": 47
+      },
+      "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
