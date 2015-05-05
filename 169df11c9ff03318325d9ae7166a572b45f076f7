@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "50d76e7e_8a586bdf",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2015-05-05T13:56:12Z",
+      "side": 1,
+      "message": "Don\u0027t we accept int as parameter (yet)?",
+      "range": {
+        "startLine": 99,
+        "startChar": 28,
+        "endLine": 99,
+        "endChar": 52
+      },
+      "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "50d76e7e_ea764753",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
         "patchSetId": 1
@@ -66,6 +89,53 @@
         "startChar": 6,
         "endLine": 105,
         "endChar": 7
+      },
+      "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30dafaa9_6930a594",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2015-05-05T13:56:12Z",
+      "side": 1,
+      "message": "+1\n\nThe fact such hacks on the client side are needed, clearly indicated that the API is broken.",
+      "parentUuid": "30dafaa9_2936ad92",
+      "range": {
+        "startLine": 101,
+        "startChar": 6,
+        "endLine": 105,
+        "endChar": 7
+      },
+      "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50d76e7e_4a8833ba",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/LocalApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2015-05-05T13:56:12Z",
+      "side": 1,
+      "message": "Even worth: you (and many other clients) don\u0027t care about map ans normalize them as a list. That smells. The correct implementation of this method should obviously be:\n\n  @Override\n  public Iterable\u003cCommentInfo\u003e getComments(int changeId, String rev)\n      throws IOException, OrmException, BadRequestException {\n  return gApi\n    .changes()\n    .id(changeId)\n    .revision(rev)\n    .commentsAsList();\n  }\n\nEverything else is a hack (and a ugly one).",
+      "range": {
+        "startLine": 107,
+        "startChar": 6,
+        "endLine": 107,
+        "endChar": 47
       },
       "revId": "169df11c9ff03318325d9ae7166a572b45f076f7",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
