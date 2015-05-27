@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0dd15d8c_68ff032d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-05-27T06:54:37Z",
+      "side": 1,
+      "message": "The RevWalk must be opened in a try-with-resources statement [1], otherwise it is not closed.\n\n  try (RevWalk rw \u003d new RevWalk(repo)) {\n    for (ChangeInfo c : changes) {\n      try {\n        replayChange(rw, c);\n      } catch (Exception e) {\n        log.error(String.format(\"Failed to replay change %s.\",\n            Url.decode(c.id)), e);\n        throw e;\n      }\n      pm.update(1);\n    }\n  }\n\n[1] https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html",
+      "range": {
+        "startLine": 135,
+        "startChar": 4,
+        "endLine": 145,
+        "endChar": 5
+      },
+      "revId": "ced07e67ddb602d3db1d93ffa55883114a9fea47",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
