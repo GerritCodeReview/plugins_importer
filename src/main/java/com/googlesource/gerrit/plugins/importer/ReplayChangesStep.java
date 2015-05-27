@@ -133,19 +133,15 @@ class ReplayChangesStep {
 
     pm.beginTask("Replay Changes", changes.size());
     RevWalk rw = new RevWalk(repo);
-    try {
-      for (ChangeInfo c : changes) {
-        try {
-          replayChange(rw, c);
-        } catch (Exception e) {
-          log.error(String.format("Failed to replay change %s.",
-              Url.decode(c.id)), e);
-          throw e;
-        }
-        pm.update(1);
+    for (ChangeInfo c : changes) {
+      try {
+        replayChange(rw, c);
+      } catch (Exception e) {
+        log.error(String.format("Failed to replay change %s.",
+            Url.decode(c.id)), e);
+        throw e;
       }
-    } finally {
-      rw.release();
+      pm.update(1);
     }
     pm.endTask();
   }
