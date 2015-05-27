@@ -132,8 +132,7 @@ class ReplayChangesStep {
     List<ChangeInfo> changes = api.queryChanges(srcProject.get());
 
     pm.beginTask("Replay Changes", changes.size());
-    RevWalk rw = new RevWalk(repo);
-    try {
+    try (RevWalk rw = new RevWalk(repo)) {
       for (ChangeInfo c : changes) {
         try {
           replayChange(rw, c);
@@ -144,8 +143,6 @@ class ReplayChangesStep {
         }
         pm.update(1);
       }
-    } finally {
-      rw.release();
     }
     pm.endTask();
   }
