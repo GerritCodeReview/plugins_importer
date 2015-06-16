@@ -145,7 +145,7 @@ class ReplayChangesStep {
         pm.update(1);
       }
     } finally {
-      rw.release();
+      rw.close();
     }
     pm.endTask();
   }
