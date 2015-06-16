@@ -1,7 +1,7 @@
 Build
 =====
 
-This plugin can be built with Buck or Maven.
+This plugin can be built with Buck.
 
 Buck
 ----
@@ -69,15 +69,3 @@ This project can be imported into the Eclipse IDE:
   ./tools/eclipse/project.py
 ```
 
-Maven
------
-
-Note that the Maven build is provided for compatibility reasons, but
-it is considered to be deprecated and will be removed in a future
-version of this plugin.
-
-To build with Maven, run
-
-```
-mvn clean package
-```
