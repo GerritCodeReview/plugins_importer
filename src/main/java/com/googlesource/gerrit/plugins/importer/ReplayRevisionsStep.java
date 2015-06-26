@@ -135,6 +135,13 @@ class ReplayRevisionsStep {
         updateRef(repo, ps);
       }
 
+      if (info == null) {
+        String msg =
+            String.format("No revision found for change %s.", changeInfo.id);
+        log.error(msg);
+        throw new IllegalStateException(msg);
+      }
+
       if (change.currentPatchSetId() == null) {
         if (changeInfo.currentRevision != null) {
           log.warn(String.format(
