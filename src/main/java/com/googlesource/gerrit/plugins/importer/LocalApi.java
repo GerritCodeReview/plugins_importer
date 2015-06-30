@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.collect.Iterables;
+import com.google.gerrit.extensions.api.changes.Changes.QueryRequest;
 import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
@@ -91,19 +92,26 @@ public class LocalApi implements GerritApi {
   }
 
   @Override
-  public List<ChangeInfo> queryChanges(String projectName) throws IOException,
+  public List<ChangeInfo> queryChanges(String projectName, int start,
+      int limit) throws IOException,
       BadRequestException {
     try {
-      return gApi.changes()
-          .query("project:" + projectName)
+
+      QueryRequest query = gApi.changes()
+          .query("project:" + projectName);
+      query
+          .withStart(start)
           .withOptions(
               ListChangesOption.DETAILED_LABELS,
               ListChangesOption.DETAILED_ACCOUNTS,
               ListChangesOption.MESSAGES,
               ListChangesOption.CURRENT_REVISION,
               ListChangesOption.ALL_REVISIONS,
-              ListChangesOption.ALL_COMMITS)
-          .get();
+              ListChangesOption.ALL_COMMITS);
+      if(limit > 0) {
+        query.withLimit(limit);
+      }
+      return query.get();
     } catch (RestApiException e) {
       throw new BadRequestException(e.getMessage());
     }
