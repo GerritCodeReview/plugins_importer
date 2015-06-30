@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+
 import com.google.common.collect.Iterators;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.errors.NoSuchAccountException;
@@ -129,23 +130,33 @@ class ReplayChangesStep {
   void replay() throws IOException, OrmException,
       NoSuchAccountException, NoSuchChangeException, RestApiException,
       ValidationException {
-    List<ChangeInfo> changes = api.queryChanges(srcProject.get());
-
-    pm.beginTask("Replay Changes", changes.size());
-    RevWalk rw = new RevWalk(repo);
-    try {
-      for (ChangeInfo c : changes) {
-        try {
-          replayChange(rw, c);
-        } catch (Exception e) {
-          log.error(String.format("Failed to replay change %s.",
-              Url.decode(c.id)), e);
-          throw e;
+    int start = 0;
+    int limit = 100;
+    pm.beginTask("Replay Changes", ProgressMonitor.UNKNOWN);
+    for(;;) {
+      List<ChangeInfo> changes = api.queryChanges(srcProject.get(),
+          start, limit);
+      start += changes.size();
+      RevWalk rw = new RevWalk(repo);
+      try {
+        ChangeInfo last = null;
+        for (ChangeInfo c : changes) {
+          try {
+            replayChange(rw, c);
+          } catch (Exception e) {
+            log.error(String.format("Failed to replay change %s.",
+                Url.decode(c.id)), e);
+            throw e;
+          }
+          last = c;
+          pm.update(1);
         }
-        pm.update(1);
+        if(last == null || !Boolean.TRUE.equals(last._moreChanges)) {
+          break;
+        }
+      } finally {
+        rw.close();
       }
-    } finally {
-      rw.close();
     }
     pm.endTask();
   }
