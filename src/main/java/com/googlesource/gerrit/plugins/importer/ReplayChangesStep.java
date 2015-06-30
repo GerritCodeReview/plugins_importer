@@ -129,25 +129,36 @@ class ReplayChangesStep {
   void replay() throws IOException, OrmException,
       NoSuchAccountException, NoSuchChangeException, RestApiException,
       ValidationException {
-    List<ChangeInfo> changes = api.queryChanges(srcProject.get());
+    int start = 0, count = 1;
+    final int limit = 500;
 
-    pm.beginTask("Replay Changes", changes.size());
-    RevWalk rw = new RevWalk(repo);
-    try {
-      for (ChangeInfo c : changes) {
-        try {
-          replayChange(rw, c);
-        } catch (Exception e) {
-          log.error(String.format("Failed to replay change %s.",
-              Url.decode(c.id)), e);
-          throw e;
+    boolean moreChanges;
+    do {
+      moreChanges = false;
+      List<ChangeInfo> changes = api.queryChanges(srcProject.get(), start, limit);
+      pm.beginTask(String.format("Replay Changes (%d)", count), changes.size());
+      RevWalk rw = new RevWalk(repo);
+      try {
+        for (ChangeInfo c : changes) {
+          try {
+            replayChange(rw, c);
+          } catch (Exception e) {
+            log.error(String.format("Failed to replay change %s.",
+                Url.decode(c.id)), e);
+            throw e;
+          }
+          if(!moreChanges && Boolean.TRUE.equals(c._moreChanges)) {
+            moreChanges = true;
+            start += limit;
+            count++;
+          }
+          pm.update(1);
         }
-        pm.update(1);
+      } finally {
+        rw.close();
       }
-    } finally {
-      rw.close();
-    }
-    pm.endTask();
+      pm.endTask();
+    } while(moreChanges);
   }
 
   private void replayChange(RevWalk rw, ChangeInfo c)
