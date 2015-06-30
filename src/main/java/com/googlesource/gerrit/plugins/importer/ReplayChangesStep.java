@@ -14,8 +14,11 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.google.gerrit.common.data.GlobalCapability.DEFAULT_MAX_QUERY_LIMIT;
+
 import com.google.common.collect.Iterators;
 import com.google.gerrit.common.Nullable;
+import com.google.gerrit.common.data.GlobalCapability;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -129,25 +132,36 @@ class ReplayChangesStep {
   void replay() throws IOException, OrmException,
       NoSuchAccountException, NoSuchChangeException, RestApiException,
       ValidationException {
-    List<ChangeInfo> changes = api.queryChanges(srcProject.get());
-
-    pm.beginTask("Replay Changes", changes.size());
-    RevWalk rw = new RevWalk(repo);
-    try {
-      for (ChangeInfo c : changes) {
-        try {
-          replayChange(rw, c);
-        } catch (Exception e) {
-          log.error(String.format("Failed to replay change %s.",
-              Url.decode(c.id)), e);
-          throw e;
+    int start = 0;
+    int count = 1;
+    for(;;) {
+      List<ChangeInfo> changes = api.queryChanges(srcProject.get(), start, DEFAULT_MAX_QUERY_LIMIT);
+      pm.beginTask(String.format("Replay Changes (%d)", count), changes.size());
+      RevWalk rw = new RevWalk(repo);
+      try {
+        ChangeInfo last = null;
+        for (ChangeInfo c : changes) {
+          try {
+            replayChange(rw, c);
+          } catch (Exception e) {
+            log.error(String.format("Failed to replay change %s.",
+                Url.decode(c.id)), e);
+            throw e;
+          }
+          last = c;
+          pm.update(1);
         }
-        pm.update(1);
+        if(last != null && Boolean.TRUE.equals(last._moreChanges)) {
+          start += DEFAULT_MAX_QUERY_LIMIT;
+          count++;
+        } else {
+          break;
+        }
+        } finally {
+        rw.close();
       }
-    } finally {
-      rw.close();
+      pm.endTask();
     }
-    pm.endTask();
   }
 
   private void replayChange(RevWalk rw, ChangeInfo c)
