@@ -57,10 +57,11 @@ class RemoteApi implements GerritApi {
   }
 
   @Override
-  public List<ChangeInfo> queryChanges(String projectName) throws IOException,
-      BadRequestException {
+  public List<ChangeInfo> queryChanges(String projectName,
+      int start, int limit) throws IOException, BadRequestException {
     String endPoint =
-        "/changes/?q=project:" + projectName +
+        "/changes/?S=" +
+        start + "&n=" + limit + "&q=project:" + projectName +
         "&O=" + Integer.toHexString(ListChangesOption.toBits(
             EnumSet.of(
                 ListChangesOption.DETAILED_LABELS,
