@@ -63,11 +63,13 @@ public class LocalApi implements GerritApi {
   }
 
   @Override
-  public List<ChangeInfo> queryChanges(String projectName) throws IOException,
+  public List<ChangeInfo> queryChanges(String projectName, int start, int limit) throws IOException,
       BadRequestException {
     try {
       return gApi.changes()
           .query("project:" + projectName)
+          .withStart(start)
+          .withLimit(limit)
           .withOptions(
               ListChangesOption.DETAILED_LABELS,
               ListChangesOption.DETAILED_ACCOUNTS,
