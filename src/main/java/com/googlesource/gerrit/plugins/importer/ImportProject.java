@@ -96,7 +96,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   private static Logger log = LoggerFactory.getLogger(ImportProject.class);
-  private static Version v2_11 = new Version("2.11");
+  private static Version v2_11_2 = new Version("2.11.2");
 
   private final ProjectCache projectCache;
   private final OpenRepositoryStep openRepoStep;
@@ -212,11 +212,11 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     } else {
       input.validateImport();
       Version v = api.getVersion();
-      if (v.compareTo(v2_11) < 0) {
+      if (v.compareTo(v2_11_2) < 0) {
         throw new BadRequestException(String.format(
             "The version of the source Gerrit server %s is too old. "
             + "Its version is %s, but required is a version >= %s.",
-            input.from, v.formatted, v2_11));
+            input.from, v.formatted, v2_11_2));
       }
     }
 
