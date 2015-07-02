@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "f367919d_a7da2a57",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-02T11:04:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13650596_e80b135f",
+      "revId": "2187b023bdf9e565b81369f6fd5ae60f8aeaccd6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13650596_c8064f58",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-02T10:05:49Z",
       "side": 1,
       "message": "nit: line too long",
+      "revId": "2187b023bdf9e565b81369f6fd5ae60f8aeaccd6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "13650596_28028b3e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-02T11:04:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13650596_c8064f58",
       "revId": "2187b023bdf9e565b81369f6fd5ae60f8aeaccd6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "13650596_08054745",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-02T11:04:15Z",
+      "side": 1,
+      "message": "The very best way would be to setup the progress monitor with the total number of changes we have to replay. But we do not know in advance how many changes we have to replay, since we replay the changes now in bundles. Hence we cannot set the total value of the progress monitor.\n\nHow we set the total number to ProgressMonitor.UNKNOWN which results in a progess monitor output only displaying the acutal number of imported changes.",
+      "parentUuid": "13650596_a8151b78",
+      "range": {
+        "startLine": 139,
+        "startChar": 56,
+        "endLine": 139,
+        "endChar": 61
+      },
+      "revId": "2187b023bdf9e565b81369f6fd5ae60f8aeaccd6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f367919d_e7e02211",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 2
@@ -70,6 +130,24 @@
       "writtenOn": "2015-07-02T10:05:49Z",
       "side": 1,
       "message": "nit: wrong indentation level",
+      "revId": "2187b023bdf9e565b81369f6fd5ae60f8aeaccd6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "13650596_c82defd1",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-02T11:04:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f367919d_e7e02211",
       "revId": "2187b023bdf9e565b81369f6fd5ae60f8aeaccd6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
