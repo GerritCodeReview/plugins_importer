@@ -136,8 +136,7 @@ class ReplayChangesStep {
     for(;;) {
       List<ChangeInfo> changes = api.queryChanges(srcProject.get(),
           start, DEFAULT_MAX_QUERY_LIMIT);
-      RevWalk rw = new RevWalk(repo);
-      try {
+      try (RevWalk rw = new RevWalk(repo)) {
         ChangeInfo last = null;
         for (ChangeInfo c : changes) {
           try {
@@ -155,8 +154,6 @@ class ReplayChangesStep {
         } else {
           break;
         }
-      } finally {
-        rw.close();
       }
     }
     pm.endTask();
