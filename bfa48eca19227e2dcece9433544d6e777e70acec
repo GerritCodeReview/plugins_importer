@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "13650596_081b077b",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-03T14:37:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f367919d_279e3a69",
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f367919d_67943249",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 4
@@ -90,6 +108,54 @@
     },
     {
       "key": {
+        "uuid": "13650596_4811ff58",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-03T14:37:26Z",
+      "side": 1,
+      "message": "... we count !",
+      "parentUuid": "13650596_2875aba6",
+      "range": {
+        "startLine": 134,
+        "startChar": 16,
+        "endLine": 134,
+        "endChar": 19
+      },
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f367919d_e78ee237",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-03T14:37:26Z",
+      "side": 1,
+      "message": "DEFAULT_MAX_QUERY_LIMIT is semantically not fully correct, since the number of tranferred changes per rest call relies on the DEFAULT_MAX_QUERY_LIMIT of the counterpart and not on DEFAULT_MAX_QUERY_LIMIT of the system hosting the plugin. But I see that advantage that we have with this approach an option to configure the bundle size which we do not have when using an hard coded value.",
+      "parentUuid": "13650596_e801d30f",
+      "range": {
+        "startLine": 134,
+        "startChar": 16,
+        "endLine": 134,
+        "endChar": 19
+      },
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13650596_88061725",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 4
@@ -107,6 +173,24 @@
     },
     {
       "key": {
+        "uuid": "f367919d_8783660e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-03T14:37:26Z",
+      "side": 1,
+      "message": "I have a weak preference for only one break statment per loop, since it tends to get confusing otherwise. But nevertheless I will break here in the next patch set ...",
+      "parentUuid": "13650596_88061725",
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f367919d_c7895e32",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 4
@@ -118,6 +202,24 @@
       "writtenOn": "2015-07-03T14:16:11Z",
       "side": 1,
       "message": "If the comment above is accepted then \"last\" will never be null here and this coding can be simplified.",
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "13650596_680e433e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-03T14:37:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f367919d_c7895e32",
       "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
