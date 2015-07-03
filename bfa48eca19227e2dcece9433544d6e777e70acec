@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "f367919d_279e3a69",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-07-03T14:16:11Z",
+      "side": 1,
+      "message": "nit: unnecessarily added empty line",
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f367919d_67943249",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 4
@@ -43,6 +60,64 @@
         "endLine": 134,
         "endChar": 19
       },
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "13650596_e801d30f",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-07-03T14:16:11Z",
+      "side": 1,
+      "message": "This is basically the same what you were doing in the PS3, just that the limit is smaller (100 instead of DEFAULT_MAX_QUERY_LIMIT).\n\nThe only real difference is how the \"start\" is incremented, which is correct in this PS and was wrong in the previous PS because it incremented by the DEFAULT_MAX_QUERY_LIMIT instead of the changes.size().\n\nMy preference would be to use the DEFAULT_MAX_QUERY_LIMIT and correctly increment the start (as in this PS).",
+      "parentUuid": "f367919d_67943249",
+      "range": {
+        "startLine": 134,
+        "startChar": 16,
+        "endLine": 134,
+        "endChar": 19
+      },
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "13650596_88061725",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-07-03T14:16:11Z",
+      "side": 1,
+      "message": "if changes.size() \u003d\u003d 0 then we can break the loop already here.\n\nThis will simplify the coding down in the line 154 as the \"last\" will never be null.",
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f367919d_c7895e32",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-07-03T14:16:11Z",
+      "side": 1,
+      "message": "If the comment above is accepted then \"last\" will never be null here and this coding can be simplified.",
       "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
