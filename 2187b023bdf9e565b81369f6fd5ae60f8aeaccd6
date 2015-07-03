@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f367919d_e73ca2f3",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-07-03T08:31:58Z",
+      "side": 1,
+      "message": "We can try to improve this in a follow-up change.",
+      "parentUuid": "13650596_08054745",
+      "range": {
+        "startLine": 139,
+        "startChar": 56,
+        "endLine": 139,
+        "endChar": 61
+      },
+      "revId": "2187b023bdf9e565b81369f6fd5ae60f8aeaccd6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f367919d_e7e02211",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 2
