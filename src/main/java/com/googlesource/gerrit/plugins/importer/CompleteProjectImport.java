@@ -92,8 +92,7 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
 
   private void deleteImportRefs(Project.NameKey project)
       throws RepositoryNotFoundException, IOException {
-    Repository repo = repoManager.openRepository(project);
-    try {
+    try (Repository repo = repoManager.openRepository(project)) {
       Map<String, Ref> refs = repo.getRefDatabase().getRefs(
           ConfigureRepositoryStep.R_IMPORTS);
       for (Ref ref : refs.values()) {
@@ -111,8 +110,6 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
                 "Failed to delete %s, RefUpdate.Result = %s", ref, result));
         }
       }
-    } finally {
-      repo.close();
     }
   }
 

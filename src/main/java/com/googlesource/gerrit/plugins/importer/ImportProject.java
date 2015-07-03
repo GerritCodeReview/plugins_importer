@@ -230,8 +230,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       checkProjectInSource(input, pm);
       setParentProjectName(input, pm);
       checkPreconditions(pm);
-      Repository repo = openRepoStep.open(targetProject, resume, pm);
-      try {
+      try (Repository repo = openRepoStep.open(targetProject, resume, pm)) {
         ImportJson.persist(lockFile, importJson.format(input, info), pm);
         configRepoStep.configure(repo, srcProject, input.from, pm);
         gitFetchStep.fetch(input.user, input.pass, repo, pm);
@@ -242,8 +241,6 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
           importGroupsStepFactory.create(input.from, input.user, input.pass,
               targetProject, pm).importGroups();
         }
-      } finally {
-        repo.close();
       }
       importLog.onImport((IdentifiedUser) currentUser.get(), srcProject,
           targetProject, input.from);

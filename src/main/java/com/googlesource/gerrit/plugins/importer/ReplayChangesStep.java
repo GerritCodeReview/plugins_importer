@@ -140,8 +140,7 @@ class ReplayChangesStep {
         break;
       }
       start += changes.size();
-      RevWalk rw = new RevWalk(repo);
-      try {
+      try (RevWalk rw = new RevWalk(repo)) {
         ChangeInfo last = null;
         for (ChangeInfo c : changes) {
           try {
@@ -157,8 +156,6 @@ class ReplayChangesStep {
         if(!Boolean.TRUE.equals(last._moreChanges)) {
           break;
         }
-      } finally {
-        rw.close();
       }
     }
     pm.endTask();
