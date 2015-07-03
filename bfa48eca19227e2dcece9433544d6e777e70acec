@@ -156,6 +156,30 @@
     },
     {
       "key": {
+        "uuid": "13650596_c823afb3",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-07-03T14:42:24Z",
+      "side": 1,
+      "message": "\u003e DEFAULT_MAX_QUERY_LIMIT is semantically not fully correct\n\nIt is just as correct as the hardcoded limit of 100, or? We don\u0027t know the configured value at the remote Gerrit. DEFAULT_MAX_QUERY_LIMIT is a (good) guess, 100 is also just a guess.",
+      "parentUuid": "f367919d_e78ee237",
+      "range": {
+        "startLine": 134,
+        "startChar": 16,
+        "endLine": 134,
+        "endChar": 19
+      },
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13650596_88061725",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 4
@@ -185,6 +209,24 @@
       "side": 1,
       "message": "I have a weak preference for only one break statment per loop, since it tends to get confusing otherwise. But nevertheless I will break here in the next patch set ...",
       "parentUuid": "13650596_88061725",
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f367919d_a788ea2a",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-07-03T14:42:24Z",
+      "side": 1,
+      "message": "OK, I understand.\n\nAnother advantage is that there will be one less RevWalk instance created. Btw, I think we could reuse the same RevWalk instance by creating it before the outermost loop and resetting it here.",
+      "parentUuid": "f367919d_8783660e",
       "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
