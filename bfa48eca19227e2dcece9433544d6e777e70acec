@@ -22,6 +22,30 @@
       "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "13650596_2875aba6",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1016434
+      },
+      "writtenOn": "2015-07-03T14:13:11Z",
+      "side": 1,
+      "message": "Ok, correct. We can use a reasonable default here (100 or the default of the target system). But we should count how many results we receive and adapt the offset if that is less than we have asked for.",
+      "parentUuid": "f367919d_67943249",
+      "range": {
+        "startLine": 134,
+        "startChar": 16,
+        "endLine": 134,
+        "endChar": 19
+      },
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
