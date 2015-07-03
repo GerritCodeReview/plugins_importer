@@ -22,6 +22,30 @@
       "revId": "fb25af99a30e55d2b8fc0092a2d2a84fbee7e1ff",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "13650596_a888bb2a",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-07-03T11:12:39Z",
+      "side": 1,
+      "message": "good idea",
+      "parentUuid": "f367919d_67499283",
+      "range": {
+        "startLine": 138,
+        "startChar": 17,
+        "endLine": 138,
+        "endChar": 40
+      },
+      "revId": "fb25af99a30e55d2b8fc0092a2d2a84fbee7e1ff",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
