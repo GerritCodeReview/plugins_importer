@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f367919d_67943249",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1018447
+      },
+      "writtenOn": "2015-07-03T13:54:53Z",
+      "side": 1,
+      "message": "Regarding the hard coded value here: We should not rely on the number of changes returned by the couterpart. It might happen that there is a rather huge number is configured. In this case we might run into OutOfMemory issues when traversing the changes (observed during checks). So we have to set a limit which is considered to be not dangerous. We could also expose the limit to the user of the imported plugin, but in this cause it would be a parameter that is more the less hard to explain. What is the reviewers opinion here?",
+      "range": {
+        "startLine": 134,
+        "startChar": 16,
+        "endLine": 134,
+        "endChar": 19
+      },
+      "revId": "bfa48eca19227e2dcece9433544d6e777e70acec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
