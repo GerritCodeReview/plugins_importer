@@ -51,7 +51,7 @@ interface GerritApi {
   public ProjectInfo getProject(String projectName) throws BadRequestException,
       IOException;
 
-  public List<ChangeInfo> queryChanges(String projectName)
+  public List<ChangeInfo> queryChanges(String projectName, int start, int limit)
       throws BadRequestException, IOException;
 
   public GroupInfo getGroup(String groupName) throws BadRequestException,
