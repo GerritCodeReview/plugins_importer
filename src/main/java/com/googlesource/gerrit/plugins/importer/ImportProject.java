@@ -227,7 +227,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     try {
       srcProject = !Strings.isNullOrEmpty(input.name)
           ? new Project.NameKey(input.name) : targetProject;
-      checkProjectInSource(input, pm);
+      checkProjectInSource(pm);
       setParentProjectName(input, pm);
       checkPreconditions(pm);
       try (Repository repo = openRepoStep.open(targetProject, resume, pm)) {
@@ -262,7 +262,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     return statistic;
   }
 
-  private void checkProjectInSource(Input input, ProgressMonitor pm)
+  private void checkProjectInSource(ProgressMonitor pm)
       throws IOException, BadRequestException {
     pm.beginTask("Check source project", 1);
     api.getProject(srcProject.get());

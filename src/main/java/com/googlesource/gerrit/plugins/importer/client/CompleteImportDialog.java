@@ -66,6 +66,7 @@ public class CompleteImportDialog extends AutoCenterDialogBox {
                   + (copy ? "copy" : "import") + " was completed."));
                 Button okButton = new Button("OK");
                 okButton.addClickHandler(new ClickHandler() {
+                  @Override
                   public void onClick(ClickEvent event) {
                     successDialog.hide();
                   }
