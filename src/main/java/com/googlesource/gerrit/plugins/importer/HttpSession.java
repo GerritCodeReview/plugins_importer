@@ -90,14 +90,17 @@ public class HttpSession {
   }
 
   private static class DummyX509TrustManager implements X509TrustManager {
+    @Override
     public X509Certificate[] getAcceptedIssuers() {
       return null;
     }
 
+    @Override
     public void checkClientTrusted(X509Certificate[] certs, String authType) {
       // no check
     }
 
+    @Override
     public void checkServerTrusted(X509Certificate[] certs, String authType) {
       // no check
     }

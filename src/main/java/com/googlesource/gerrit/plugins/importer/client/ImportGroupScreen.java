@@ -106,6 +106,7 @@ public class ImportGroupScreen extends VerticalPanel {
         p.add(new Label("The group was imported."));
         Button okButton = new Button("OK");
         okButton.addClickHandler(new ClickHandler() {
+          @Override
           public void onClick(ClickEvent event) {
             successDialog.hide();
           }
