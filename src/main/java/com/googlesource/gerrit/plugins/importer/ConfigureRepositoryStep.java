@@ -52,7 +52,7 @@ class ConfigureRepositoryStep {
     StoredConfig config = repo.getConfig();
     if (originUrl != null) {
       config.setString("remote", "origin", "url", originUrl
-          .concat("/")
+          .concat("/a/")
           .concat(name.get()));
     } else {
       config.setString("remote", "origin", "url",
