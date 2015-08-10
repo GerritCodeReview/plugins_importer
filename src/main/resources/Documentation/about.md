@@ -95,9 +95,15 @@ must have the link:access-control.html#capability_modifyAccount[Modify
 Account] or the link:access-control.html#capability_administrateServer[
 Administrate Server] capability assigned on the source system.
 
-Gerrit internal users (e.g. service users) are never automatically
-created but must be created in the target Gerrit server before the
-import.
+If for any reason an user is no longer existent in the LDAP instance but it
+is listed as a change owner, reviewer or as part of a group, a local user
+account is created with the username followed by the "_imported" suffix.
+Giving that such user is not longer active in the system, their account
+status is set to inactive.
+
+Gerrit internal users (e.g. service users) should be created in the target
+Gerrit server before the import. Otherwise, a local user is created with the
+same username followed by the "_imported" suffix.
 
 <a id="project-import-commands">
 #### Commands

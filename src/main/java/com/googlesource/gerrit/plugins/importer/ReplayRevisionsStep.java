@@ -18,6 +18,8 @@ import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.RevisionInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.PatchSetInfo;
@@ -80,7 +82,7 @@ class ReplayRevisionsStep {
   }
 
   void replay(GerritApi api) throws IOException, OrmException, NoSuchAccountException,
-      BadRequestException {
+      BadRequestException, ResourceConflictException, UnprocessableEntityException {
     List<RevisionInfo> revisions = new ArrayList<>(changeInfo.revisions.values());
     sortRevisionInfoByNumber(revisions);
     List<PatchSet> patchSets = new ArrayList<>();
