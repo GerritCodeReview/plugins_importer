@@ -17,6 +17,9 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.TopLevelResource;
+import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.AccountSshKey;
 import com.google.gerrit.reviewdb.client.AuthType;
@@ -26,6 +29,7 @@ import com.google.gerrit.server.account.AccountException;
 import com.google.gerrit.server.account.AccountManager;
 import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.account.AuthRequest;
+import com.google.gerrit.server.account.CreateAccount;
 import com.google.gerrit.server.account.GetSshKeys.SshKeyInfo;
 import com.google.gerrit.server.config.AuthConfig;
 import com.google.gwtorm.server.OrmException;
@@ -52,6 +56,9 @@ class AccountUtil {
   private final Provider<ReviewDb> db;
 
   @Inject
+  private CreateAccount.Factory createAccountFactory;
+
+  @Inject
   public AccountUtil(
       AccountCache accountCache,
       AccountManager accountManager,
@@ -65,13 +72,13 @@ class AccountUtil {
 
   Account.Id resolveUser(GerritApi api, AccountInfo acc)
       throws NoSuchAccountException, BadRequestException, IOException,
-      OrmException {
+      OrmException, ResourceConflictException, UnprocessableEntityException {
     if (acc.username == null) {
       throw new NoSuchAccountException(String.format(
           "User %s <%s> (%s) doesn't have a username and cannot be looked up.",
           acc.name, acc.email, acc._accountId));
     }
-    AccountState a = accountCache.getByUsername(acc.username);
+    AccountState a = getByUserName(acc);
 
     if (a == null) {
       switch (authType) {
@@ -80,8 +87,7 @@ class AccountUtil {
         case LDAP:
           return createAccountByLdapAndAddSshKeys(api, acc);
         default:
-          throw new NoSuchAccountException(String.format("User %s not found",
-              acc.username));
+          return createLocalUser(acc);
       }
     }
     if (!Objects.equals(a.getAccount().getPreferredEmail(), acc.email)) {
@@ -89,14 +95,21 @@ class AccountUtil {
           "Email mismatch for user %s: expected %s but found %s",
           acc.username, acc.email, a.getAccount().getPreferredEmail()));
     }
-
     return a.getAccount().getId();
+  }
+
+  private AccountState getByUserName(AccountInfo acc) {
+    AccountState a = accountCache.getByUsername(acc.username);
+    if (a == null) {
+      a = accountCache.getByUsername(localUser(acc));
+    }
+    return a;
   }
 
   private Account.Id createAccountByLdapAndAddSshKeys(GerritApi api,
       AccountInfo acc)
       throws NoSuchAccountException, BadRequestException, IOException,
-      OrmException {
+      OrmException, ResourceConflictException, UnprocessableEntityException {
     if (!acc.username.matches(Account.USER_NAME_PATTERN)) {
       throw new NoSuchAccountException(String.format("User %s not found",
           acc.username));
@@ -109,8 +122,7 @@ class AccountUtil {
       addSshKeys(api, acc);
       return id;
     } catch (AccountException e) {
-      throw new NoSuchAccountException(
-          String.format("User %s not found", acc.username));
+      return createLocalUser(acc);
     }
   }
 
@@ -131,5 +143,31 @@ class AccountUtil {
           sshKeyInfo.sshPublicKey));
     }
     return result;
+  }
+
+  private Account.Id createLocalUser(AccountInfo acc)
+      throws BadRequestException, ResourceConflictException,
+      UnprocessableEntityException, OrmException {
+    CreateAccount.Input input = new CreateAccount.Input();
+    log.info(String.format("User '%s' not found", acc.username));
+    String username = localUser(acc);
+    input.username = username;
+    input.email = acc.email;
+    input.name = acc.name;
+
+    AccountInfo accInfo =
+        createAccountFactory.create(username)
+            .apply(TopLevelResource.INSTANCE, input).value();
+    log.info(String.format("Local user '%s' created", username));
+
+    Account account =
+        accountCache.get(new Account.Id(accInfo._accountId)).getAccount();
+    account.setActive(false);
+    accountCache.evict(account.getId());
+    return account.getId();
+  }
+
+  private String localUser(AccountInfo acc) {
+    return acc.username + "_imported";
   }
 }
