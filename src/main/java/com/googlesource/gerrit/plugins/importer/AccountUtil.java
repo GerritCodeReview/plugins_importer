@@ -17,27 +17,40 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.TopLevelResource;
+import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.AccountGroup;
+import com.google.gerrit.reviewdb.client.AccountGroupMember;
+import com.google.gerrit.reviewdb.client.AccountGroupName;
 import com.google.gerrit.reviewdb.client.AccountSshKey;
 import com.google.gerrit.reviewdb.client.AuthType;
 import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.GerritPersonIdent;
+import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.AccountException;
 import com.google.gerrit.server.account.AccountManager;
 import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.account.AuthRequest;
+import com.google.gerrit.server.account.CreateAccount;
 import com.google.gerrit.server.account.GetSshKeys.SshKeyInfo;
+import com.google.gerrit.server.account.GroupCache;
+import com.google.gerrit.server.account.GroupUUID;
 import com.google.gerrit.server.config.AuthConfig;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
+import org.eclipse.jgit.lib.PersonIdent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -46,26 +59,42 @@ import java.util.Objects;
 class AccountUtil {
   private static Logger log = LoggerFactory.getLogger(AccountUtil.class);
 
+  private static final String IMPORTED_USERS = "Imported Users";
+  private static final AccountGroup.NameKey IMPORTED_USERS_NAME =
+      new AccountGroup.NameKey(IMPORTED_USERS);
+
   private final AccountCache accountCache;
   private final AccountManager accountManager;
   private final AuthType authType;
+  private final IdentifiedUser currentUser;
+  private final GroupCache groupCache;
+  private final PersonIdent serverIdent;
   private final Provider<ReviewDb> db;
+
+  @Inject
+  private CreateAccount.Factory createAccountFactory;
 
   @Inject
   public AccountUtil(
       AccountCache accountCache,
       AccountManager accountManager,
       AuthConfig authConfig,
+      GroupCache groupCache,
+      IdentifiedUser currentUser,
+      @GerritPersonIdent PersonIdent serverIdent,
       Provider<ReviewDb> db) {
     this.accountCache = accountCache;
     this.accountManager = accountManager;
     this.authType = authConfig.getAuthType();
+    this.currentUser = currentUser;
     this.db = db;
+    this.groupCache = groupCache;
+    this.serverIdent = serverIdent;
   }
 
   Account.Id resolveUser(GerritApi api, AccountInfo acc)
       throws NoSuchAccountException, BadRequestException, IOException,
-      OrmException {
+      OrmException, ResourceConflictException, UnprocessableEntityException {
     if (acc.username == null) {
       throw new NoSuchAccountException(String.format(
           "User %s <%s> (%s) doesn't have a username and cannot be looked up.",
@@ -80,8 +109,7 @@ class AccountUtil {
         case LDAP:
           return createAccountByLdapAndAddSshKeys(api, acc);
         default:
-          throw new NoSuchAccountException(String.format("User %s not found",
-              acc.username));
+          return createLocalUser(acc);
       }
     }
     if (!Objects.equals(a.getAccount().getPreferredEmail(), acc.email)) {
@@ -89,14 +117,13 @@ class AccountUtil {
           "Email mismatch for user %s: expected %s but found %s",
           acc.username, acc.email, a.getAccount().getPreferredEmail()));
     }
-
     return a.getAccount().getId();
   }
 
   private Account.Id createAccountByLdapAndAddSshKeys(GerritApi api,
-      AccountInfo acc)
-      throws NoSuchAccountException, BadRequestException, IOException,
-      OrmException {
+      AccountInfo acc) throws NoSuchAccountException, BadRequestException,
+      IOException, OrmException, ResourceConflictException,
+      UnprocessableEntityException {
     if (!acc.username.matches(Account.USER_NAME_PATTERN)) {
       throw new NoSuchAccountException(String.format("User %s not found",
           acc.username));
@@ -109,13 +136,12 @@ class AccountUtil {
       addSshKeys(api, acc);
       return id;
     } catch (AccountException e) {
-      throw new NoSuchAccountException(
-          String.format("User %s not found", acc.username));
+      return createLocalUser(acc);
     }
   }
 
-  private void addSshKeys(GerritApi api, AccountInfo acc) throws
-  BadRequestException, IOException, OrmException {
+  private void addSshKeys(GerritApi api, AccountInfo acc)
+      throws BadRequestException, IOException, OrmException {
     List<SshKeyInfo> sshKeys = api.getSshKeys(acc.username);
     AccountState a = accountCache.getByUsername(acc.username);
     db.get().accountSshKeys().upsert(toAccountSshKey(a, sshKeys));
@@ -131,5 +157,61 @@ class AccountUtil {
           sshKeyInfo.sshPublicKey));
     }
     return result;
+  }
+
+  private Account.Id createLocalUser(AccountInfo acc)
+      throws BadRequestException, ResourceConflictException,
+      UnprocessableEntityException, OrmException {
+    CreateAccount.Input input = new CreateAccount.Input();
+    log.info(String.format("User '%s' not found", acc.username));
+    String username = acc.username;
+    input.username = username;
+    input.email = acc.email;
+    input.name = acc.name;
+
+    AccountInfo accInfo =
+        createAccountFactory.create(username)
+            .apply(TopLevelResource.INSTANCE, input).value();
+    log.info(String.format("Local user '%s' created", username));
+
+    Account.Id userId = new Account.Id(accInfo._accountId);
+    Account account = accountCache.get(userId).getAccount();
+    account.setActive(false);
+    addToImportedUsersGroup(userId);
+    accountCache.evict(userId);
+    return userId;
+  }
+
+  private void addToImportedUsersGroup(Account.Id id) throws OrmException {
+    AccountGroup group = getImportedUsersGroup();
+    AccountGroupMember member =
+        new AccountGroupMember(new AccountGroupMember.Key(id, group.getId()));
+    db.get().accountGroupMembers().insert(Collections.singleton(member));
+  }
+
+  private AccountGroup getImportedUsersGroup() throws OrmException {
+    AccountGroup accGroup = groupCache.get(IMPORTED_USERS_NAME);
+    if (accGroup == null) {
+      accGroup = createImportedUsersGroup();
+    }
+    return accGroup;
+  }
+
+  private AccountGroup createImportedUsersGroup() throws OrmException {
+    AccountGroup.Id groupId = new AccountGroup.Id(db.get().nextAccountGroupId());
+    AccountGroup.UUID uuid =
+        GroupUUID.make(
+            IMPORTED_USERS,
+            currentUser.newCommitterIdent(
+                serverIdent.getWhen(),
+                serverIdent.getTimeZone()));
+    AccountGroup group = new AccountGroup(IMPORTED_USERS_NAME, groupId, uuid);
+    group.setDescription(IMPORTED_USERS);
+
+    db.get().accountGroupNames()
+        .insert(Collections.singleton(new AccountGroupName(group)));
+    db.get().accountGroups().insert(Collections.singleton(group));
+    groupCache.evict(group);
+    return group;
   }
 }
