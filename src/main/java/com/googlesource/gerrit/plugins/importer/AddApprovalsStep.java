@@ -23,6 +23,8 @@ import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.LabelInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
@@ -81,7 +83,8 @@ class AddApprovalsStep {
   }
 
   void add(GerritApi api) throws OrmException, NoSuchChangeException, IOException,
-      NoSuchAccountException, BadRequestException {
+      NoSuchAccountException, BadRequestException, ResourceConflictException,
+      UnprocessableEntityException{
     if (resume) {
       db.patchSetApprovals().delete(
           db.patchSetApprovals().byChange(change.getId()));

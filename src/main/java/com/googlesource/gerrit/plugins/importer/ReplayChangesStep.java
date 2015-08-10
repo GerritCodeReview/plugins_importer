@@ -21,7 +21,9 @@ import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestApiException;
+import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.extensions.restapi.Url;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
@@ -220,7 +222,8 @@ class ReplayChangesStep {
   }
 
   private Change createChange(ChangeInfo c) throws OrmException,
-      NoSuchAccountException, BadRequestException, IOException {
+      NoSuchAccountException, BadRequestException, IOException,
+      ResourceConflictException, UnprocessableEntityException {
     Change.Id changeId = new Change.Id(db.nextChangeId());
 
     Change change =
