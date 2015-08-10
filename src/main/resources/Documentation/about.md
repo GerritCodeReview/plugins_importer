@@ -95,9 +95,16 @@ must have the link:access-control.html#capability_modifyAccount[Modify
 Account] or the link:access-control.html#capability_administrateServer[
 Administrate Server] capability assigned on the source system.
 
-Gerrit internal users (e.g. service users) are never automatically
-created but must be created in the target Gerrit server before the
-import.
+If for any reason an user is no longer existent in the LDAP instance but it
+is listed as a change owner, reviewer or as part of a group, a local user
+account is created with the same username. Giving that such user is not longer
+active in the system, their account status is set to inactive.
+
+Gerrit internal users (e.g. service users) should be created in the target
+Gerrit server before the import. Otherwise, an inactive local user is created
+with the same username.
+
+All locally created users are added to an internal group called "Imported Users".
 
 <a id="project-import-commands">
 #### Commands
@@ -277,9 +284,16 @@ member accounts are automatically created. The public SSH keys of a
 member are automatically retrieved from the source Gerrit server and
 added to the new account in the target Gerrit server.
 
-Gerrit internal users (e.g. service users) are never automatically
-created but must be created in the target Gerrit server before the
-import.
+If for any reason an user is no longer existent in the LDAP instance but it
+is listed as a group member, a local user account is created with the same
+username. Giving that such user is not longer active in the system, their account
+status is set to inactive.
+
+Gerrit internal users (e.g. service users) should be created in the target
+Gerrit server before the import. Otherwise, an inactive local user is created
+with the same username.
+
+All locally created users are added to an internal group called "Imported Users".
 
 If the group name is occupied in the target system (a group with the
 same name, but a different UUID exists already), the group is
