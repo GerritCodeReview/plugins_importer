@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "877a9331_4b1ee598",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-08-11T09:49:57Z",
+      "side": 1,
+      "message": "I think you need to evict the account from the cache after modifying it:\n\n  accountCache.evict(account.getId());",
+      "range": {
+        "startLine": 163,
+        "startChar": 4,
+        "endLine": 165,
+        "endChar": 29
+      },
+      "revId": "7ab4f829d8074cf45df6216b2bee5eab2d33cc11",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "676bdf6a_2a159f6e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-08-11T09:49:57Z",
+      "side": 1,
+      "message": "nit: unneeded blank lines",
+      "range": {
+        "startLine": 172,
+        "startChar": 0,
+        "endLine": 173,
+        "endChar": 0
+      },
+      "revId": "7ab4f829d8074cf45df6216b2bee5eab2d33cc11",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "676bdf6a_ca54032c",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImportGroup.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-08-11T09:49:57Z",
+      "side": 1,
+      "message": "nit: wrap line",
+      "revId": "7ab4f829d8074cf45df6216b2bee5eab2d33cc11",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "877a9331_6b1ba1a7",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImportGroupsStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-08-11T09:49:57Z",
+      "side": 1,
+      "message": "nit: wrap line",
+      "revId": "7ab4f829d8074cf45df6216b2bee5eab2d33cc11",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "877a9331_0b18dda7",
+        "filename": "src/main/resources/Documentation/about.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2015-08-11T09:49:57Z",
+      "side": 1,
+      "message": "an inactive local user",
+      "range": {
+        "startLine": 105,
+        "startChar": 44,
+        "endLine": 105,
+        "endChar": 56
+      },
+      "revId": "7ab4f829d8074cf45df6216b2bee5eab2d33cc11",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
