@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "24a2c5bf_00b08629",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1019328
+      },
+      "writtenOn": "2015-08-25T20:34:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a79957fb_fcbf29f6",
+      "range": {
+        "startLine": 10,
+        "startChar": 62,
+        "endLine": 10,
+        "endChar": 66
+      },
+      "revId": "4a98fc9807ac17fb2a01bbfb3cf3ee8519af6266",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a79957fb_1cc5b583",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-12T10:26:28Z",
       "side": 1,
       "message": "arises",
+      "range": {
+        "startLine": 11,
+        "startChar": 37,
+        "endLine": 11,
+        "endChar": 42
+      },
+      "revId": "4a98fc9807ac17fb2a01bbfb3cf3ee8519af6266",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4707519_44ba8e09",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1019328
+      },
+      "writtenOn": "2015-08-25T20:34:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a79957fb_1cc5b583",
       "range": {
         "startLine": 11,
         "startChar": 37,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "24a2c5bf_e0b4821f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1019328
+      },
+      "writtenOn": "2015-08-25T20:34:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e726ef9b_e6bf7ef6",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 5
+      },
+      "revId": "4a98fc9807ac17fb2a01bbfb3cf3ee8519af6266",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e726ef9b_46cf72a3",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-08-12T10:26:28Z",
       "side": 1,
       "message": "I am not sure about this approach. We already use the \"_imported\" suffix when importing groups but ONLY when necessary to avoid name clashes. Therefore, the usage of \"_imported\" suffix here is different and potentially confusing.\n\nWhy do we need to recognize such users easily?\nIf this is really necessary, can we think about other mechanisms? For example, keeping such users under a special group \"Imported Users\"?",
+      "range": {
+        "startLine": 15,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 36
+      },
+      "revId": "4a98fc9807ac17fb2a01bbfb3cf3ee8519af6266",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "84bff131_e3015214",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1019328
+      },
+      "writtenOn": "2015-08-25T20:34:48Z",
+      "side": 1,
+      "message": "The need for this arises when administrators want to convert an inactive local account to an active LDAP one. Having this created accounts \"tagged\" in any way helps recognizing them. That\u0027s why we were using the suffix, but agree that it can be confusing. The proposed solution (the special group) is a good alternative and it\u0027ll be implemented in the next patch set.",
+      "parentUuid": "e726ef9b_46cf72a3",
       "range": {
         "startLine": 15,
         "startChar": 1,
