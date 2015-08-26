@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4c4f5d2_041c769b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-08-26T15:12:32Z",
+      "side": 1,
+      "message": "a",
+      "range": {
+        "startLine": 16,
+        "startChar": 12,
+        "endLine": 16,
+        "endChar": 14
+      },
+      "revId": "c9550c6c68e248f1c34f6406a302e1dcc4c1153b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4c4f5d2_6419eaab",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-08-26T15:12:32Z",
+      "side": 1,
+      "message": "this import is not needed (and not wanted) as we have many *.NameKey classes and want to always reference them in the context of the outer class i.e. AccountGroup.NameKey",
+      "revId": "c9550c6c68e248f1c34f6406a302e1dcc4c1153b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4c4f5d2_a453e242",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-08-26T15:12:32Z",
+      "side": 1,
+      "message": "rename this to getImportedUsersGroup and remove the parameter",
+      "range": {
+        "startLine": 189,
+        "startChar": 23,
+        "endLine": 189,
+        "endChar": 37
+      },
+      "revId": "c9550c6c68e248f1c34f6406a302e1dcc4c1153b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4c4f5d2_44166e7d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-08-26T15:12:32Z",
+      "side": 1,
+      "message": "1 Why have this parameter? You are not providing a general purpose createGroup method but just want to create the \"Imported Users\" group with that hardcoded name.\n\n2 Instead of copying the code for the group creation here have you tried using the GerritApi? It is a simple interface which mirrors the RESAT API and is intended to be used by plugins:\n\n  @Inject\n  GerritApi api...\n\n  api.groups().create(...)",
+      "range": {
+        "startLine": 198,
+        "startChar": 35,
+        "endLine": 198,
+        "endChar": 50
+      },
+      "revId": "c9550c6c68e248f1c34f6406a302e1dcc4c1153b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
