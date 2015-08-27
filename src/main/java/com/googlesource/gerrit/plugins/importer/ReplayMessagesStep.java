@@ -17,9 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeMessageInfo;
-import com.google.gerrit.extensions.restapi.BadRequestException;
-import com.google.gerrit.extensions.restapi.ResourceConflictException;
-import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.ChangeMessage;
@@ -77,8 +75,7 @@ class ReplayMessagesStep {
   }
 
   void replay(GerritApi api) throws NoSuchAccountException, NoSuchChangeException,
-      OrmException, IOException, BadRequestException, ResourceConflictException,
-      UnprocessableEntityException {
+      OrmException, IOException, RestApiException {
     for (ChangeMessageInfo msg : changeInfo.messages) {
       ChangeMessage.Key msgKey = new ChangeMessage.Key(change.getId(), msg.id);
       if (resume && db.changeMessages().get(msgKey) != null) {

@@ -26,8 +26,8 @@ import com.google.gerrit.extensions.restapi.MethodNotAllowedException;
 import com.google.gerrit.extensions.restapi.PreconditionFailedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
-import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.reviewdb.client.AccountGroupById;
@@ -114,9 +114,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   @Override
   public Response<String> apply(ConfigResource rsrc, Input input)
-      throws ResourceConflictException, PreconditionFailedException,
-      BadRequestException, NoSuchAccountException, OrmException, IOException,
-      MethodNotAllowedException, UnprocessableEntityException {
+      throws NoSuchAccountException, OrmException, IOException,
+      RestApiException {
     GroupInfo groupInfo;
     this.api = apiFactory.create(input.from, input.user, input.pass);
     groupInfo = api.getGroup(group.get());
@@ -127,9 +126,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   }
 
   private void validate(Input input, GroupInfo groupInfo)
-      throws ResourceConflictException, PreconditionFailedException,
-      BadRequestException, IOException, OrmException, NoSuchAccountException,
-      MethodNotAllowedException, UnprocessableEntityException {
+      throws IOException, OrmException, NoSuchAccountException,
+      RestApiException {
     if (!isInternalGroup(new AccountGroup.UUID(groupInfo.id))) {
       throw new MethodNotAllowedException(String.format(
           "Group with name %s is not an internal group and cannot be imported",
@@ -184,9 +182,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   }
 
   private CreateGroupArgs toCreateGroupArgs(GroupInfo groupInfo)
-      throws IOException, OrmException, BadRequestException,
-      NoSuchAccountException, ResourceConflictException,
-      UnprocessableEntityException {
+      throws IOException, OrmException, NoSuchAccountException, RestApiException {
     CreateGroupArgs args = new CreateGroupArgs();
     args.setGroupName(groupInfo.name);
     args.groupDescription = groupInfo.description;
@@ -203,9 +199,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   }
 
   private AccountGroup createGroup(Input input, GroupInfo info) throws OrmException,
-      ResourceConflictException, NoSuchAccountException, BadRequestException,
-      IOException, PreconditionFailedException, MethodNotAllowedException,
-      UnprocessableEntityException {
+      NoSuchAccountException, IOException, RestApiException {
     String uniqueName = getUniqueGroupName(info.name);
     if (!info.name.equals(uniqueName)) {
       log.warn(String.format("Group %s with UUID %s is imported with name %s",
@@ -283,8 +277,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   }
 
   private void addMembers(AccountGroup.Id groupId, List<AccountInfo> members)
-      throws OrmException, NoSuchAccountException, BadRequestException,
-      IOException, ResourceConflictException, UnprocessableEntityException {
+      throws OrmException, NoSuchAccountException, IOException, RestApiException {
     List<AccountGroupMember> memberships = new ArrayList<>();
     for (AccountInfo member : members) {
       Account.Id userId = accountUtil.resolveUser(api, member);
@@ -301,9 +294,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private void addGroups(Input input, AccountGroup.Id groupId,
       String groupName, List<GroupInfo> includedGroups)
-      throws BadRequestException, ResourceConflictException,
-      PreconditionFailedException, NoSuchAccountException, OrmException,
-      IOException, MethodNotAllowedException, UnprocessableEntityException {
+      throws NoSuchAccountException, OrmException,
+      IOException, RestApiException {
     List<AccountGroupById> includeList = new ArrayList<>();
     for (GroupInfo includedGroup : includedGroups) {
       if (isInternalGroup(new AccountGroup.UUID(includedGroup.id))) {
