@@ -65,7 +65,7 @@ class AddHashtagsStep {
     this.resume = resume;
   }
 
-  void add() throws IllegalArgumentException, AuthException, IOException,
+  void add() throws IllegalArgumentException, IOException,
       ValidationException, OrmException, NoSuchChangeException {
     ChangeControl ctrl = changeControlFactory.controlFor(change, currentUser);
 
