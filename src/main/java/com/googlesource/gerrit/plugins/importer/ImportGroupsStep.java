@@ -17,11 +17,9 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
-import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.MethodNotAllowedException;
-import com.google.gerrit.extensions.restapi.PreconditionFailedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
-import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.GroupCache;
@@ -77,9 +75,8 @@ public class ImportGroupsStep {
     this.pm = pm;
   }
 
-  void importGroups() throws PreconditionFailedException, BadRequestException,
-      NoSuchAccountException, OrmException, IOException,
-      UnprocessableEntityException {
+  void importGroups() throws NoSuchAccountException, OrmException, IOException,
+      RestApiException {
     ProjectConfig projectConfig = projectCache.get(project).getConfig();
     Set<AccountGroup.UUID> groupUUIDs = projectConfig.getAllGroupUUIDs();
     pm.beginTask("Import Groups", groupUUIDs.size());
