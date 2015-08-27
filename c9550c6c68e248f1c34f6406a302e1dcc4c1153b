@@ -175,6 +175,30 @@
       "revId": "c9550c6c68e248f1c34f6406a302e1dcc4c1153b",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "647cbd57_02ab8a5e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1019328
+      },
+      "writtenOn": "2015-08-27T11:41:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "245f25fb_18f6a5cb",
+      "range": {
+        "startLine": 198,
+        "startChar": 35,
+        "endLine": 198,
+        "endChar": 50
+      },
+      "revId": "c9550c6c68e248f1c34f6406a302e1dcc4c1153b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
