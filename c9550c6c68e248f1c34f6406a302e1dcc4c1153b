@@ -151,6 +151,30 @@
       "revId": "c9550c6c68e248f1c34f6406a302e1dcc4c1153b",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "245f25fb_18f6a5cb",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-08-27T09:11:52Z",
+      "side": 1,
+      "message": "1. Make both of them constants?\n\n  private final String IMPORTED_USERS \u003d \"Imported Users\";\n  private final AccountGroup.NameKey IMPORTED_USERS_NAME \u003d new AccountGroup.NameKey(IMPORTED_USERS);\n\n2. I see... Then leave the code as is, but we should not forget to change this in master and make use of the GerritApi.",
+      "parentUuid": "84bff131_63e1e2ba",
+      "range": {
+        "startLine": 198,
+        "startChar": 35,
+        "endLine": 198,
+        "endChar": 50
+      },
+      "revId": "c9550c6c68e248f1c34f6406a302e1dcc4c1153b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
