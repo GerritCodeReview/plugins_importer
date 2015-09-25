@@ -19,23 +19,22 @@ import com.google.common.collect.Multimap;
 import com.google.gerrit.audit.AuditEvent;
 import com.google.gerrit.audit.AuditService;
 import com.google.gerrit.common.TimeUtil;
-import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.systemstatus.ServerInformation;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.config.CanonicalWebUrl;
+import com.google.gerrit.server.util.PluginLogFile;
 import com.google.gerrit.server.util.SystemLog;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 
 @Singleton
-class ImportLog implements LifecycleListener {
+class ImportLog extends PluginLogFile {
   private static final String IMPORT_LOG_NAME = "import_log";
   private static final Logger log = LogManager.getLogger(IMPORT_LOG_NAME);
 
@@ -46,19 +45,15 @@ class ImportLog implements LifecycleListener {
   public static String TARGET_PROJECT_NAME = "targetProjectName";
   public static String ERROR = "error";
 
-  private final SystemLog systemLog;
-  private final ServerInformation serverInfo;
   private final AuditService auditService;
   private final String canonicalWebUrl;
-  private boolean started;
 
   @Inject
   public ImportLog(SystemLog systemLog,
       ServerInformation serverInfo,
       AuditService auditService,
       @CanonicalWebUrl String canonicalWebUrl) {
-    this.systemLog = systemLog;
-    this.serverInfo = serverInfo;
+    super(systemLog, serverInfo, IMPORT_LOG_NAME, new ImportLogLayout());
     this.auditService = auditService;
     this.canonicalWebUrl = canonicalWebUrl;
   }
@@ -129,32 +124,5 @@ class ImportLog implements LifecycleListener {
                 ? ex.toString()
                 : "OK"
         ));
-  }
-
-  @Override
-  public void start() {
-    if (!started) {
-      Logger importLogger = LogManager.getLogger(IMPORT_LOG_NAME);
-      String loggerName = importLogger.getName();
-      AsyncAppender asyncAppender = systemLog.createAsyncAppender(
-          loggerName, new ImportLogLayout());
-      importLogger.removeAppender(loggerName);
-      importLogger.addAppender(asyncAppender);
-      importLogger.setAdditivity(false);
-      started = true;
-    }
-  }
-
-  @Override
-  public void stop() {
-    // stop() is called when the plugin is unloaded or when the server is
-    // shutdown. Only clean up when the server is shutting down to prevent
-    // issues when the plugin is reloaded. Otherwise when Gerrit loads the new
-    // plugin and then unloads the old one, the unload of the old plugin would
-    // remove the appenders that were just created by the new plugin. This is
-    // because the logger is static.
-    if (serverInfo.getState() == ServerInformation.State.SHUTDOWN) {
-      LogManager.getLogger(log.getName()).removeAllAppenders();
-    }
   }
 }
