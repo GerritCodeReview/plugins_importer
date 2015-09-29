@@ -108,6 +108,7 @@ public class ImportProjectScreen extends VerticalPanel {
         p.add(new Label("Created Changes: " + result.numChangesCreated()));
         Button okButton = new Button("OK");
         okButton.addClickHandler(new ClickHandler() {
+          @Override
           public void onClick(ClickEvent event) {
             successDialog.hide();
           }
