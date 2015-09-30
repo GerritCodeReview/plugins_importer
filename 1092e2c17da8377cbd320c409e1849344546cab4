@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55a68ed6_9db883fa",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-09-30T08:58:43Z",
+      "side": 1,
+      "message": "Why not import com.google.gerrit.extensions.api.GerritApi ?",
+      "revId": "1092e2c17da8377cbd320c409e1849344546cab4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
