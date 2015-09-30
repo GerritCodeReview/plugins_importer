@@ -34,6 +34,24 @@
       "revId": "1092e2c17da8377cbd320c409e1849344546cab4",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "55a68ed6_5dbb1bf4",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2015-09-30T12:44:45Z",
+      "side": 1,
+      "message": "I see. We should probably rename the local GerritApi class in order no to interfere with the GerritApi from the gerrit-extension-api. The rename is not a concern of this change, so it is OK for me.",
+      "parentUuid": "b53d0a4f_e0a902af",
+      "revId": "1092e2c17da8377cbd320c409e1849344546cab4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
