@@ -125,7 +125,7 @@ class ReplayRevisionsStep {
         ps.setRevision(new RevId(commit.name()));
         ps.setDraft(r.draft != null && r.draft);
 
-        info = patchSetInfoFactory.get(commit, ps.getId());
+        info = patchSetInfoFactory.get(rw, commit, ps.getId());
         if (info.getRevId().equals(changeInfo.currentRevision)) {
           change.setCurrentPatchSet(info);
         }
