@@ -26,11 +26,11 @@ import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.git.UpdateException;
 import com.google.gerrit.server.index.ChangeIndexer;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.InternalChangeQuery;
-import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -128,7 +128,7 @@ class ReplayChangesStep {
 
   void replay() throws IOException, OrmException,
       NoSuchAccountException, NoSuchChangeException, RestApiException,
-      ValidationException {
+      UpdateException {
     int start = 0;
     int limit = GlobalCapability.DEFAULT_MAX_QUERY_LIMIT;
     pm.beginTask("Replay Changes", ProgressMonitor.UNKNOWN);
@@ -162,7 +162,7 @@ class ReplayChangesStep {
 
   private void replayChange(RevWalk rw, ChangeInfo c)
       throws IOException, OrmException, NoSuchAccountException,
-      NoSuchChangeException, RestApiException, ValidationException {
+      NoSuchChangeException, RestApiException, IllegalArgumentException, UpdateException {
     if (c.status == ChangeStatus.DRAFT) {
       // no import of draft changes
       return;

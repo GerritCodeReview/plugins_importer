@@ -26,6 +26,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.git.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectResource;
@@ -78,7 +79,8 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
   @Override
   public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException {
+      GitAPIException, NoSuchChangeException, NoSuchAccountException,
+      UpdateException {
     ImportProjectResource projectResource =
         projectsCollection.parse(new ConfigResource(),
             IdString.fromDecoded(rsrc.getName()));

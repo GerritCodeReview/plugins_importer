@@ -26,6 +26,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.git.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
 import com.google.gerrit.server.validators.ValidationException;
@@ -69,7 +70,8 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
   @Override
   public ImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException {
+      GitAPIException, NoSuchChangeException, NoSuchAccountException,
+      UpdateException {
     if (Strings.isNullOrEmpty(input.name)) {
       throw new BadRequestException("name is required");
     }

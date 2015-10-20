@@ -27,6 +27,7 @@ import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.git.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
 import com.google.gerrit.server.validators.ValidationException;
@@ -92,7 +93,8 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
   @Override
   public ResumeImportStatistic apply(ImportProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException {
+      GitAPIException, NoSuchChangeException, NoSuchAccountException,
+      UpdateException {
     if (copy) {
       input.validateResumeCopy();
     } else {
@@ -129,7 +131,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
         throws RestApiException, IOException, OrmException,
         ValidationException, GitAPIException, NoSuchChangeException,
-        NoSuchAccountException {
+        NoSuchAccountException, UpdateException {
       ImportProjectResource projectResource =
           projectsCollection.parse(new ConfigResource(),
               IdString.fromDecoded(rsrc.getName()));

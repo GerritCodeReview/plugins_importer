@@ -211,7 +211,7 @@ class ReplayInlineCommentsStep {
       PatchSet ps) throws OrmException {
     Map<String, PatchLineComment> drafts = Maps.newHashMap();
     for (PatchLineComment c : plcUtil.draftByPatchSetAuthor(db, ps.getId(),
-        ((IdentifiedUser) ctrl.getCurrentUser()).getAccountId(),
+        ((IdentifiedUser) ctrl.getUser()).getAccountId(),
         ctrl.getNotes())) {
       drafts.put(c.getKey().get(), c);
     }
