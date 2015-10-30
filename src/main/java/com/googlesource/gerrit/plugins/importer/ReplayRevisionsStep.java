@@ -130,8 +130,6 @@ class ReplayRevisionsStep {
           change.setCurrentPatchSet(info);
         }
 
-        ChangeUtil.insertAncestors(db, ps.getId(), commit);
-
         updateRef(repo, ps);
       }
 
