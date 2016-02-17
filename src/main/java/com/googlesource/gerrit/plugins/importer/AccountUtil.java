@@ -92,6 +92,13 @@ class AccountUtil {
         case CLIENT_SSL_CERT_LDAP:
         case LDAP:
           return createAccountByLdapAndAddSshKeys(api, acc);
+        case CUSTOM_EXTENSION:
+        case DEVELOPMENT_BECOME_ANY_ACCOUNT:
+        case HTTP:
+        case LDAP_BIND:
+        case OAUTH:
+        case OPENID:
+        case OPENID_SSO:
         default:
           return createLocalUser(acc);
       }
