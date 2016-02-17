@@ -16,8 +16,8 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static com.google.gerrit.server.config.ConfigResource.CONFIG_KIND;
 import static com.google.gerrit.server.project.ProjectResource.PROJECT_KIND;
-import static com.googlesource.gerrit.plugins.importer.ImportProjectResource.IMPORT_PROJECT_KIND;
 import static com.googlesource.gerrit.plugins.importer.ImportGroupResource.IMPORT_GROUP_KIND;
+import static com.googlesource.gerrit.plugins.importer.ImportProjectResource.IMPORT_PROJECT_KIND;
 
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
