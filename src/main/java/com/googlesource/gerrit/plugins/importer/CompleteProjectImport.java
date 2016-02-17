@@ -104,6 +104,12 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
           case FAST_FORWARD:
           case FORCED:
             break;
+          case IO_FAILURE:
+          case LOCK_FAILURE:
+          case NOT_ATTEMPTED:
+          case REJECTED:
+          case REJECTED_CURRENT_BRANCH:
+          case RENAMED:
           default:
             throw new IOException(String.format(
                 "Failed to delete %s, RefUpdate.Result = %s", ref, result));

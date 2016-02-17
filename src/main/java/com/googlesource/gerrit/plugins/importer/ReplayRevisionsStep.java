@@ -180,6 +180,13 @@ class ReplayRevisionsStep {
       case FORCED:
       case FAST_FORWARD:
         return;
+      case IO_FAILURE:
+      case LOCK_FAILURE:
+      case NOT_ATTEMPTED:
+      case NO_CHANGE:
+      case REJECTED:
+      case REJECTED_CURRENT_BRANCH:
+      case RENAMED:
       default:
         throw new IOException(String.format(
             "Failed to create ref %s, RefUpdate.Result = %s", ref, result));
