@@ -34,6 +34,24 @@
       "revId": "ed8093611ebebe1108170a946805dd5d31f64959",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5d1a4804_f7d54063",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AddHashtagsStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2016-02-17T09:25:00Z",
+      "side": 1,
+      "message": "Thanks",
+      "parentUuid": "bd342467_65f180f7",
+      "revId": "ed8093611ebebe1108170a946805dd5d31f64959",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
