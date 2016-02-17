@@ -22,6 +22,7 @@ import com.google.gerrit.server.git.MetaDataUpdate;
 import com.google.gerrit.server.git.ProjectConfig;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import org.eclipse.jgit.lib.ProgressMonitor;
@@ -31,13 +32,13 @@ import java.io.IOException;
 @Singleton
 class ConfigureProjectStep {
   private final ProjectCache projectCache;
-  private final MetaDataUpdate.User metaDataUpdateFactory;
+  private final Provider<MetaDataUpdate.User> metaDataUpdateFactory;
   private final AllProjectsName allProjectsName;
 
   @Inject
   ConfigureProjectStep(
       ProjectCache projectCache,
-      MetaDataUpdate.User metaDataUpdateFactory,
+      Provider<MetaDataUpdate.User> metaDataUpdateFactory,
       AllProjectsName allProjectsName) {
     this.projectCache = projectCache;
     this.metaDataUpdateFactory = metaDataUpdateFactory;
@@ -51,7 +52,7 @@ class ConfigureProjectStep {
     Project p = projectConfig.getProject();
     if (!p.getParent(allProjectsName).equals(parentName)) {
       p.setParentName(parentName);
-      MetaDataUpdate md = metaDataUpdateFactory.create(name);
+      MetaDataUpdate md = metaDataUpdateFactory.get().create(name);
       md.setMessage("Set Parent\n");
       projectConfig.commit(md);
       projectCache.evict(p);
