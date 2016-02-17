@@ -87,6 +87,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
                 p.add(new Label("Updated Changes: " + result.numChangesUpdated()));
                 Button okButton = new Button("OK");
                 okButton.addClickHandler(new ClickHandler() {
+                  @Override
                   public void onClick(ClickEvent event) {
                     successDialog.hide();
                   }
