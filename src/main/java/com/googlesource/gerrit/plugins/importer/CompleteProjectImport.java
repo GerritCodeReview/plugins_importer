@@ -38,7 +38,6 @@ import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.util.FS;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,7 +76,7 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
   private LockFile lockForDelete(Project.NameKey project)
       throws ResourceConflictException {
     File importStatus = projects.FS_LAYOUT.getImportStatusFile(project.get());
-    LockFile lockFile = new LockFile(importStatus, FS.DETECTED);
+    LockFile lockFile = new LockFile(importStatus);
     try {
       if (lockFile.lock()) {
         return lockFile;
