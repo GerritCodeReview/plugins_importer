@@ -111,8 +111,12 @@ class InsertLinkToOriginalChangeStep {
 
   private ChangeControl control(Change change, Account.Id id)
       throws NoSuchChangeException {
-    return changeControlFactory.controlFor(change,
-        genericUserFactory.create(id));
+    try {
+      return changeControlFactory.controlFor(db, change,
+          genericUserFactory.create(id));
+    } catch (OrmException e) {
+      throw new NoSuchChangeException(change.getId());
+    }
   }
 
   private static String ensureSlash(String in) {

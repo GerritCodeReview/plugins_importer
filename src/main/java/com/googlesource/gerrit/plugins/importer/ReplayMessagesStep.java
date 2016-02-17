@@ -107,7 +107,11 @@ class ReplayMessagesStep {
 
   private ChangeControl control(Change change, Account.Id id)
       throws NoSuchChangeException {
-    return changeControlFactory.controlFor(change,
+    try {
+      return changeControlFactory.controlFor(db, change,
         genericUserFactory.create(id));
+    } catch (OrmException e) {
+      throw new NoSuchChangeException(change.getId());
+    }
   }
 }

@@ -77,7 +77,7 @@ class AddHashtagsStep {
 
   void add() throws IllegalArgumentException, OrmException,
       NoSuchChangeException, UpdateException, RestApiException {
-    ChangeControl ctrl = changeControlFactory.controlFor(change, currentUser);
+    ChangeControl ctrl = changeControlFactory.controlFor(db.get(), change, currentUser);
 
     try {
       if (resume) {
