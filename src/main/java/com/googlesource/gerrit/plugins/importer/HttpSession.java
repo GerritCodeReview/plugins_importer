@@ -20,7 +20,6 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -31,10 +30,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -106,27 +104,11 @@ public class HttpSession {
     }
   }
 
-  private static class DummyHostnameVerifier implements X509HostnameVerifier {
+  private static class DummyHostnameVerifier implements HostnameVerifier {
     @Override
     public boolean verify(String hostname, SSLSession session) {
       // always accept
       return true;
-    }
-
-    @Override
-    public void verify(String host, SSLSocket ssl) throws IOException {
-      // no check
-    }
-
-    @Override
-    public void verify(String host, X509Certificate cert) throws SSLException {
-      // no check
-    }
-
-    @Override
-    public void verify(String host, String[] cns, String[] subjectAlts)
-        throws SSLException {
-      // no check
     }
   }
 

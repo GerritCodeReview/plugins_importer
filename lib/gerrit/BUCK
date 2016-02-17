@@ -18,3 +18,11 @@ maven_jar(
   repository = REPO,
   license = 'Apache2.0',
 )
+
+maven_jar(
+  name = 'acceptance-framework',
+  id = 'com.google.gerrit:gerrit-acceptance-framework:' + VER,
+  license = 'Apache2.0',
+  attach_source = False,
+  repository = REPO,
+)
