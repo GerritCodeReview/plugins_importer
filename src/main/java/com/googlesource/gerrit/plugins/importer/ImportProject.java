@@ -47,7 +47,6 @@ import org.eclipse.jgit.lib.NullProgressMonitor;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.TextProgressMonitor;
-import org.eclipse.jgit.util.FS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -302,7 +301,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
 
   private LockFile lockForImport() throws ResourceConflictException {
     File importStatus = projects.FS_LAYOUT.getImportStatusFile(targetProject.get());
-    LockFile lockFile = new LockFile(importStatus, FS.DETECTED);
+    LockFile lockFile = new LockFile(importStatus);
     try {
       if (lockFile.lock()) {
         return lockFile;
