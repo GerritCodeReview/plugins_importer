@@ -46,7 +46,9 @@ public class HttpResponse implements AutoCloseable {
     try {
       Reader reader = getReader();
       if (reader != null) {
-        while (reader.read() != -1);
+        while (reader.read() != -1) {
+          // Empty
+        }
       }
     } finally {
       response.close();
