@@ -14,8 +14,8 @@
 
 package com.googlesource.gerrit.plugins.importer.client;
 
-import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addPasswordTextBox;
 import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addCheckBox;
+import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addPasswordTextBox;
 import static com.googlesource.gerrit.plugins.importer.client.InputUtil.addTextBox;
 import static com.googlesource.gerrit.plugins.importer.client.InputUtil.getValue;
 

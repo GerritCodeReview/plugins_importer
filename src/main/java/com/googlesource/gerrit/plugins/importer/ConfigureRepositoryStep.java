@@ -27,10 +27,8 @@ import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import java.io.IOException;
+import java.nio.file.Path;
 
 @Singleton
 class ConfigureRepositoryStep {
