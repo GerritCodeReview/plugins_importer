@@ -26,6 +26,7 @@ import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.Sequences;
 import com.google.gerrit.server.git.UpdateException;
 import com.google.gerrit.server.index.ChangeIndexer;
 import com.google.gerrit.server.project.NoSuchChangeException;
@@ -74,6 +75,7 @@ class ReplayChangesStep {
   private final ReviewDb db;
   private final ChangeIndexer indexer;
   private final Provider<InternalChangeQuery> queryProvider;
+  private final Sequences sequences;
   private final String fromGerrit;
   private final GerritApi api;
   private final Repository repo;
@@ -96,6 +98,7 @@ class ReplayChangesStep {
       ReviewDb db,
       ChangeIndexer indexer,
       Provider<InternalChangeQuery> queryProvider,
+      Sequences sequences,
       @Assisted @Nullable String fromGerrit,
       @Assisted GerritApi api,
       @Assisted Repository repo,
@@ -115,6 +118,7 @@ class ReplayChangesStep {
     this.db = db;
     this.indexer = indexer;
     this.queryProvider = queryProvider;
+    this.sequences = sequences;
     this.fromGerrit = fromGerrit;
     this.api = api;
     this.repo = repo;
@@ -220,7 +224,7 @@ class ReplayChangesStep {
 
   private Change createChange(ChangeInfo c) throws OrmException,
       NoSuchAccountException, IOException, RestApiException {
-    Change.Id changeId = new Change.Id(db.nextChangeId());
+    Change.Id changeId = new Change.Id(sequences.nextChangeId());
 
     Change change =
         new Change(new Change.Key(c.changeId), changeId, accountUtil.resolveUser(api, c.owner),
