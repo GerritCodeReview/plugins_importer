@@ -32,6 +32,8 @@ gerrit_plugin(
 # this is required for bucklets/tools/eclipse/project.py to work
 java_library(
   name = 'classpath',
-  deps = [':importer__plugin'],
+  deps = GERRIT_GWT_API + GERRIT_PLUGIN_API + [
+    ':importer__plugin',
+    '//lib/gwt:user',
+  ],
 )
-
