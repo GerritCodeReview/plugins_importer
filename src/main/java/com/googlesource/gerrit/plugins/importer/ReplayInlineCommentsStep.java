@@ -203,7 +203,7 @@ class ReplayInlineCommentsStep {
     ChangeUpdate update = updateFactory.create(ctrl, TimeUtil.nowTs());
     update.setPatchSetId(ps.getId());
     plcUtil.deleteComments(db, update, del);
-    plcUtil.upsertComments(db, update, ups);
+    plcUtil.putComments(db, update, ups);
     update.commit();
   }
 
