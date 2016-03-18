@@ -28,7 +28,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.Sequences;
 import com.google.gerrit.server.git.UpdateException;
-import com.google.gerrit.server.index.ChangeIndexer;
+import com.google.gerrit.server.index.change.ChangeIndexer;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.InternalChangeQuery;
