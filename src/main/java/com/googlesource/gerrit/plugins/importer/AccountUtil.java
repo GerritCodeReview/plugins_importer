@@ -56,9 +56,7 @@ class AccountUtil {
   private final AuthType authType;
   private final com.google.gerrit.extensions.api.GerritApi gApi;
   private final VersionedAuthorizedKeys.Accessor authorizedKeys;
-
-  @Inject
-  private CreateAccount.Factory createAccountFactory;
+  private final CreateAccount.Factory createAccountFactory;
 
   @Inject
   public AccountUtil(
@@ -66,12 +64,14 @@ class AccountUtil {
       AccountManager accountManager,
       AuthConfig authConfig,
       com.google.gerrit.extensions.api.GerritApi gApi,
-      VersionedAuthorizedKeys.Accessor authorizedKeys) {
+      VersionedAuthorizedKeys.Accessor authorizedKeys,
+      CreateAccount.Factory createAccountFactory) {
     this.accountCache = accountCache;
     this.accountManager = accountManager;
     this.authType = authConfig.getAuthType();
     this.gApi = gApi;
     this.authorizedKeys = authorizedKeys;
+    this.createAccountFactory = createAccountFactory;
   }
 
   Account.Id resolveUser(GerritApi api, AccountInfo acc)
