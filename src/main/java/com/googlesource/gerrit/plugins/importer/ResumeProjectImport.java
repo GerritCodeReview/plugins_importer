@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Strings;
+import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
@@ -38,6 +39,7 @@ import com.google.inject.Provider;
 import com.googlesource.gerrit.plugins.importer.ResumeProjectImport.Input;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -94,7 +96,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
   public ResumeImportStatistic apply(ImportProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException {
+      UpdateException, ConfigInvalidException, InvalidSshKeyException {
     if (copy) {
       input.validateResumeCopy();
     } else {
@@ -129,9 +131,9 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
 
     @Override
     public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
-        throws RestApiException, IOException, OrmException,
-        ValidationException, GitAPIException, NoSuchChangeException,
-        NoSuchAccountException, UpdateException {
+        throws RestApiException, IOException, OrmException, ValidationException,
+        GitAPIException, NoSuchChangeException, NoSuchAccountException,
+        UpdateException, ConfigInvalidException, InvalidSshKeyException {
       ImportProjectResource projectResource =
           projectsCollection.parse(new ConfigResource(),
               IdString.fromDecoded(rsrc.getName()));

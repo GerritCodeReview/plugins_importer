@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.gerrit.common.TimeUtil;
+import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.client.Side;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -44,6 +45,7 @@ import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,8 +104,9 @@ class ReplayInlineCommentsStep {
     this.resume = resume;
   }
 
-  void replay() throws RestApiException, OrmException, IOException,
-      NoSuchChangeException, NoSuchAccountException {
+  void replay()
+      throws RestApiException, OrmException, IOException, NoSuchChangeException,
+      NoSuchAccountException, ConfigInvalidException, InvalidSshKeyException {
     for (PatchSet ps : db.patchSets().byChange(change.getId())) {
       Iterable<CommentInfo> comments = api.getComments(
           changeInfo._number, ps.getRevision().get());

@@ -24,6 +24,8 @@ import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 
+import org.eclipse.jgit.errors.ConfigInvalidException;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -72,7 +74,7 @@ interface GerritApi {
       throws BadRequestException, IOException, OrmException;
 
   public List<SshKeyInfo> getSshKeys(String userId) throws BadRequestException,
-      IOException, OrmException;
+      IOException, OrmException, ConfigInvalidException;
 
   public Version getVersion() throws BadRequestException, IOException;
 

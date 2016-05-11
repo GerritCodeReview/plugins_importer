@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.api.groups.GroupApi;
 import com.google.gerrit.extensions.common.AccountInfo;
@@ -23,27 +24,24 @@ import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.TopLevelResource;
 import com.google.gerrit.reviewdb.client.Account;
-import com.google.gerrit.reviewdb.client.AccountSshKey;
 import com.google.gerrit.reviewdb.client.AuthType;
-import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.AccountException;
 import com.google.gerrit.server.account.AccountManager;
 import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.account.AuthRequest;
 import com.google.gerrit.server.account.CreateAccount;
+import com.google.gerrit.server.account.VersionedAuthorizedKeys;
 import com.google.gerrit.server.config.AuthConfig;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -57,7 +55,7 @@ class AccountUtil {
   private final AccountManager accountManager;
   private final AuthType authType;
   private final com.google.gerrit.extensions.api.GerritApi gApi;
-  private final Provider<ReviewDb> db;
+  private final VersionedAuthorizedKeys.Accessor authorizedKeys;
 
   @Inject
   private CreateAccount.Factory createAccountFactory;
@@ -68,17 +66,17 @@ class AccountUtil {
       AccountManager accountManager,
       AuthConfig authConfig,
       com.google.gerrit.extensions.api.GerritApi gApi,
-      Provider<ReviewDb> db) {
+      VersionedAuthorizedKeys.Accessor authorizedKeys) {
     this.accountCache = accountCache;
     this.accountManager = accountManager;
     this.authType = authConfig.getAuthType();
-    this.db = db;
     this.gApi = gApi;
+    this.authorizedKeys = authorizedKeys;
   }
 
   Account.Id resolveUser(GerritApi api, AccountInfo acc)
       throws NoSuchAccountException, IOException, OrmException,
-      RestApiException {
+      RestApiException, ConfigInvalidException, InvalidSshKeyException {
     if (acc.username == null) {
       throw new NoSuchAccountException(String.format(
           "User %s <%s> (%s) doesn't have a username and cannot be looked up.",
@@ -112,8 +110,8 @@ class AccountUtil {
   }
 
   private Account.Id createAccountByLdapAndAddSshKeys(GerritApi api,
-      AccountInfo acc) throws NoSuchAccountException, IOException,
-      OrmException, RestApiException {
+      AccountInfo acc) throws NoSuchAccountException, IOException, OrmException,
+          RestApiException, ConfigInvalidException, InvalidSshKeyException {
     if (!acc.username.matches(Account.USER_NAME_PATTERN)) {
       throw new NoSuchAccountException(String.format("User %s not found",
           acc.username));
@@ -131,26 +129,17 @@ class AccountUtil {
   }
 
   private void addSshKeys(GerritApi api, AccountInfo acc)
-      throws BadRequestException, IOException, OrmException {
+      throws BadRequestException, IOException, OrmException,
+      ConfigInvalidException, InvalidSshKeyException {
     List<SshKeyInfo> sshKeys = api.getSshKeys(acc.username);
     AccountState a = accountCache.getByUsername(acc.username);
-    db.get().accountSshKeys().upsert(toAccountSshKey(a, sshKeys));
-  }
-
-  private static Collection<AccountSshKey> toAccountSshKey(AccountState a,
-      List<SshKeyInfo> sshKeys) {
-    Collection<AccountSshKey> result = new HashSet<>();
-    int index = 1;
     for (SshKeyInfo sshKeyInfo : sshKeys) {
-      result.add(new AccountSshKey(
-          new AccountSshKey.Id(a.getAccount().getId(), index++),
-          sshKeyInfo.sshPublicKey));
+      authorizedKeys.addKey(a.getAccount().getId(), sshKeyInfo.sshPublicKey);
     }
-    return result;
   }
 
   private Account.Id createLocalUser(AccountInfo acc)
-      throws OrmException, RestApiException {
+      throws OrmException, RestApiException, IOException, ConfigInvalidException {
     CreateAccount.Input input = new CreateAccount.Input();
     log.info(String.format("User '%s' not found", acc.username));
     String username = acc.username;

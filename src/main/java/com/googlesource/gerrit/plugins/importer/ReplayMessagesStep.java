@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeMessageInfo;
@@ -31,6 +32,8 @@ import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -74,8 +77,9 @@ class ReplayMessagesStep {
     this.resume = resume;
   }
 
-  void replay(GerritApi api) throws NoSuchAccountException, NoSuchChangeException,
-      OrmException, IOException, RestApiException {
+  void replay(GerritApi api) throws NoSuchAccountException,
+      NoSuchChangeException, OrmException, IOException, RestApiException,
+      ConfigInvalidException, InvalidSshKeyException {
     for (ChangeMessageInfo msg : changeInfo.messages) {
       ChangeMessage.Key msgKey = new ChangeMessage.Key(change.getId(), msg.id);
       if (resume && db.changeMessages().get(msgKey) != null) {

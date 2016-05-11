@@ -34,6 +34,8 @@ import com.google.gerrit.server.account.GetSshKeys;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 
+import org.eclipse.jgit.errors.ConfigInvalidException;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +122,7 @@ public class LocalApi implements GerritApi {
 
   @Override
   public List<SshKeyInfo> getSshKeys(String userId) throws BadRequestException,
-      IOException, OrmException {
+      IOException, OrmException, ConfigInvalidException {
     try {
       AccountResource rsrc =
           accounts.parse(TopLevelResource.INSTANCE,
