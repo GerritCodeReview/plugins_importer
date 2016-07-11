@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.api.accounts.AccountInput;
 import com.google.gerrit.extensions.api.groups.GroupApi;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.SshKeyInfo;
@@ -140,7 +141,7 @@ class AccountUtil {
 
   private Account.Id createLocalUser(AccountInfo acc)
       throws OrmException, RestApiException, IOException, ConfigInvalidException {
-    CreateAccount.Input input = new CreateAccount.Input();
+    AccountInput input = new AccountInput();
     log.info(String.format("User '%s' not found", acc.username));
     String username = acc.username;
     input.username = username;
