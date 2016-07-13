@@ -35,8 +35,10 @@ import com.google.gerrit.reviewdb.client.Patch;
 import com.google.gerrit.reviewdb.client.PatchLineComment;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.ChangeUtil;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.PatchLineCommentsUtil;
+import com.google.gerrit.server.PatchSetUtil;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.project.ChangeControl;
@@ -74,6 +76,7 @@ class ReplayInlineCommentsStep {
   private final ChangeUpdate.Factory updateFactory;
   private final PatchLineCommentsUtil plcUtil;
   private final PatchListCache patchListCache;
+  private final PatchSetUtil psUtil;
   private final Change change;
   private final ChangeInfo changeInfo;
   private final GerritApi api;
@@ -87,6 +90,7 @@ class ReplayInlineCommentsStep {
       ChangeUpdate.Factory updateFactory,
       PatchLineCommentsUtil plcUtil,
       PatchListCache patchListCache,
+      PatchSetUtil psUtil,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
       @Assisted GerritApi api,
@@ -98,6 +102,7 @@ class ReplayInlineCommentsStep {
     this.updateFactory = updateFactory;
     this.plcUtil = plcUtil;
     this.patchListCache = patchListCache;
+    this.psUtil = psUtil;
     this.change = change;
     this.changeInfo = changeInfo;
     this.api = api;
@@ -107,7 +112,9 @@ class ReplayInlineCommentsStep {
   void replay()
       throws RestApiException, OrmException, IOException, NoSuchChangeException,
       NoSuchAccountException, ConfigInvalidException, InvalidSshKeyException {
-    for (PatchSet ps : db.patchSets().byChange(change.getId())) {
+    ChangeControl ctrl =  control(change, change.getOwner());
+    for (PatchSet ps : ChangeUtil.PS_ID_ORDER
+        .sortedCopy(psUtil.byChange(db, ctrl.getNotes()))) {
       Iterable<CommentInfo> comments = api.getComments(
           changeInfo._number, ps.getRevision().get());
       if (resume) {
