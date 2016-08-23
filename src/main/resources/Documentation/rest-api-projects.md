@@ -33,7 +33,7 @@ capability.
   }
 ```
 
-As result a [ImportStatisticInfo](rest-api-config.html#import-statistic-info)
+As result a [ImportStatisticInfo](rest-api-config.md#import-statistic-info)
 entity is returned.
 
 #### Response
@@ -67,7 +67,7 @@ Options may be specified in the request body as a
   PUT /projects/myProjectCopy/@PLUGIN@~copy.resume HTTP/1.0
 ```
 
-As result a [ResumeImportStatisticInfo](rest-api-config.html#resume-import-statistic-info)
+As result a [ResumeImportStatisticInfo](rest-api-config.md#resume-import-statistic-info)
 entity is returned.
 
 #### Response
@@ -90,7 +90,7 @@ _PUT /projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#
 Resumes importing to a project from the original copy source.
 
 Information about the import resume must be provided in the request
-body as a [ImportResumeInput](rest-api-config.html#import-resume-input)
+body as a [ImportResumeInput](rest-api-config.md#import-resume-input)
 entity.
 
 Caller must be a member of a group that is granted the 'ImportProject'
@@ -109,7 +109,7 @@ capability.
   }
 ```
 
-As result a [ResumeImportStatisticInfo](rest-api-config.html#resume-import-statistic-info)
+As result a [ResumeImportStatisticInfo](rest-api-config.md#resume-import-statistic-info)
 entity is returned.
 
 #### Response

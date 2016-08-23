@@ -111,21 +111,21 @@ All locally created users are added to an internal group called "Imported Users"
 
 Importing a project can be done via
 
-* [REST](rest-api-config.html#import-project)
-* [SSH](cmd-project.html) and
+* [REST](rest-api-config.md#import-project)
+* [SSH](cmd-project.md) and
 * UI from menu 'Projects' > 'Import Project'
 
 Resuming a project import can be done via
 
-* [REST](rest-api-config.html#resume-project-import)
-* [SSH](cmd-resume-project.html)
+* [REST](rest-api-config.md#resume-project-import)
+* [SSH](cmd-resume-project.md)
 * UI from the list imports screen (menu 'Projects' > 'List Imports') and
 * UI from the project info screen ('Resume Import...' action)
 
 Completing the import can be done via
 
-* [REST](rest-api-config.html#complete-project-import)
-* [SSH](cmd-complete-project.html)
+* [REST](rest-api-config.md#complete-project-import)
+* [SSH](cmd-complete-project.md)
 * UI from the list imports screen (menu 'Projects' > 'List Imports') and
 * UI from the project info screen ('Complete Import' action)
 
@@ -171,7 +171,7 @@ To protect a running import from other processes the import creates an
 import file
 'review\_site/data/@PLUGIN@/\<target-project-name\>.$importstatus' and
 locks this file. In the import file an
-[ImportProjectInfo](rest-api-config.html#import-project-info) entity is
+[ImportProjectInfo](rest-api-config.md#import-project-info) entity is
 persisted that stores the input parameters and records the past
 imports. The import file is kept after the import is done so that the
 input parameters do not need to be specified again when the import is
@@ -231,21 +231,21 @@ the 'Administrate Server' capability.
 
 Copying a project can be done via
 
-* [REST](rest-api-projects.html#copy-project)
-* [SSH](cmd-copy-project.html) and
+* [REST](rest-api-projects.md#copy-project)
+* [SSH](cmd-copy-project.md) and
 * UI from the project info screen ('Copy...' action)
 
 Resuming a project copy can be done via
 
-* [REST](rest-api-projects.html#resume-copy-import)
-* [SSH](cmd-resume-project.html)
+* [REST](rest-api-projects.md#resume-copy-import)
+* [SSH](cmd-resume-project.md)
 * UI from the list imports screen (menu 'Projects' > 'List Imports') and
 * UI from the project info screen ('Resume Copy...' action)
 
 Completing the copy can be done via
 
-* [REST](rest-api-config.html#complete-project-import)
-* [SSH](cmd-complete-project.html)
+* [REST](rest-api-config.md#complete-project-import)
+* [SSH](cmd-complete-project.md)
 * UI from the list imports screen (menu 'Projects' > 'List Imports') and
 * UI from the project info screen ('Complete Copy' action)
 
@@ -309,6 +309,6 @@ imported into the target Gerrit server.
 
 Importing a group can be done via
 
-* [REST](rest-api-config.html#import-group)
-* [SSH](cmd-group.html) and
+* [REST](rest-api-config.md#import-group)
+* [SSH](cmd-group.md) and
 * UI from menu 'People' > 'Import Group'
