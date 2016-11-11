@@ -232,7 +232,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       checkProjectInSource(pm);
       setParentProjectName(input, pm);
       checkPreconditions(pm);
-      try (Repository repo = openRepoStep.open(targetProject, resume, pm)) {
+      try (Repository repo = openRepoStep.open(targetProject, resume, pm,
+          parent)) {
         ImportJson.persist(lockFile, importJson.format(input, info), pm);
         configRepoStep.configure(repo, srcProject, input.from, pm);
         gitFetchStep.fetch(input.user, input.pass, repo, pm);
