@@ -19,13 +19,16 @@ import static java.lang.String.format;
 
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
+import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.CreateProjectArgs;
 import com.google.gerrit.server.project.ProjectCache;
+import com.google.gerrit.server.project.ProjectsCollection;
 import com.google.gerrit.server.validators.ProjectCreationValidationListener;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
@@ -40,18 +43,22 @@ class OpenRepositoryStep {
   private final ProjectCache projectCache;
   private final DynamicSet<ProjectCreationValidationListener>
       projectCreationValidationListeners;
+  private final Provider<ProjectsCollection> projectsCollection;
 
   @Inject
   OpenRepositoryStep(GitRepositoryManager git,
       ProjectCache projectCache,
-      DynamicSet<ProjectCreationValidationListener> projectCreationValidationListeners) {
+      DynamicSet<ProjectCreationValidationListener> projectCreationValidationListeners,
+      Provider<ProjectsCollection> projectsCollection) {
     this.git = git;
     this.projectCache = projectCache;
     this.projectCreationValidationListeners = projectCreationValidationListeners;
+    this.projectsCollection = projectsCollection;
   }
 
-  Repository open(Project.NameKey name, boolean resume, ProgressMonitor pm)
-      throws ResourceConflictException, IOException {
+  Repository open(Project.NameKey name, boolean resume, ProgressMonitor pm,
+      Project.NameKey parent)
+      throws ResourceConflictException, IOException, UnprocessableEntityException {
     pm.beginTask("Open repository", 1);
     try {
       Repository repo = git.openRepository(name);
@@ -69,17 +76,18 @@ class OpenRepositoryStep {
       }
     }
 
-    beforeCreateProject(name);
+    beforeCreateProject(name, parent);
     Repository repo = git.createRepository(name);
     onProjectCreated(name);
     updateAndEnd(pm);
     return repo;
   }
 
-  private void beforeCreateProject(Project.NameKey name)
-      throws ResourceConflictException {
+  private void beforeCreateProject(Project.NameKey name, Project.NameKey parent)
+      throws ResourceConflictException, UnprocessableEntityException, IOException {
     CreateProjectArgs args = new CreateProjectArgs();
     args.setProjectName(name);
+    args.newParent = projectsCollection.get().parse(parent.get()).getControl();
     for (ProjectCreationValidationListener l : projectCreationValidationListeners) {
       try {
         l.validateNewProject(args);
