@@ -30,3 +30,10 @@ maven_jar(
   license = 'ow2',
 )
 
+maven_jar(
+  name = 'ow2-asm-commons',
+  id = 'org.ow2.asm:asm-commons:' + VERSION,
+  sha1 = 'a7111830132c7f87d08fe48cb0ca07630f8cb91c',
+  license = 'ow2',
+  attach_source = False,
+)
