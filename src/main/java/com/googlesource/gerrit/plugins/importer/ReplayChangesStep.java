@@ -218,10 +218,9 @@ class ReplayChangesStep {
             new Change.Key(c.changeId)));
     if (changes.isEmpty()) {
       return null;
-    } else {
-      return db.changes().get(
-          Iterators.getOnlyElement(changes.iterator()).getId());
     }
+    return db.changes().get(
+        Iterators.getOnlyElement(changes.iterator()).getId());
   }
 
   private Change createChange(ChangeInfo c)
@@ -251,8 +250,7 @@ class ReplayChangesStep {
   private static String fullName(String branch) {
     if (branch.startsWith(Constants.R_HEADS)) {
       return branch;
-    } else {
-      return Constants.R_HEADS + branch;
     }
+    return Constants.R_HEADS + branch;
   }
 }
