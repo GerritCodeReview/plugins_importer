@@ -16,7 +16,6 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
 
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.common.AccountInfo;
@@ -117,7 +116,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   @Override
   public Response<String> apply(ConfigResource rsrc, Input input)
       throws NoSuchAccountException, OrmException, IOException,
-      RestApiException, ConfigInvalidException, InvalidSshKeyException {
+      RestApiException, ConfigInvalidException {
     GroupInfo groupInfo;
     this.api = apiFactory.create(input.from, input.user, input.pass);
     groupInfo = api.getGroup(group.get());
@@ -129,7 +128,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private void validate(Input input, GroupInfo groupInfo)
       throws IOException, OrmException, NoSuchAccountException,
-      RestApiException, ConfigInvalidException, InvalidSshKeyException {
+      RestApiException, ConfigInvalidException {
     if (!isInternalGroup(new AccountGroup.UUID(groupInfo.id))) {
       throw new MethodNotAllowedException(String.format(
           "Group with name %s is not an internal group and cannot be imported",
@@ -185,7 +184,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private CreateGroupArgs toCreateGroupArgs(GroupInfo groupInfo)
       throws IOException, OrmException, NoSuchAccountException,
-      RestApiException, ConfigInvalidException, InvalidSshKeyException {
+      RestApiException, ConfigInvalidException {
     CreateGroupArgs args = new CreateGroupArgs();
     args.setGroupName(groupInfo.name);
     args.groupDescription = groupInfo.description;
@@ -203,7 +202,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private AccountGroup createGroup(Input input, GroupInfo info)
       throws OrmException, NoSuchAccountException, IOException,
-      RestApiException, ConfigInvalidException, InvalidSshKeyException {
+      RestApiException, ConfigInvalidException {
     String uniqueName = getUniqueGroupName(info.name);
     if (!info.name.equals(uniqueName)) {
       log.warn(String.format("Group %s with UUID %s is imported with name %s",
@@ -282,7 +281,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private void addMembers(AccountGroup.Id groupId, List<AccountInfo> members)
       throws OrmException, NoSuchAccountException, IOException,
-      RestApiException, ConfigInvalidException, InvalidSshKeyException {
+      RestApiException, ConfigInvalidException {
     List<AccountGroupMember> memberships = new ArrayList<>();
     for (AccountInfo member : members) {
       Account.Id userId = accountUtil.resolveUser(api, member);
@@ -300,7 +299,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   private void addGroups(Input input, AccountGroup.Id groupId, String groupName,
       List<GroupInfo> includedGroups)
           throws NoSuchAccountException, OrmException, IOException,
-          RestApiException, ConfigInvalidException, InvalidSshKeyException {
+          RestApiException, ConfigInvalidException {
     List<AccountGroupById> includeList = new ArrayList<>();
     for (GroupInfo includedGroup : includedGroups) {
       if (isInternalGroup(new AccountGroup.UUID(includedGroup.id))) {

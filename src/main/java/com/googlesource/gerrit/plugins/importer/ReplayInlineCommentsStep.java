@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.gerrit.common.TimeUtil;
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.client.Side;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -111,7 +110,7 @@ class ReplayInlineCommentsStep {
 
   void replay()
       throws RestApiException, OrmException, IOException, NoSuchChangeException,
-      NoSuchAccountException, ConfigInvalidException, InvalidSshKeyException {
+      NoSuchAccountException, ConfigInvalidException {
     ChangeControl ctrl =  control(change, change.getOwner());
     for (PatchSet ps : ChangeUtil.PS_ID_ORDER
         .sortedCopy(psUtil.byChange(db, ctrl.getNotes()))) {

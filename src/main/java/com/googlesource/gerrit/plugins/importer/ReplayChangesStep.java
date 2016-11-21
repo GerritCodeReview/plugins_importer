@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.common.collect.Iterators;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.data.GlobalCapability;
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -134,7 +133,7 @@ class ReplayChangesStep {
 
   void replay() throws IOException, OrmException,
       NoSuchAccountException, NoSuchChangeException, RestApiException,
-      UpdateException, ConfigInvalidException, InvalidSshKeyException {
+      UpdateException, ConfigInvalidException {
     int start = 0;
     int limit = GlobalCapability.DEFAULT_MAX_QUERY_LIMIT;
     pm.beginTask("Replay Changes", ProgressMonitor.UNKNOWN);
@@ -169,7 +168,7 @@ class ReplayChangesStep {
   private void replayChange(RevWalk rw, ChangeInfo c)
       throws IOException, OrmException, NoSuchAccountException,
       NoSuchChangeException, RestApiException, IllegalArgumentException,
-      UpdateException, ConfigInvalidException, InvalidSshKeyException {
+      UpdateException, ConfigInvalidException {
     if (c.status == ChangeStatus.DRAFT) {
       // no import of draft changes
       return;
@@ -227,7 +226,7 @@ class ReplayChangesStep {
 
   private Change createChange(ChangeInfo c)
       throws OrmException, NoSuchAccountException, IOException,
-      RestApiException, ConfigInvalidException, InvalidSshKeyException {
+      RestApiException, ConfigInvalidException {
     Change.Id changeId = new Change.Id(sequences.nextChangeId());
 
     Change change =
