@@ -18,7 +18,6 @@ import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updat
 import static java.lang.String.format;
 
 import com.google.common.base.Strings;
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
@@ -167,7 +166,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   public ImportStatistic apply(ConfigResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException, InvalidSshKeyException {
+      UpdateException, ConfigInvalidException {
     if (input == null) {
       input = new Input();
     }
@@ -183,7 +182,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   public ResumeImportStatistic resume(String user, String pass, boolean force,
       File importStatus) throws RestApiException, OrmException, IOException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException, InvalidSshKeyException {
+      UpdateException, ConfigInvalidException {
     LockFile lockFile = lockForImport();
     try {
       ImportProjectInfo info = ImportJson.parse(importStatus);
@@ -206,8 +205,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private ResumeImportStatistic apply(LockFile lockFile, Input input,
       ImportProjectInfo info) throws RestApiException, OrmException,
       IOException, GitAPIException, NoSuchChangeException,
-      NoSuchAccountException, UpdateException, ConfigInvalidException,
-      InvalidSshKeyException {
+      NoSuchAccountException, UpdateException, ConfigInvalidException {
     boolean resume = info != null;
     api = apiFactory.create(input.from, input.user, input.pass);
 

@@ -16,7 +16,6 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
 
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.restapi.MethodNotAllowedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
@@ -78,7 +77,7 @@ public class ImportGroupsStep {
   }
 
   void importGroups() throws NoSuchAccountException, OrmException, IOException,
-      RestApiException, ConfigInvalidException, InvalidSshKeyException {
+      RestApiException, ConfigInvalidException {
     ProjectConfig projectConfig = projectCache.get(project).getConfig();
     Set<AccountGroup.UUID> groupUUIDs = projectConfig.getAllGroupUUIDs();
     pm.beginTask("Import Groups", groupUUIDs.size());

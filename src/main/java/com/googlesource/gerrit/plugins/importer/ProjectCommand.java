@@ -15,7 +15,6 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Strings;
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -74,7 +73,7 @@ public class ProjectCommand extends SshCommand {
   protected void run()
       throws OrmException, IOException, UnloggedFailure, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException, InvalidSshKeyException {
+      UpdateException, ConfigInvalidException {
     ImportProject.Input input = new ImportProject.Input();
     input.from = url;
     input.name = name;

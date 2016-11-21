@@ -15,7 +15,6 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Strings;
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
@@ -73,7 +72,7 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
   public ImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException, InvalidSshKeyException {
+      UpdateException, ConfigInvalidException {
     if (Strings.isNullOrEmpty(input.name)) {
       throw new BadRequestException("name is required");
     }

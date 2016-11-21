@@ -77,7 +77,7 @@ class AccountUtil {
 
   Account.Id resolveUser(GerritApi api, AccountInfo acc)
       throws NoSuchAccountException, IOException, OrmException,
-      RestApiException, ConfigInvalidException, InvalidSshKeyException {
+      RestApiException, ConfigInvalidException {
     if (acc.username == null) {
       throw new NoSuchAccountException(String.format(
           "User %s <%s> (%s) doesn't have a username and cannot be looked up.",
@@ -112,7 +112,7 @@ class AccountUtil {
 
   private Account.Id createAccountByLdapAndAddSshKeys(GerritApi api,
       AccountInfo acc) throws NoSuchAccountException, IOException, OrmException,
-          RestApiException, ConfigInvalidException, InvalidSshKeyException {
+          RestApiException, ConfigInvalidException {
     if (!acc.username.matches(Account.USER_NAME_PATTERN)) {
       throw new NoSuchAccountException(String.format("User %s not found",
           acc.username));
@@ -131,11 +131,15 @@ class AccountUtil {
 
   private void addSshKeys(GerritApi api, AccountInfo acc)
       throws BadRequestException, IOException, OrmException,
-      ConfigInvalidException, InvalidSshKeyException {
+      ConfigInvalidException {
     List<SshKeyInfo> sshKeys = api.getSshKeys(acc.username);
     AccountState a = accountCache.getByUsername(acc.username);
     for (SshKeyInfo sshKeyInfo : sshKeys) {
-      authorizedKeys.addKey(a.getAccount().getId(), sshKeyInfo.sshPublicKey);
+      try {
+        authorizedKeys.addKey(a.getAccount().getId(), sshKeyInfo.sshPublicKey);
+      } catch (InvalidSshKeyException e) {
+        log.warn(String.format("Invalid SSH key for user %s", acc.username));
+      }
     }
   }
 

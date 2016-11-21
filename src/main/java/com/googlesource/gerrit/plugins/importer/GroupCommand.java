@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Strings;
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -68,7 +67,7 @@ public class GroupCommand extends SshCommand {
 
   @Override
   protected void run() throws UnloggedFailure, OrmException, IOException,
-      NoSuchAccountException, ConfigInvalidException, InvalidSshKeyException {
+      NoSuchAccountException, ConfigInvalidException {
     ImportGroup.Input input = new ImportGroup.Input();
     input.from = url;
     input.user = user;
