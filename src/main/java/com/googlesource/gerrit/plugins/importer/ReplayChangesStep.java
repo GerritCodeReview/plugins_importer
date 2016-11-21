@@ -29,6 +29,7 @@ import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.Sequences;
 import com.google.gerrit.server.git.UpdateException;
 import com.google.gerrit.server.index.change.ChangeIndexer;
+import com.google.gerrit.server.notedb.NotesMigration;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.InternalChangeQuery;
@@ -86,6 +87,7 @@ class ReplayChangesStep {
   private final boolean resume;
   private final ResumeImportStatistic importStatistic;
   private final ProgressMonitor pm;
+  private final boolean isNoteDbEnabled;
 
   @Inject
   ReplayChangesStep(
@@ -100,6 +102,7 @@ class ReplayChangesStep {
       ChangeIndexer indexer,
       Provider<InternalChangeQuery> queryProvider,
       Sequences sequences,
+      NotesMigration migration,
       @Assisted @Nullable String fromGerrit,
       @Assisted GerritApi api,
       @Assisted Repository repo,
@@ -129,6 +132,7 @@ class ReplayChangesStep {
     this.resume = resume;
     this.importStatistic = importStatistic;
     this.pm = pm;
+    this.isNoteDbEnabled = migration.enabled();
   }
 
   void replay() throws IOException, OrmException,
@@ -198,7 +202,9 @@ class ReplayChangesStep {
     replayInlineCommentsFactory.create(change, c, api, resumeChange).replay();
     replayMessagesFactory.create(change, c, resumeChange).replay(api);
     addApprovalsFactory.create(change, c, resume).add(api);
-    addHashtagsFactory.create(change, c, resumeChange).add();
+    if (isNoteDbEnabled) {
+      addHashtagsFactory.create(change, c, resumeChange).add();
+    }
 
     insertLinkToOriginalFactory.create(fromGerrit, change, c, resumeChange).insert();
 
