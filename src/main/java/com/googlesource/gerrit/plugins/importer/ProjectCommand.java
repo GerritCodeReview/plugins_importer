@@ -21,6 +21,7 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.update.UpdateException;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gerrit.sshd.CommandMetaData;
@@ -73,7 +74,7 @@ public class ProjectCommand extends SshCommand {
   protected void run()
       throws OrmException, IOException, UnloggedFailure, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException {
+      UpdateException, ConfigInvalidException, PermissionBackendException {
     ImportProject.Input input = new ImportProject.Input();
     input.from = url;
     input.name = name;

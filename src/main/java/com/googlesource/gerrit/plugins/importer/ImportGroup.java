@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
 
+import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.common.AccountInfo;
@@ -272,7 +273,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     AccountGroup.Id groupId = new AccountGroup.Id(db.nextAccountGroupId());
     AccountGroup.UUID uuid = new AccountGroup.UUID(info.id);
     AccountGroup group =
-        new AccountGroup(new AccountGroup.NameKey(info.name), groupId, uuid);
+        new AccountGroup(new AccountGroup.NameKey(info.name), groupId, uuid,
+            TimeUtil.nowTs());
     group.setVisibleToAll(cfg.getBoolean("groups", "newGroupsVisibleToAll",
         false));
     group.setDescription(info.description);
