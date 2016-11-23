@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "50ec1c3c_9f48b3cf",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1029953
+      },
+      "writtenOn": "2016-11-23T13:42:49Z",
+      "side": 1,
+      "message": "Thanks, Done",
+      "parentUuid": "101b842a_75a06874",
+      "revId": "dc0013c1882ed19c46cae1e4e09e3bafa109de3c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "301ec818_f6c2c023",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2016-11-23T13:39:24Z",
       "side": 1,
       "message": "nit: should be moved above IdentifiedUser",
+      "revId": "dc0013c1882ed19c46cae1e4e09e3bafa109de3c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "70e76057_602f12e5",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1029953
+      },
+      "writtenOn": "2016-11-23T13:42:49Z",
+      "side": 1,
+      "message": "Thanks, Done",
+      "parentUuid": "301ec818_f6c2c023",
       "revId": "dc0013c1882ed19c46cae1e4e09e3bafa109de3c",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
