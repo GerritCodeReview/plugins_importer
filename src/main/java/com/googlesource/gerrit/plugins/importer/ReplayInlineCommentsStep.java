@@ -14,7 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static com.google.gerrit.server.PatchLineCommentsUtil.setCommentRevId;
+import static com.google.gerrit.server.CommentsUtil.setCommentRevId;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -35,8 +35,8 @@ import com.google.gerrit.reviewdb.client.PatchLineComment;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.ChangeUtil;
+import com.google.gerrit.server.CommentsUtil;
 import com.google.gerrit.server.IdentifiedUser;
-import com.google.gerrit.server.PatchLineCommentsUtil;
 import com.google.gerrit.server.PatchSetUtil;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchListCache;
@@ -73,7 +73,7 @@ class ReplayInlineCommentsStep {
   private final IdentifiedUser.GenericFactory genericUserFactory;
   private final ChangeControl.GenericFactory changeControlFactory;
   private final ChangeUpdate.Factory updateFactory;
-  private final PatchLineCommentsUtil plcUtil;
+  private final CommentsUtil plcUtil;
   private final PatchListCache patchListCache;
   private final PatchSetUtil psUtil;
   private final Change change;
@@ -87,7 +87,7 @@ class ReplayInlineCommentsStep {
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
       ChangeUpdate.Factory updateFactory,
-      PatchLineCommentsUtil plcUtil,
+      CommentsUtil plcUtil,
       PatchListCache patchListCache,
       PatchSetUtil psUtil,
       @Assisted Change change,
