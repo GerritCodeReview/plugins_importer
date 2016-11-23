@@ -15,7 +15,9 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import com.google.gerrit.audit.AuditEvent;
 import com.google.gerrit.audit.AuditService;
 import com.google.gerrit.common.TimeUtil;
@@ -106,7 +108,8 @@ class ImportLog extends PluginLogFile {
 
   private void audit(IdentifiedUser user, long ts, Project.NameKey project,
       String from, Exception ex) {
-    Multimap<String, Object> params = HashMultimap.create();
+    ListMultimap<String, Object> params =
+        MultimapBuilder.hashKeys().arrayListValues().build();
     params.put("class", ImportLog.class);
     params.put("project", project.get());
     params.put("from", from);
