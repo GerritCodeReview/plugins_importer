@@ -14,7 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static com.google.gerrit.server.PatchLineCommentsUtil.setCommentRevId;
+import static com.google.gerrit.server.CommentsUtil.setCommentRevId;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -29,15 +29,18 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.Url;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
+import com.google.gerrit.reviewdb.client.Comment;
 import com.google.gerrit.reviewdb.client.CommentRange;
 import com.google.gerrit.reviewdb.client.Patch;
 import com.google.gerrit.reviewdb.client.PatchLineComment;
+import com.google.gerrit.reviewdb.client.PatchLineComment.Status;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.ChangeUtil;
+import com.google.gerrit.server.CommentsUtil;
 import com.google.gerrit.server.IdentifiedUser;
-import com.google.gerrit.server.PatchLineCommentsUtil;
 import com.google.gerrit.server.PatchSetUtil;
+import com.google.gerrit.server.config.GerritServerId;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.project.ChangeControl;
@@ -73,9 +76,10 @@ class ReplayInlineCommentsStep {
   private final IdentifiedUser.GenericFactory genericUserFactory;
   private final ChangeControl.GenericFactory changeControlFactory;
   private final ChangeUpdate.Factory updateFactory;
-  private final PatchLineCommentsUtil plcUtil;
+  private final CommentsUtil plcUtil;
   private final PatchListCache patchListCache;
   private final PatchSetUtil psUtil;
+  private final String serverId;
   private final Change change;
   private final ChangeInfo changeInfo;
   private final GerritApi api;
@@ -87,9 +91,10 @@ class ReplayInlineCommentsStep {
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
       ChangeUpdate.Factory updateFactory,
-      PatchLineCommentsUtil plcUtil,
+      CommentsUtil plcUtil,
       PatchListCache patchListCache,
       PatchSetUtil psUtil,
+      @GerritServerId String serverId,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
       @Assisted GerritApi api,
@@ -102,6 +107,7 @@ class ReplayInlineCommentsStep {
     this.plcUtil = plcUtil;
     this.patchListCache = patchListCache;
     this.psUtil = psUtil;
+    this.serverId = serverId;
     this.change = change;
     this.changeInfo = changeInfo;
     this.api = api;
@@ -195,7 +201,7 @@ class ReplayInlineCommentsStep {
       e.setStatus(PatchLineComment.Status.PUBLISHED);
       e.setWrittenOn(c.updated);
       e.setSide(c.side == Side.PARENT ? (short) 0 : (short) 1);
-      setCommentRevId(e, patchListCache, change, ps);
+      setCommentRevId(e.asComment(serverId), patchListCache, change, ps);
       e.setMessage(c.message);
       if (c.range != null) {
         e.setRange(new CommentRange(
@@ -211,20 +217,29 @@ class ReplayInlineCommentsStep {
     del.addAll(drafts.values());
     ChangeUpdate update = updateFactory.create(ctrl, TimeUtil.nowTs());
     update.setPatchSetId(ps.getId());
-    plcUtil.deleteComments(db, update, del);
-    plcUtil.putComments(db, update, ups);
+
+    plcUtil.deleteComments(db, update, CommentsUtil.toComments(serverId, del));
+    plcUtil.putComments(db, update, Status.PUBLISHED,
+        CommentsUtil.toComments(serverId, ups));
     update.commit();
   }
 
   private Map<String, PatchLineComment> scanDraftComments(ChangeControl ctrl,
       PatchSet ps) throws OrmException {
     Map<String, PatchLineComment> drafts = Maps.newHashMap();
-    for (PatchLineComment c : plcUtil.draftByPatchSetAuthor(db, ps.getId(),
-        ((IdentifiedUser) ctrl.getUser()).getAccountId(),
-        ctrl.getNotes())) {
+    for (PatchLineComment c : toPatchLineComment(ctrl.getChange().getId(),
+        plcUtil.draftByPatchSetAuthor(db, ps.getId(),
+            ((IdentifiedUser) ctrl.getUser()).getAccountId(),
+            ctrl.getNotes()))) {
       drafts.put(c.getKey().get(), c);
     }
     return drafts;
+  }
+
+  private Iterable<PatchLineComment> toPatchLineComment(Change.Id changeId,
+      List<Comment> draftByPatchSetAuthor) {
+    return CommentsUtil.toPatchLineComments(changeId, Status.DRAFT,
+        draftByPatchSetAuthor);
   }
 
   private ChangeControl control(Change change, Account.Id id)
