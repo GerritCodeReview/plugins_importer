@@ -31,6 +31,7 @@ import com.google.gerrit.extensions.restapi.TopLevelResource;
 import com.google.gerrit.server.account.AccountResource;
 import com.google.gerrit.server.account.AccountsCollection;
 import com.google.gerrit.server.account.GetSshKeys;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 
@@ -128,7 +129,7 @@ public class LocalApi implements GerritApi {
           accounts.parse(TopLevelResource.INSTANCE,
               IdString.fromDecoded(userId));
       return getSshKeys.apply(rsrc);
-    } catch (ResourceNotFoundException | AuthException e) {
+    } catch (ResourceNotFoundException | AuthException | PermissionBackendException e) {
       throw new BadRequestException(e.getMessage());
     }
   }
