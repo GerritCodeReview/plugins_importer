@@ -14,8 +14,11 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.google.gerrit.server.permissions.GlobalPermission.ADMINISTRATE_SERVER;
+
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.api.access.PluginPermission;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
@@ -24,9 +27,10 @@ import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
-import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.permissions.GlobalPermission;
+import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.ProjectResource;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -124,16 +128,19 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     private final CompleteProjectImport completeProjectImport;
     private final Provider<CurrentUser> currentUserProvider;
     private final String pluginName;
+    private final PermissionBackend permissionBackend;
 
     @Inject
     public OnProjects(ProjectsCollection projectsCollection,
         CompleteProjectImport completeProjectImport,
         Provider<CurrentUser> currentUserProvider,
-        @PluginName String pluginName) {
+        @PluginName String pluginName,
+        PermissionBackend permissionBackend) {
       this.projectsCollection = projectsCollection;
       this.completeProjectImport = completeProjectImport;
       this.currentUserProvider = currentUserProvider;
       this.pluginName = pluginName;
+      this.permissionBackend = permissionBackend;
     }
 
     @Override
@@ -171,10 +178,10 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     }
 
     private boolean canCompleteImport(ProjectResource rsrc) {
-      CapabilityControl ctl = currentUserProvider.get().getCapabilities();
-      return ctl.canAdministrateServer()
-          || (ctl.canPerform(pluginName + "-" + ImportCapability.ID)
-              && rsrc.getControl().isOwner());
+      return permissionBackend.user(currentUserProvider).testOrFalse(ADMINISTRATE_SERVER) ||
+        (permissionBackend.user(currentUserProvider).testOrFalse(
+          new PluginPermission(pluginName, ImportCapability.ID))
+            && rsrc.getControl().isOwner());
     }
   }
 }

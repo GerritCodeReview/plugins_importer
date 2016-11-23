@@ -14,9 +14,12 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.google.gerrit.server.permissions.GlobalPermission.ADMINISTRATE_SERVER;
+
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.api.access.PluginPermission;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -26,7 +29,10 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.git.UpdateException;
+import com.google.gerrit.server.update.UpdateException;
+import com.google.gerrit.server.permissions.GlobalPermission;
+import com.google.gerrit.server.permissions.PermissionBackend;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectResource;
@@ -55,6 +61,7 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
   private final Provider<CurrentUser> currentUserProvider;
   private final String pluginName;
   private final ProjectCache projectCache;
+  private final PermissionBackend permissionBackend;
 
   private Writer err;
 
@@ -64,12 +71,14 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
       ProjectsCollection projectsCollection,
       Provider<CurrentUser> currentUserProvider,
       @PluginName String pluginName,
-      ProjectCache projectCache) {
+      ProjectCache projectCache,
+      PermissionBackend permissionBackend) {
     this.resumeProjectImport = resumeProjectImport;
     this.projectsCollection = projectsCollection;
     this.currentUserProvider = currentUserProvider;
     this.pluginName = pluginName;
     this.projectCache = projectCache;
+    this.permissionBackend = permissionBackend;
   }
 
   ResumeCopyProject setErr(Writer err) {
@@ -81,7 +90,7 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
   public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException {
+      UpdateException, ConfigInvalidException, PermissionBackendException {
     ImportProjectResource projectResource =
         projectsCollection.parse(new ConfigResource(),
             IdString.fromDecoded(rsrc.getName()));
@@ -103,10 +112,10 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
   }
 
   private boolean canResumeCopy(ProjectResource rsrc) {
-    CapabilityControl ctl = currentUserProvider.get().getCapabilities();
-    return ctl.canAdministrateServer()
-        || (ctl.canPerform(pluginName + "-" + CopyProjectCapability.ID)
-            && rsrc.getControl().isOwner());
+    return permissionBackend.user(currentUserProvider).testOrFalse(ADMINISTRATE_SERVER) ||
+      (permissionBackend.user(currentUserProvider).testOrFalse(
+        new PluginPermission(pluginName, CopyProjectCapability.ID))
+          && rsrc.getControl().isOwner());
   }
 
   private boolean isCopied(ProjectResource rsrc) {
