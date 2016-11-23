@@ -163,7 +163,7 @@ capability.
 ```
 
 ### <a id="resume-project-import"> Resume Project Import
-_GET /config/server/@PLUGIN@~projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)/resume_
+_PUT /config/server/@PLUGIN@~projects/[\{project-name\}](../../../Documentation/rest-api-projects.html#project-name)/resume_
 
 Resumes a project import.
 

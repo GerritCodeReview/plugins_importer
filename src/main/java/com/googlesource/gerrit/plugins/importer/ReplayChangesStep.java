@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.common.collect.Iterators;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.data.GlobalCapability;
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -30,6 +29,7 @@ import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.Sequences;
 import com.google.gerrit.server.git.UpdateException;
 import com.google.gerrit.server.index.change.ChangeIndexer;
+import com.google.gerrit.server.notedb.NotesMigration;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.InternalChangeQuery;
@@ -87,6 +87,7 @@ class ReplayChangesStep {
   private final boolean resume;
   private final ResumeImportStatistic importStatistic;
   private final ProgressMonitor pm;
+  private final boolean isNoteDbEnabled;
 
   @Inject
   ReplayChangesStep(
@@ -101,6 +102,7 @@ class ReplayChangesStep {
       ChangeIndexer indexer,
       Provider<InternalChangeQuery> queryProvider,
       Sequences sequences,
+      NotesMigration migration,
       @Assisted @Nullable String fromGerrit,
       @Assisted GerritApi api,
       @Assisted Repository repo,
@@ -130,11 +132,12 @@ class ReplayChangesStep {
     this.resume = resume;
     this.importStatistic = importStatistic;
     this.pm = pm;
+    this.isNoteDbEnabled = migration.enabled();
   }
 
   void replay() throws IOException, OrmException,
       NoSuchAccountException, NoSuchChangeException, RestApiException,
-      UpdateException, ConfigInvalidException, InvalidSshKeyException {
+      UpdateException, ConfigInvalidException {
     int start = 0;
     int limit = GlobalCapability.DEFAULT_MAX_QUERY_LIMIT;
     pm.beginTask("Replay Changes", ProgressMonitor.UNKNOWN);
@@ -169,7 +172,7 @@ class ReplayChangesStep {
   private void replayChange(RevWalk rw, ChangeInfo c)
       throws IOException, OrmException, NoSuchAccountException,
       NoSuchChangeException, RestApiException, IllegalArgumentException,
-      UpdateException, ConfigInvalidException, InvalidSshKeyException {
+      UpdateException, ConfigInvalidException {
     if (c.status == ChangeStatus.DRAFT) {
       // no import of draft changes
       return;
@@ -199,7 +202,9 @@ class ReplayChangesStep {
     replayInlineCommentsFactory.create(change, c, api, resumeChange).replay();
     replayMessagesFactory.create(change, c, resumeChange).replay(api);
     addApprovalsFactory.create(change, c, resume).add(api);
-    addHashtagsFactory.create(change, c, resumeChange).add();
+    if (isNoteDbEnabled) {
+      addHashtagsFactory.create(change, c, resumeChange).add();
+    }
 
     insertLinkToOriginalFactory.create(fromGerrit, change, c, resumeChange).insert();
 
@@ -219,15 +224,14 @@ class ReplayChangesStep {
             new Change.Key(c.changeId)));
     if (changes.isEmpty()) {
       return null;
-    } else {
-      return db.changes().get(
-          Iterators.getOnlyElement(changes.iterator()).getId());
     }
+    return db.changes().get(
+        Iterators.getOnlyElement(changes.iterator()).getId());
   }
 
   private Change createChange(ChangeInfo c)
       throws OrmException, NoSuchAccountException, IOException,
-      RestApiException, ConfigInvalidException, InvalidSshKeyException {
+      RestApiException, ConfigInvalidException {
     Change.Id changeId = new Change.Id(sequences.nextChangeId());
 
     Change change =
@@ -252,8 +256,7 @@ class ReplayChangesStep {
   private static String fullName(String branch) {
     if (branch.startsWith(Constants.R_HEADS)) {
       return branch;
-    } else {
-      return Constants.R_HEADS + branch;
     }
+    return Constants.R_HEADS + branch;
   }
 }

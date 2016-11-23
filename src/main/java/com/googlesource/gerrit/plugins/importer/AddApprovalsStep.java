@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.common.base.MoreObjects;
 import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.data.LabelType;
-import com.google.gerrit.common.errors.InvalidSshKeyException;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ApprovalInfo;
@@ -84,7 +83,7 @@ class AddApprovalsStep {
 
   void add(GerritApi api) throws OrmException, NoSuchChangeException,
       IOException, NoSuchAccountException, RestApiException,
-      ConfigInvalidException, InvalidSshKeyException {
+      ConfigInvalidException {
     if (resume) {
       db.patchSetApprovals().delete(
           db.patchSetApprovals().byChange(change.getId()));
