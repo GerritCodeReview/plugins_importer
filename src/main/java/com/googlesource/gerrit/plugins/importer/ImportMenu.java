@@ -14,12 +14,16 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import static com.google.gerrit.server.permissions.GlobalPermission.ADMINISTRATE_SERVER;
+
 import com.google.common.collect.Lists;
 import com.google.gerrit.extensions.annotations.PluginName;
+import com.google.gerrit.extensions.api.access.PluginPermission;
 import com.google.gerrit.extensions.client.MenuItem;
 import com.google.gerrit.extensions.webui.TopMenu;
 import com.google.gerrit.server.CurrentUser;
-import com.google.gerrit.server.account.CapabilityControl;
+import com.google.gerrit.server.permissions.GlobalPermission;
+import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -29,13 +33,16 @@ public class ImportMenu implements TopMenu {
   private final String pluginName;
   private final Provider<CurrentUser> userProvider;
   private final List<MenuEntry> menuEntries;
+  private final PermissionBackend permissionBackend;
 
   @Inject
   ImportMenu(
       @PluginName String pluginName,
-      Provider<CurrentUser> userProvider) {
+      Provider<CurrentUser> userProvider,
+      PermissionBackend permissionBackend) {
     this.pluginName = pluginName;
     this.userProvider = userProvider;
+    this.permissionBackend = permissionBackend;
     menuEntries = Lists.newArrayList();
 
     List<MenuItem> projectItems = Lists.newArrayListWithExpectedSize(2);
@@ -54,9 +61,9 @@ public class ImportMenu implements TopMenu {
   }
 
   private boolean canImport() {
-    CapabilityControl ctl = userProvider.get().getCapabilities();
-    return ctl.canAdministrateServer()
-        || ctl.canPerform(pluginName + "-" + ImportCapability.ID);
+    return permissionBackend.user(userProvider).testOrFalse(
+      new PluginPermission(pluginName, ImportCapability.ID)) ||
+        permissionBackend.user(userProvider).testOrFalse(ADMINISTRATE_SERVER);
   }
 
   @Override
