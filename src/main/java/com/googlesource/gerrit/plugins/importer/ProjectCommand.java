@@ -20,7 +20,7 @@ import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.git.UpdateException;
+import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gerrit.sshd.CommandMetaData;
