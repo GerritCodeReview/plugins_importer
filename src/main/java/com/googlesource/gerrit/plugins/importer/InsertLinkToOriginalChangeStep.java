@@ -102,7 +102,7 @@ class InsertLinkToOriginalChangeStep {
     ChangeUpdate update = updateFactory.create(control(change, userId));
     ChangeMessage cmsg =
         new ChangeMessage(new ChangeMessage.Key(change.getId(),
-            ChangeUtil.messageUUID(db)), userId, TimeUtil.nowTs(),
+            ChangeUtil.messageUuid()), userId, TimeUtil.nowTs(),
             change.currentPatchSetId());
     cmsg.setMessage(message);
     cmUtil.addChangeMessage(db, update, cmsg);
