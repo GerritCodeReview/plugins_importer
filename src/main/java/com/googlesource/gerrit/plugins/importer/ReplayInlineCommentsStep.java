@@ -14,7 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static com.google.gerrit.server.PatchLineCommentsUtil.setCommentRevId;
+import static com.google.gerrit.server.CommentsUtil.setCommentRevId;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -29,14 +29,14 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.Url;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
+import com.google.gerrit.reviewdb.client.Comment;
 import com.google.gerrit.reviewdb.client.CommentRange;
 import com.google.gerrit.reviewdb.client.Patch;
-import com.google.gerrit.reviewdb.client.PatchLineComment;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.ChangeUtil;
 import com.google.gerrit.server.IdentifiedUser;
-import com.google.gerrit.server.PatchLineCommentsUtil;
+import com.google.gerrit.server.CommentsUtil;
 import com.google.gerrit.server.PatchSetUtil;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchListCache;
@@ -73,7 +73,7 @@ class ReplayInlineCommentsStep {
   private final IdentifiedUser.GenericFactory genericUserFactory;
   private final ChangeControl.GenericFactory changeControlFactory;
   private final ChangeUpdate.Factory updateFactory;
-  private final PatchLineCommentsUtil plcUtil;
+  private final CommentsUtil commentsUtil;
   private final PatchListCache patchListCache;
   private final PatchSetUtil psUtil;
   private final Change change;
@@ -87,7 +87,7 @@ class ReplayInlineCommentsStep {
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
       ChangeUpdate.Factory updateFactory,
-      PatchLineCommentsUtil plcUtil,
+      CommentsUtil commentsUtil,
       PatchListCache patchListCache,
       PatchSetUtil psUtil,
       @Assisted Change change,
@@ -99,7 +99,7 @@ class ReplayInlineCommentsStep {
     this.genericUserFactory = genericUserFactory;
     this.changeControlFactory = changeControlFactory;
     this.updateFactory = updateFactory;
-    this.plcUtil = plcUtil;
+    this.commentsUtil = commentsUtil;
     this.patchListCache = patchListCache;
     this.psUtil = psUtil;
     this.change = change;
@@ -155,7 +155,7 @@ class ReplayInlineCommentsStep {
   private Iterable<CommentInfo> filterComments(PatchSet ps,
       Iterable<CommentInfo> comments) throws OrmException {
     Set<String> existingUuids = new HashSet<>();
-    for (PatchLineComment c : db.patchComments().byPatchSet(ps.getId())) {
+    for (Comment c : db.patchComments().byPatchSet(ps.getId())) {
       existingUuids.add(c.getKey().get());
     }
 
@@ -174,17 +174,17 @@ class ReplayInlineCommentsStep {
       NoSuchChangeException {
     ChangeControl ctrl = control(change, author);
 
-    Map<String, PatchLineComment> drafts = scanDraftComments(ctrl, ps);
+    Map<String, Comment> drafts = scanDraftComments(ctrl, ps);
 
-    List<PatchLineComment> del = Lists.newArrayList();
-    List<PatchLineComment> ups = Lists.newArrayList();
+    List<Comment> del = Lists.newArrayList();
+    List<Comment> ups = Lists.newArrayList();
 
     for (CommentInfo c : comments) {
       String parent = Url.decode(c.inReplyTo);
-      PatchLineComment e = drafts.remove(Url.decode(c.id));
+      Comment e = drafts.remove(Url.decode(c.id));
       if (e == null) {
-        e = new PatchLineComment(
-            new PatchLineComment.Key(
+        e = new Comment(
+            new Comment.Key(
                 new Patch.Key(ps.getId(), c.path),
                 Url.decode(c.id)),
             c.line != null ? c.line : 0,
@@ -192,7 +192,7 @@ class ReplayInlineCommentsStep {
       } else if (parent != null) {
         e.setParentUuid(parent);
       }
-      e.setStatus(PatchLineComment.Status.PUBLISHED);
+      e.setStatus(Patch.Status.PUBLISHED);
       e.setWrittenOn(c.updated);
       e.setSide(c.side == Side.PARENT ? (short) 0 : (short) 1);
       setCommentRevId(e, patchListCache, change, ps);
@@ -211,15 +211,15 @@ class ReplayInlineCommentsStep {
     del.addAll(drafts.values());
     ChangeUpdate update = updateFactory.create(ctrl, TimeUtil.nowTs());
     update.setPatchSetId(ps.getId());
-    plcUtil.deleteComments(db, update, del);
-    plcUtil.putComments(db, update, ups);
+    commentsUtil.deleteComments(db, update, del);
+    commentsUtil.putComments(db, update, ups);
     update.commit();
   }
 
-  private Map<String, PatchLineComment> scanDraftComments(ChangeControl ctrl,
+  private Map<String, Patch> scanDraftComments(ChangeControl ctrl,
       PatchSet ps) throws OrmException {
-    Map<String, PatchLineComment> drafts = Maps.newHashMap();
-    for (PatchLineComment c : plcUtil.draftByPatchSetAuthor(db, ps.getId(),
+    Map<String, Patch> drafts = Maps.newHashMap();
+    for (Patch c : commentsUtil.draftByPatchSetAuthor(db, ps.getId(),
         ((IdentifiedUser) ctrl.getUser()).getAccountId(),
         ctrl.getNotes())) {
       drafts.put(c.getKey().get(), c);
