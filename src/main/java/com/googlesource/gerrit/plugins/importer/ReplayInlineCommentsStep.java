@@ -14,9 +14,10 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static com.google.gerrit.server.PatchLineCommentsUtil.setCommentRevId;
+import static com.google.gerrit.server.CommentsUtil.setCommentRevId;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -29,15 +30,17 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.Url;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
+import com.google.gerrit.reviewdb.client.Comment;
 import com.google.gerrit.reviewdb.client.CommentRange;
-import com.google.gerrit.reviewdb.client.Patch;
 import com.google.gerrit.reviewdb.client.PatchLineComment;
+import com.google.gerrit.reviewdb.client.PatchLineComment.Status;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.ChangeUtil;
+import com.google.gerrit.server.CommentsUtil;
 import com.google.gerrit.server.IdentifiedUser;
-import com.google.gerrit.server.PatchLineCommentsUtil;
 import com.google.gerrit.server.PatchSetUtil;
+import com.google.gerrit.server.config.GerritServerId;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.project.ChangeControl;
@@ -45,11 +48,6 @@ import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -57,6 +55,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ReplayInlineCommentsStep {
 
@@ -73,9 +74,10 @@ class ReplayInlineCommentsStep {
   private final IdentifiedUser.GenericFactory genericUserFactory;
   private final ChangeControl.GenericFactory changeControlFactory;
   private final ChangeUpdate.Factory updateFactory;
-  private final PatchLineCommentsUtil plcUtil;
+  private final CommentsUtil commentsUtil;
   private final PatchListCache patchListCache;
   private final PatchSetUtil psUtil;
+  private final String serverId;
   private final Change change;
   private final ChangeInfo changeInfo;
   private final GerritApi api;
@@ -87,9 +89,10 @@ class ReplayInlineCommentsStep {
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
       ChangeUpdate.Factory updateFactory,
-      PatchLineCommentsUtil plcUtil,
+      CommentsUtil commentsUtil,
       PatchListCache patchListCache,
       PatchSetUtil psUtil,
+      @GerritServerId String serverId,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
       @Assisted GerritApi api,
@@ -99,9 +102,10 @@ class ReplayInlineCommentsStep {
     this.genericUserFactory = genericUserFactory;
     this.changeControlFactory = changeControlFactory;
     this.updateFactory = updateFactory;
-    this.plcUtil = plcUtil;
+    this.commentsUtil = commentsUtil;
     this.patchListCache = patchListCache;
     this.psUtil = psUtil;
+    this.serverId = serverId;
     this.change = change;
     this.changeInfo = changeInfo;
     this.api = api;
@@ -174,55 +178,55 @@ class ReplayInlineCommentsStep {
       NoSuchChangeException {
     ChangeControl ctrl = control(change, author);
 
-    Map<String, PatchLineComment> drafts = scanDraftComments(ctrl, ps);
+    Map<String, Comment> drafts = scanDraftComments(ctrl, ps);
 
-    List<PatchLineComment> del = Lists.newArrayList();
-    List<PatchLineComment> ups = Lists.newArrayList();
+    List<Comment> del = Lists.newArrayList();
+    List<Comment> ups = Lists.newArrayList();
 
     for (CommentInfo c : comments) {
       String parent = Url.decode(c.inReplyTo);
-      PatchLineComment e = drafts.remove(Url.decode(c.id));
+      Comment e = drafts.remove(Url.decode(c.id));
+
       if (e == null) {
-        e = new PatchLineComment(
-            new PatchLineComment.Key(
-                new Patch.Key(ps.getId(), c.path),
-                Url.decode(c.id)),
-            c.line != null ? c.line : 0,
-            author, parent, c.updated);
+        e = new Comment(
+            new Comment.Key(Url.decode(c.id), c.path, ps.getId().get()),
+                author,
+                c.updated,
+                c.side == Side.PARENT ? (short) 0 : (short) 1,
+                c.message,
+                serverId,
+                c.unresolved);
       } else if (parent != null) {
-        e.setParentUuid(parent);
+        e.parentUuid = parent;
       }
-      e.setStatus(PatchLineComment.Status.PUBLISHED);
-      e.setWrittenOn(c.updated);
-      e.setSide(c.side == Side.PARENT ? (short) 0 : (short) 1);
       setCommentRevId(e, patchListCache, change, ps);
-      e.setMessage(c.message);
       if (c.range != null) {
         e.setRange(new CommentRange(
             c.range.startLine,
             c.range.startCharacter,
             c.range.endLine,
             c.range.endCharacter));
-        e.setLine(c.range.endLine);
+        e.lineNbr = c.range.endLine;
       }
       ups.add(e);
     }
 
-    del.addAll(drafts.values());
+    Iterables.addAll(del, drafts.values());
     ChangeUpdate update = updateFactory.create(ctrl, TimeUtil.nowTs());
     update.setPatchSetId(ps.getId());
-    plcUtil.deleteComments(db, update, del);
-    plcUtil.putComments(db, update, ups);
+
+    commentsUtil.deleteComments(db, del);
+    commentsUtil.putComments(db, update, ups);
     update.commit();
   }
 
-  private Map<String, PatchLineComment> scanDraftComments(ChangeControl ctrl,
+  private Map<String, Comment> scanDraftComments(ChangeControl ctrl,
       PatchSet ps) throws OrmException {
-    Map<String, PatchLineComment> drafts = Maps.newHashMap();
-    for (PatchLineComment c : plcUtil.draftByPatchSetAuthor(db, ps.getId(),
-        ((IdentifiedUser) ctrl.getUser()).getAccountId(),
-        ctrl.getNotes())) {
-      drafts.put(c.getKey().get(), c);
+    Map<String, Comment> drafts = Maps.newHashMap();
+    for (Comment c : commentsUtil.draftByPatchSetAuthor(db, ps.getId(),
+            ((IdentifiedUser) ctrl.getUser()).getAccountId(),
+            ctrl.getNotes())) {
+      drafts.put(c.key.uuid, c);
     }
     return drafts;
   }
