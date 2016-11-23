@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "50ec1c3c_9f61d34f",
+        "filename": "BUCK",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1010516
+      },
+      "writtenOn": "2016-11-23T13:22:49Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be changed to 2.13 on stable-2.13 as well?",
+      "revId": "b3388da5b5d5791ff1e75f5025ff8606eb2bf44d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
