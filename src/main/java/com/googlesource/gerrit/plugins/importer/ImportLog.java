@@ -33,6 +33,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 
+import java.util.Arrays;
+
 @Singleton
 class ImportLog extends PluginLogFile {
   private static final String IMPORT_LOG_NAME = "import_log";
@@ -96,7 +98,7 @@ class ImportLog extends PluginLogFile {
     event.setProperty(TARGET_PROJECT_NAME, targetProject.get());
 
     if (ex != null) {
-      event.setProperty(ERROR, ex.toString());
+      event.setProperty(ERROR, ex.toString() + "\n" + Arrays.toString(ex.getStackTrace()));
     }
 
     log.callAppenders(event);
