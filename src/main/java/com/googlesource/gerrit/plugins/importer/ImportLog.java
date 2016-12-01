@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gerrit.audit.AuditEvent;
@@ -96,7 +97,7 @@ class ImportLog extends PluginLogFile {
     event.setProperty(TARGET_PROJECT_NAME, targetProject.get());
 
     if (ex != null) {
-      event.setProperty(ERROR, ex.toString());
+      event.setProperty(ERROR, ex.toString() + "\n" + Throwables.getStackTraceAsString(ex));
     }
 
     log.callAppenders(event);
