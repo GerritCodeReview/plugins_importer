@@ -32,7 +32,6 @@ Imports are logged in 'review\_site/logs/import\_log' so that
 administrators can see who imported when which project. Imports do also
 send audit events.
 
-<a id="project-import">
 ### Project Import
 
 The import project functionality allows to import (move) a project from
@@ -44,7 +43,6 @@ server is ignored.
 Draft changes, draft patch sets, change edits and draft comments are
 *not* imported.
 
-<a id="project-import-process">
 #### Process
 
 A project import would be done in several steps:
@@ -72,7 +70,6 @@ The initial project import may take some time, but the resume should be
 fast since it only needs to transfer the delta since the initial (last)
 import.
 
-<a id="project-import-preconditions">
 #### Preconditions
 
 Preconditions for a project import:
@@ -106,7 +103,6 @@ with the same username.
 
 All locally created users are added to an internal group called "Imported Users".
 
-<a id="project-import-commands">
 #### Commands
 
 Importing a project can be done via
@@ -132,7 +128,6 @@ Completing the import can be done via
 When doing a project import the project in the target Gerrit server can
 be created with a new name or under another parent project.
 
-<a id="project-import-steps">
 #### How the project import works
 
 The project import is implemented in such a way that it replays the
@@ -163,7 +158,6 @@ Replaying a change is done by:
   global capability is assigned)
 * add link to original change as a new change message
 
-<a id="import-file">
 #### Import File
 
 At a point in time a project can be imported only by a single process.
@@ -177,7 +171,6 @@ imports. The import file is kept after the import is done so that the
 input parameters do not need to be specified again when the import is
 resumed.
 
-<a id="resume-project-import">
 #### Resume Project Import
 
 Once a project was imported, the project import can be resumed to
@@ -207,7 +200,6 @@ On resume approvals, hashtags and change topic are always reapplied.
 This means that any modification of these properties in the target
 Gerrit server is overridden if the import of a change is resumed.
 
-<a id="complete-project-import">
 #### Complete Project Import
 
 Completing the project import deletes all refs under the
@@ -216,7 +208,6 @@ for the project is deleted. Afterwards it's not possible to resume the
 project import anymore. Also the project doesn't appear in the list of
 imported projects anymore.
 
-<a id="project-copy">
 ### Project Copy
 
 Project copy is a special case of project import, where a project from
@@ -226,7 +217,6 @@ To be able to copy a project the user must be a member of a group that
 is granted the 'Copy Project' capability (provided by this plugin) or
 the 'Administrate Server' capability.
 
-<a id="project-copy-commands">
 #### Commands
 
 Copying a project can be done via
@@ -253,14 +243,12 @@ When doing a project copy the project *cannot* be put under another
 parent project. But you can reparent the project copy after the copy is
 done.
 
-<a id="project-rename">
 ### Project Rename
 
 By doing a [project copy](#project-copy) and then using the
 [delete-project](https://gerrit.googlesource.com/plugins/delete-project/+doc/master/src/main/resources/Documentation/about.md)
 plugin to delete the source project, a project can be renamed.
 
-<a id="group-import">
 ### Group Import
 
 The import group functionality allows to import a Gerrit group from one
@@ -270,7 +258,6 @@ The flag whether a group is visible to all registered users is *not*
 preserved on import, but the default that is configured for this option
 on the target Gerrit server is applied to each imported group.
 
-<a id="group-import-preconditions">
 #### Preconditions
 
 Preconditions for a group import:
@@ -304,7 +291,6 @@ index is appended: '<group-name>\_imported_<index>'.
 Missing owner groups and missing included groups can be automatically
 imported into the target Gerrit server.
 
-<a id="group-import-commands">
 #### Commands
 
 Importing a group can be done via
