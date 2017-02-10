@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ab097121_65a8eaa3",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 21
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-02-10T19:08:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1291bca4_ecf3a764",
+      "range": {
+        "startLine": 79,
+        "startChar": 29,
+        "endLine": 79,
+        "endChar": 36
+      },
+      "revId": "190c21987cd1569cd4b7e68c28b15a358fba2526",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b60976f_7a14b8ba",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
         "patchSetId": 21
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "4258fe01_972e924b",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 21
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-02-10T19:08:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7b60976f_7a14b8ba",
+      "range": {
+        "startLine": 94,
+        "startChar": 19,
+        "endLine": 94,
+        "endChar": 26
+      },
+      "revId": "190c21987cd1569cd4b7e68c28b15a358fba2526",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1997bcc6_3eb38607",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
         "patchSetId": 21
@@ -59,6 +107,30 @@
       "writtenOn": "2017-02-10T08:18:03Z",
       "side": 1,
       "message": "This looks wrong.\n\ne.asComment(serverId) creates a new Comment object.\nThen setCommentRevId(...) populates the revId field in this Comment object, but this update is not back-propagated to the PatchLineComment and the Comment object is not used further.\nAs result the revId field of e is still not set.",
+      "range": {
+        "startLine": 204,
+        "startChar": 6,
+        "endLine": 204,
+        "endChar": 44
+      },
+      "revId": "190c21987cd1569cd4b7e68c28b15a358fba2526",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f99ab8ae_669c3234",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 21
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-02-10T19:08:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1997bcc6_3eb38607",
       "range": {
         "startLine": 204,
         "startChar": 6,
@@ -105,6 +177,30 @@
       "writtenOn": "2017-02-10T08:54:31Z",
       "side": 1,
       "message": "I think I tried that, but then run into some issues, on the caller side. Bur probably just was too early, here, but, I wouldn\u0027t objet if you fix that, beforeI have time to look into it again ;-)",
+      "parentUuid": "11d92f5d_a5f7e7e7",
+      "range": {
+        "startLine": 227,
+        "startChar": 22,
+        "endLine": 227,
+        "endChar": 38
+      },
+      "revId": "190c21987cd1569cd4b7e68c28b15a358fba2526",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "417cee1c_c4edd6d8",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 21
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-02-10T19:08:46Z",
+      "side": 1,
+      "message": "Done",
       "parentUuid": "11d92f5d_a5f7e7e7",
       "range": {
         "startLine": 227,
