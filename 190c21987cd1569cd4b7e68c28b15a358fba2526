@@ -91,6 +91,30 @@
       "revId": "190c21987cd1569cd4b7e68c28b15a358fba2526",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f64bd86_06ef7485",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 21
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-02-10T08:54:31Z",
+      "side": 1,
+      "message": "I think I tried that, but then run into some issues, on the caller side. Bur probably just was too early, here, but, I wouldn\u0027t objet if you fix that, beforeI have time to look into it again ;-)",
+      "parentUuid": "11d92f5d_a5f7e7e7",
+      "range": {
+        "startLine": 227,
+        "startChar": 22,
+        "endLine": 227,
+        "endChar": 38
+      },
+      "revId": "190c21987cd1569cd4b7e68c28b15a358fba2526",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
