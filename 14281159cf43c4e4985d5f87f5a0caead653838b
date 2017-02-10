@@ -22,6 +22,30 @@
       "revId": "14281159cf43c4e4985d5f87f5a0caead653838b",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a8e6757_e2bb6760",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2017-02-10T08:18:03Z",
+      "side": 1,
+      "message": "Should be ok.",
+      "parentUuid": "8721f510_39409fcd",
+      "range": {
+        "startLine": 222,
+        "startChar": 36,
+        "endLine": 222,
+        "endChar": 52
+      },
+      "revId": "14281159cf43c4e4985d5f87f5a0caead653838b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
