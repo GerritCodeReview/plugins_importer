@@ -93,6 +93,30 @@
       "revId": "14281159cf43c4e4985d5f87f5a0caead653838b",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "be19a108_e4fdcfd7",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-02-10T09:59:18Z",
+      "side": 1,
+      "message": "Should this only apply for Gerrit core on master and Core plugins on master? In all other cases the old formatting and old line length: 80 char should apply? In any event this would need to be clarified.",
+      "parentUuid": "010bb1b9_69a17cfb",
+      "range": {
+        "startLine": 241,
+        "startChar": 67,
+        "endLine": 241,
+        "endChar": 89
+      },
+      "revId": "14281159cf43c4e4985d5f87f5a0caead653838b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
