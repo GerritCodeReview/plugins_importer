@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "c8c6d931_4cf6aa2d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ImportLog.java",
+        "patchSetId": 24
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2017-02-15T22:28:42Z",
+      "side": 1,
+      "message": "Then this should be the commit message subject",
+      "parentUuid": "1954d4ea_197da6e6",
+      "revId": "4c3dd79cfe2b04db617c0aec109c448ca88deb30",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "efb398ef_d20b4582",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
         "patchSetId": 24
