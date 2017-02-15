@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e8f52890_ab472b09",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 23
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2017-02-15T10:01:41Z",
+      "side": 1,
+      "message": "change those types to List\u003cComment\u003e?",
+      "range": {
+        "startLine": 183,
+        "startChar": 4,
+        "endLine": 184,
+        "endChar": 54
+      },
+      "revId": "da2ae05657f333cc8d09b1617104db49ac987ff6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a586ba21_c841c37a",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 23
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2017-02-15T10:01:41Z",
+      "side": 1,
+      "message": "Why do we convert e from Comment to PatchLineComment here, if below in line 222 we convert it back to Comment?",
+      "range": {
+        "startLine": 211,
+        "startChar": 6,
+        "endLine": 212,
+        "endChar": 49
+      },
+      "revId": "da2ae05657f333cc8d09b1617104db49ac987ff6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d2fd223_fa6fed6e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayInlineCommentsStep.java",
+        "patchSetId": 23
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2017-02-15T10:01:41Z",
+      "side": 1,
+      "message": "same here",
+      "range": {
+        "startLine": 215,
+        "startChar": 4,
+        "endLine": 217,
+        "endChar": 77
+      },
+      "revId": "da2ae05657f333cc8d09b1617104db49ac987ff6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
