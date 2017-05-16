@@ -87,12 +87,12 @@ class ReplayMessagesStep {
       }
 
       Timestamp ts = msg.date;
+      PatchSet.Id psId = msg._revisionNumber != null
+          ? new PatchSet.Id(change.getId(),  msg._revisionNumber)
+          : null;
       if (msg.author != null) {
         Account.Id userId = accountUtil.resolveUser(api, msg.author);
         ChangeUpdate update = updateFactory.create(control(change, userId), ts);
-        PatchSet.Id psId = msg._revisionNumber != null
-            ? new PatchSet.Id(change.getId(),  msg._revisionNumber)
-            : null;
         ChangeMessage cmsg = new ChangeMessage(msgKey, userId, ts, psId);
         cmsg.setMessage(msg.message);
         cmUtil.addChangeMessage(db, update, cmsg);
@@ -101,7 +101,7 @@ class ReplayMessagesStep {
         // Message create by the GerritPersonIdent user
         ChangeMessage cmsg =
             new ChangeMessage(new ChangeMessage.Key(change.getId(), msg.id),
-                null, ts, new PatchSet.Id(change.getId(), msg._revisionNumber));
+                null, ts, psId);
         cmsg.setMessage(msg.message);
         db.changeMessages().insert(Collections.singleton(cmsg));
       }
