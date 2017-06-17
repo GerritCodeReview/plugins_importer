@@ -80,10 +80,9 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     try {
       if (lockFile.lock()) {
         return lockFile;
-      } else {
-        throw new ResourceConflictException(
-            "project is being imported from another session");
       }
+      throw new ResourceConflictException(
+          "project is being imported from another session");
     } catch (IOException e) {
       throw new ResourceConflictException("failed to lock project for delete");
     }

@@ -64,10 +64,9 @@ class OpenRepositoryStep {
       Repository repo = git.openRepository(name);
       if (resume) {
         return repo;
-      } else {
-        throw new ResourceConflictException(format(
-            "repository %s already exists", name.get()));
       }
+      throw new ResourceConflictException(format(
+          "repository %s already exists", name.get()));
     } catch (RepositoryNotFoundException e) {
       // Project doesn't exist
       if (resume) {

@@ -307,10 +307,9 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     try {
       if (lockFile.lock()) {
         return lockFile;
-      } else {
-        throw new ResourceConflictException(
-            "project is being imported from another session");
       }
+      throw new ResourceConflictException(
+          "project is being imported from another session");
     } catch (IOException e1) {
       throw new ResourceConflictException("failed to lock project for import");
     }

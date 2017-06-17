@@ -15,9 +15,7 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.gerrit.audit.AuditEvent;
 import com.google.gerrit.audit.AuditService;

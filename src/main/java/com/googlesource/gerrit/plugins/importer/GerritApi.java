@@ -44,9 +44,8 @@ interface GerritApi {
     GerritApi create(String url, String user, String pass) {
       if (url == null) {
         return localApi;
-      } else {
-        return new RemoteApi(url, user, pass);
       }
+      return new RemoteApi(url, user, pass);
     }
   }
 
@@ -121,18 +120,16 @@ interface GerritApi {
             return -1;
           }
           return patch - o.patch;
-        } else {
-          if (o.minor == null) {
-            return 1;
-          }
-          if (minor == null) {
-            return -1;
-          }
-          return minor - o.minor;
         }
-      } else {
-        return major - o.major;
+        if (o.minor == null) {
+          return 1;
+        }
+        if (minor == null) {
+          return -1;
+        }
+        return minor - o.minor;
       }
+      return major - o.major;
     }
 
     @Override

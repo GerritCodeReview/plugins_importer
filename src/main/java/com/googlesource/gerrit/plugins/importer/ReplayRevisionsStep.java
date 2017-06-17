@@ -108,15 +108,14 @@ class ReplayRevisionsStep {
           if (newCommit.equals(commit)) {
             // already replayed
             continue;
-          } else {
-            // a patch set with the same number was created both in the source
-            // and in the target system
-            log.warn(String.format(
-                "Project %s was modified in target system: "
-                    + "Skip replay revision for patch set %s.",
-                change.getProject().get(), ps.getId().toString()));
-            continue;
           }
+          // a patch set with the same number was created both in the source
+          // and in the target system
+          log.warn(String.format(
+              "Project %s was modified in target system: "
+                  + "Skip replay revision for patch set %s.",
+              change.getProject().get(), ps.getId().toString()));
+          continue;
         }
 
         patchSets.add(ps);
