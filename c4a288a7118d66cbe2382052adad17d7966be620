@@ -16,6 +16,24 @@
       "revId": "c4a288a7118d66cbe2382052adad17d7966be620",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d06d9aa7_90701434",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/CompleteProjectImport.java",
+        "patchSetId": 34
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-06-17T06:01:58Z",
+      "side": 1,
+      "message": "Done. Reverted to patch set 32.",
+      "parentUuid": "95f61788_ade69a88",
+      "revId": "c4a288a7118d66cbe2382052adad17d7966be620",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
