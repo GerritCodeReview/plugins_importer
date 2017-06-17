@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95f61788_ade69a88",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/CompleteProjectImport.java",
+        "patchSetId": 34
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-06-17T05:52:31Z",
+      "side": 1,
+      "message": "This and other adaptations to the permission backend change should only go to master (upcoming 2.15 release).\n\nWhat the gerrit customers need here, is a working version of this plugin for 2.14 release, obviously.\n\nThere is not much sense to create a stable-2.14 branch now, because the plugin doesn\u0027t compile and can\u0027t be even built, because Bazel driven build is not implemented.\n\nMy suggestion is: revert all adaptation for changes in gerrit API against master, make it compile and build and work against stale-2.14 branch, merged this change, create stable-2.14 branch and adapt on master for gerrit API 2.15 in follow-up change.",
+      "revId": "c4a288a7118d66cbe2382052adad17d7966be620",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
