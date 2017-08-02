@@ -37,7 +37,6 @@ import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.Singleton;
 
 import com.googlesource.gerrit.plugins.importer.CopyProject.Input;
 
@@ -48,7 +47,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 
-@Singleton
 @RequiresCapability(CopyProjectCapability.ID)
 class CopyProject implements RestModifyView<ProjectResource, Input>,
     UiAction<ProjectResource> {
