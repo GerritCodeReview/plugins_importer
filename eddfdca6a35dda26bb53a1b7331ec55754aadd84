@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "cb70a303_365d11b1",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/CopyProject.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1029953
+      },
+      "writtenOn": "2017-08-02T12:59:10Z",
+      "side": 1,
+      "message": "Thanks, done.",
+      "parentUuid": "1d8d0b1f_e7e63abd",
+      "range": {
+        "startLine": 36,
+        "startChar": 25,
+        "endLine": 36,
+        "endChar": 34
+      },
+      "revId": "eddfdca6a35dda26bb53a1b7331ec55754aadd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b004deab_65aa577b",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/CopyProject.java",
         "patchSetId": 2
