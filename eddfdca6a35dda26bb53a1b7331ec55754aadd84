@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3e9cb604_c7ec4898",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2017-08-02T12:56:40Z",
+      "side": 1,
+      "message": "See the comments inline.  This was noticed during review of [1] and I asked him to split it to its own change.\n\n[1] https://gerrit-review.googlesource.com/110394",
+      "parentUuid": "3655a6b2_d0367224",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 39
+      },
+      "revId": "eddfdca6a35dda26bb53a1b7331ec55754aadd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d8d0b1f_e7e63abd",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/CopyProject.java",
         "patchSetId": 2
@@ -41,6 +65,29 @@
         "startChar": 25,
         "endLine": 36,
         "endChar": 34
+      },
+      "revId": "eddfdca6a35dda26bb53a1b7331ec55754aadd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b004deab_65aa577b",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/CopyProject.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2017-08-02T12:56:40Z",
+      "side": 1,
+      "message": "Hugo, it can\u0027t be a Singleton if it has a mutable member.",
+      "range": {
+        "startLine": 58,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 21
       },
       "revId": "eddfdca6a35dda26bb53a1b7331ec55754aadd84",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
