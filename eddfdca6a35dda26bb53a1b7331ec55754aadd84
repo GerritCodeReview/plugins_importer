@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "99a53f7e_7622bb62",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1029953
+      },
+      "writtenOn": "2017-08-02T12:59:47Z",
+      "side": 1,
+      "message": "Added link in the commit msg.",
+      "parentUuid": "3e9cb604_c7ec4898",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 39
+      },
+      "revId": "eddfdca6a35dda26bb53a1b7331ec55754aadd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d8d0b1f_e7e63abd",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/CopyProject.java",
         "patchSetId": 2
