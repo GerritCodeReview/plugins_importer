@@ -22,6 +22,30 @@
       "revId": "76dfd234fe087b51720cffe96360c01fd3ad6c09",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e8c27d9a_eacad42d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/CopyProject.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1029953
+      },
+      "writtenOn": "2017-08-02T12:48:07Z",
+      "side": 0,
+      "message": "Thanks, done in https://gerrit-review.googlesource.com/#/c/plugins/importer/+/117390/",
+      "parentUuid": "606e670a_62e0bb96",
+      "range": {
+        "startLine": 47,
+        "startChar": 1,
+        "endLine": 47,
+        "endChar": 10
+      },
+      "revId": "76dfd234fe087b51720cffe96360c01fd3ad6c09",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
