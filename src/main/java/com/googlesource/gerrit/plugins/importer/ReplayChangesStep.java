@@ -132,7 +132,7 @@ class ReplayChangesStep {
     this.resume = resume;
     this.importStatistic = importStatistic;
     this.pm = pm;
-    this.isNoteDbEnabled = migration.enabled();
+    this.isNoteDbEnabled = migration.readChanges();
   }
 
   void replay() throws IOException, OrmException,
