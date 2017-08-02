@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 
-@Singleton
 @RequiresCapability(CopyProjectCapability.ID)
 class CopyProject implements RestModifyView<ProjectResource, Input>,
     UiAction<ProjectResource> {
