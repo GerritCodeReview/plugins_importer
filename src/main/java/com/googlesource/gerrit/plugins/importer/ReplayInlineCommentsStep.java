@@ -197,7 +197,7 @@ class ReplayInlineCommentsStep {
                 c.side == Side.PARENT ? (short) 0 : (short) 1,
                 c.message,
                 serverId,
-                c.unresolved);
+                c.unresolved == null ? false : c.unresolved);
       } else if (parent != null) {
         e.parentUuid = parent;
       }
