@@ -21,8 +21,6 @@ import static com.googlesource.gerrit.plugins.importer.client.InputUtil.getValue
 
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
@@ -41,7 +39,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
   private final Button resumeButton;
   private TextBox userTxt;
   private TextBox passTxt;
-  private final CheckBox forceCheckBox;
+  private CheckBox forceCheckBox;
 
   public ResumeImportDialog(final String project, final boolean copy) {
     super(/* auto hide */false, /* modal */true);
@@ -52,9 +50,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
 
     resumeButton = new Button();
     resumeButton.setText("Resume");
-    resumeButton.addClickHandler(new ClickHandler() {
-      @Override
-      public void onClick(ClickEvent event) {
+    resumeButton.addClickHandler(event -> {
         hide();
 
         RestApi restApi;
@@ -86,7 +82,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
                 p.add(new Label("Created Changes: " + result.numChangesCreated()));
                 p.add(new Label("Updated Changes: " + result.numChangesUpdated()));
                 Button okButton = new Button("OK");
-                okButton.addClickHandler(event1 -> successDialog.hide());
+                okButton.addClickHandler(event -> successDialog.hide());
 
                 p.add(okButton);
                 successDialog.add(p);
@@ -99,7 +95,6 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
               public void onFailure(Throwable caught) {
               }
             });
-      }
     });
     buttons.add(resumeButton);
 
