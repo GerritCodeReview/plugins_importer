@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a9508623_6d73c26d",
+        "filename": ".gitignore",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1019328
+      },
+      "writtenOn": "2017-09-18T18:23:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3824788_abe6e17f",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 10
+      },
+      "revId": "bb7b58193b8954624c425770ac5b33b7384fccb8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "320eab92_2312de7b",
         "filename": "BUILD",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2017-09-18T18:03:32Z",
       "side": 1,
       "message": "unrelated formatting change, could have been done in its own change.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 1
+      },
+      "revId": "bb7b58193b8954624c425770ac5b33b7384fccb8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3ddc5f8_838185c1",
+        "filename": "BUILD",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1019328
+      },
+      "writtenOn": "2017-09-18T18:23:02Z",
+      "side": 1,
+      "message": "Done. Back as it was as buildifier did not modify it this time.",
+      "parentUuid": "320eab92_2312de7b",
       "range": {
         "startLine": 1,
         "startChar": 0,
