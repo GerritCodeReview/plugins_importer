@@ -21,8 +21,6 @@ import static com.googlesource.gerrit.plugins.importer.client.InputUtil.getValue
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;
 import com.google.gerrit.plugin.client.screen.Screen;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
@@ -65,12 +63,7 @@ public class ImportProjectScreen extends VerticalPanel {
 
     Button importButton = new Button("Import");
     importButton.addStyleName("importer-importButton");
-    importButton.addClickHandler(new ClickHandler() {
-      @Override
-      public void onClick(ClickEvent event) {
-        doImport();
-      }
-    });
+    importButton.addClickHandler(event -> doImport());
     buttons.add(importButton);
     importButton.setEnabled(false);
     new OnEditEnabler(importButton, fromTxt);
@@ -107,12 +100,7 @@ public class ImportProjectScreen extends VerticalPanel {
         p.add(new Label("The project was imported."));
         p.add(new Label("Created Changes: " + result.numChangesCreated()));
         Button okButton = new Button("OK");
-        okButton.addClickHandler(new ClickHandler() {
-          @Override
-          public void onClick(ClickEvent event) {
-            successDialog.hide();
-          }
-        });
+        okButton.addClickHandler(event -> successDialog.hide());
 
         p.add(okButton);
         successDialog.add(p);
