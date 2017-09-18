@@ -5,7 +5,8 @@
 /bucklets
 /target
 /.classpath
+/.primary_build_tool
 /.project
-/.settings/org.maven.ide.eclipse.prefs
-/.settings/org.eclipse.m2e.core.prefs
+/.settings
+/bazel-*
 /eclipse-out
