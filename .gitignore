@@ -4,6 +4,8 @@
 /buck-out
 /bucklets
 /.classpath
+/.primary_build_tool
 /.project
 /.settings
+/bazel-*
 /eclipse-out
