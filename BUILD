@@ -1,4 +1,7 @@
-load("//tools/bzl:plugin.bzl", "gerrit_plugin")
+load(
+    "//tools/bzl:plugin.bzl",
+    "gerrit_plugin",
+)
 
 gerrit_plugin(
     name = "importer",
