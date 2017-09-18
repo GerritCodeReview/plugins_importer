@@ -86,12 +86,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
                 p.add(new Label("Created Changes: " + result.numChangesCreated()));
                 p.add(new Label("Updated Changes: " + result.numChangesUpdated()));
                 Button okButton = new Button("OK");
-                okButton.addClickHandler(new ClickHandler() {
-                  @Override
-                  public void onClick(ClickEvent event) {
-                    successDialog.hide();
-                  }
-                });
+                okButton.addClickHandler(event1 -> successDialog.hide());
 
                 p.add(okButton);
                 successDialog.add(p);
@@ -111,12 +106,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
     cancelButton = new Button();
     cancelButton.addStyleName("importer-cancel-button");
     cancelButton.setText("Cancel");
-    cancelButton.addClickHandler(new ClickHandler() {
-      @Override
-      public void onClick(ClickEvent event) {
-        hide();
-      }
-    });
+    cancelButton.addClickHandler(event -> hide());
     buttons.add(cancelButton);
 
     FlowPanel center = new FlowPanel();

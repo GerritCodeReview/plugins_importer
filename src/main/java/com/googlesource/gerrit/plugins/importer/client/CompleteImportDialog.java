@@ -43,59 +43,51 @@ public class CompleteImportDialog extends AutoCenterDialogBox {
 
     completeButton = new Button();
     completeButton.setText("Complete");
-    completeButton.addClickHandler(new ClickHandler() {
-      @Override
-      public void onClick(ClickEvent event) {
-        hide();
+    completeButton.addClickHandler(event -> {
+      hide();
 
-        new RestApi("config").id("server")
-            .view(Plugin.get().getName(), "projects").id(project)
-            .delete(new AsyncCallback<NoContent>() {
-              @Override
-              public void onSuccess(NoContent result) {
-                Plugin.get().go("/x/" + Plugin.get().getName() + "/list");
+      new RestApi("config").id("server")
+          .view(Plugin.get().getName(), "projects").id(project)
+          .delete(new AsyncCallback<NoContent>() {
+            @Override
+            public void onSuccess(NoContent result) {
+              Plugin.get().go("/x/" + Plugin.get().getName() + "/list");
 
-                final DialogBox successDialog = new DialogBox();
-                successDialog.setText("Project "
-                    + (copy ? "Copy" : "Import") + " Completed");
-                successDialog.setAnimationEnabled(true);
+              final DialogBox successDialog = new DialogBox();
+              successDialog.setText("Project "
+                  + (copy ? "Copy" : "Import") + " Completed");
+              successDialog.setAnimationEnabled(true);
 
-                Panel p = new VerticalPanel();
-                p.setStyleName("importer-message-panel");
-                p.add(new Label("The project "
-                  + (copy ? "copy" : "import") + " was completed."));
-                Button okButton = new Button("OK");
-                okButton.addClickHandler(new ClickHandler() {
-                  @Override
-                  public void onClick(ClickEvent event) {
-                    successDialog.hide();
-                  }
-                });
+              Panel p = new VerticalPanel();
+              p.setStyleName("importer-message-panel");
+              p.add(new Label("The project "
+                + (copy ? "copy" : "import") + " was completed."));
+              Button okButton = new Button("OK");
+              okButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent event) {
+                  successDialog.hide();
+                }
+              });
 
-                p.add(okButton);
-                successDialog.add(p);
+              p.add(okButton);
+              successDialog.add(p);
 
-                successDialog.center();
-                successDialog.show();
-              }
+              successDialog.center();
+              successDialog.show();
+            }
 
-              @Override
-              public void onFailure(Throwable caught) {
-              }
-            });
-      }
+            @Override
+            public void onFailure(Throwable caught) {
+            }
+          });
     });
     buttons.add(completeButton);
 
     cancelButton = new Button();
     cancelButton.addStyleName("importer-cancel-button");
     cancelButton.setText("Cancel");
-    cancelButton.addClickHandler(new ClickHandler() {
-      @Override
-      public void onClick(ClickEvent event) {
-        hide();
-      }
-    });
+    cancelButton.addClickHandler(event -> hide());
     buttons.add(cancelButton);
 
     FlowPanel center = new FlowPanel();
