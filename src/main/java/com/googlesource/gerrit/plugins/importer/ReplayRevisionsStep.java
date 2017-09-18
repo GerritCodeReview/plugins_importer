@@ -40,8 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 class ReplayRevisionsStep {
@@ -161,12 +159,7 @@ class ReplayRevisionsStep {
   }
 
   private static void sortRevisionInfoByNumber(List<RevisionInfo> list) {
-    Collections.sort(list, new Comparator<RevisionInfo>() {
-      @Override
-      public int compare(RevisionInfo a, RevisionInfo b) {
-        return a._number - b._number;
-      }
-    });
+    list.sort((a, b) -> a._number - b._number);
   }
 
   private void updateRef(Repository repo, PatchSet ps)
