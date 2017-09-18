@@ -123,7 +123,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     validate(input, groupInfo);
     createGroup(input, groupInfo);
 
-    return Response.<String> ok("OK");
+    return Response.ok("OK");
   }
 
   private void validate(Input input, GroupInfo groupInfo)
