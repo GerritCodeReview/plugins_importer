@@ -17,8 +17,6 @@ package com.googlesource.gerrit.plugins.importer.client;
 import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.NoContent;
 import com.google.gerrit.plugin.client.rpc.RestApi;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
@@ -63,12 +61,7 @@ public class CompleteImportDialog extends AutoCenterDialogBox {
               p.add(new Label("The project "
                 + (copy ? "copy" : "import") + " was completed."));
               Button okButton = new Button("OK");
-              okButton.addClickHandler(new ClickHandler() {
-                @Override
-                public void onClick(ClickEvent event) {
-                  successDialog.hide();
-                }
-              });
+              okButton.addClickHandler(event1 -> successDialog.hide());
 
               p.add(okButton);
               successDialog.add(p);
