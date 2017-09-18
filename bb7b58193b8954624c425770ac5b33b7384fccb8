@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c3824788_abe6e17f",
+        "filename": ".gitignore",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1012987
+      },
+      "writtenOn": "2017-09-18T18:03:32Z",
+      "side": 1,
+      "message": "this could have been done in its own change",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 10
+      },
+      "revId": "bb7b58193b8954624c425770ac5b33b7384fccb8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "320eab92_2312de7b",
+        "filename": "BUILD",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1012987
+      },
+      "writtenOn": "2017-09-18T18:03:32Z",
+      "side": 1,
+      "message": "unrelated formatting change, could have been done in its own change.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 1
+      },
+      "revId": "bb7b58193b8954624c425770ac5b33b7384fccb8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
