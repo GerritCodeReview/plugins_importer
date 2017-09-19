@@ -22,6 +22,7 @@ import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.CreateProjectArgs;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectsCollection;
@@ -57,8 +58,8 @@ class OpenRepositoryStep {
   }
 
   Repository open(Project.NameKey name, boolean resume, ProgressMonitor pm,
-      Project.NameKey parent)
-      throws ResourceConflictException, IOException, UnprocessableEntityException {
+      Project.NameKey parent) throws ResourceConflictException, IOException,
+      UnprocessableEntityException, PermissionBackendException {
     pm.beginTask("Open repository", 1);
     try {
       Repository repo = git.openRepository(name);
@@ -83,10 +84,11 @@ class OpenRepositoryStep {
   }
 
   private void beforeCreateProject(Project.NameKey name, Project.NameKey parent)
-      throws ResourceConflictException, UnprocessableEntityException, IOException {
+      throws ResourceConflictException, UnprocessableEntityException,
+      IOException, PermissionBackendException {
     CreateProjectArgs args = new CreateProjectArgs();
     args.setProjectName(name);
-    args.newParent = projectsCollection.get().parse(parent.get()).getControl();
+    args.newParent = projectsCollection.get().parse(parent.get()).getNameKey();
     for (ProjectCreationValidationListener l : projectCreationValidationListeners) {
       try {
         l.validateNewProject(args);

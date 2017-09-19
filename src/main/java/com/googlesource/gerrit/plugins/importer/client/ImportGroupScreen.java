@@ -23,8 +23,6 @@ import com.google.gerrit.plugin.client.Plugin;
 import com.google.gerrit.plugin.client.rpc.RestApi;
 import com.google.gerrit.plugin.client.screen.Screen;
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
@@ -66,12 +64,7 @@ public class ImportGroupScreen extends VerticalPanel {
 
     Button importButton = new Button("Import");
     importButton.addStyleName("importer-importButton");
-    importButton.addClickHandler(new ClickHandler() {
-      @Override
-      public void onClick(ClickEvent event) {
-        doImport();
-      }
-    });
+    importButton.addClickHandler(event -> doImport());
     buttons.add(importButton);
     importButton.setEnabled(false);
     new OnEditEnabler(importButton, fromTxt);
@@ -105,12 +98,7 @@ public class ImportGroupScreen extends VerticalPanel {
         p.setStyleName("importer-message-panel");
         p.add(new Label("The group was imported."));
         Button okButton = new Button("OK");
-        okButton.addClickHandler(new ClickHandler() {
-          @Override
-          public void onClick(ClickEvent event) {
-            successDialog.hide();
-          }
-        });
+        okButton.addClickHandler(event -> successDialog.hide());
 
         p.add(okButton);
         successDialog.add(p);

@@ -28,8 +28,8 @@ import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.notedb.ChangeUpdate;
-import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -41,7 +41,7 @@ class InsertLinkToOriginalChangeStep {
   private final CurrentUser currentUser;
   private final ChangeUpdate.Factory updateFactory;
   private final IdentifiedUser.GenericFactory genericUserFactory;
-  private final ChangeControl.GenericFactory changeControlFactory;
+  private final ChangeData.Factory changeDataFactory;
   private final ReviewDb db;
   private final ChangeMessagesUtil cmUtil;
   private final String canonicalWebUrl;
@@ -62,7 +62,7 @@ class InsertLinkToOriginalChangeStep {
   InsertLinkToOriginalChangeStep(CurrentUser currentUser,
       ChangeUpdate.Factory updateFactory,
       IdentifiedUser.GenericFactory genericUserFactory,
-      ChangeControl.GenericFactory changeControlFactory,
+      ChangeData.Factory changeDataFactory,
       ReviewDb db,
       ChangeMessagesUtil cmUtil,
       @CanonicalWebUrl String canonicalWebUrl,
@@ -73,7 +73,7 @@ class InsertLinkToOriginalChangeStep {
     this.currentUser = currentUser;
     this.updateFactory = updateFactory;
     this.genericUserFactory = genericUserFactory;
-    this.changeControlFactory = changeControlFactory;
+    this.changeDataFactory = changeDataFactory;
     this.db = db;
     this.cmUtil = cmUtil;
     this.canonicalWebUrl = canonicalWebUrl;
@@ -99,7 +99,8 @@ class InsertLinkToOriginalChangeStep {
   private void insertMessage(Change change, String message)
       throws NoSuchChangeException, OrmException, IOException {
     Account.Id userId = ((IdentifiedUser) currentUser).getAccountId();
-    ChangeUpdate update = updateFactory.create(control(change, userId));
+    ChangeData cd = changeDataFactory.create(db, change);
+    ChangeUpdate update = updateFactory.create(cd.notes(), genericUserFactory.create(userId));
     ChangeMessage cmsg =
         new ChangeMessage(new ChangeMessage.Key(change.getId(),
             ChangeUtil.messageUuid()), userId, TimeUtil.nowTs(),
@@ -107,16 +108,6 @@ class InsertLinkToOriginalChangeStep {
     cmsg.setMessage(message);
     cmUtil.addChangeMessage(db, update, cmsg);
     update.commit();
-  }
-
-  private ChangeControl control(Change change, Account.Id id)
-      throws NoSuchChangeException {
-    try {
-      return changeControlFactory.controlFor(db, change,
-          genericUserFactory.create(id));
-    } catch (OrmException e) {
-      throw new NoSuchChangeException(change.getId());
-    }
   }
 
   private static String ensureSlash(String in) {

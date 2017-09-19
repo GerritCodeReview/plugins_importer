@@ -136,7 +136,6 @@ public class ProjectsCollection implements
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public ImportProject create(ConfigResource parent, IdString id)
       throws RestApiException {
     return importProjectFactory.create(new Project.NameKey(id.get()));

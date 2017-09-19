@@ -15,9 +15,6 @@
 package com.googlesource.gerrit.plugins.importer.client;
 
 import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.core.client.Scheduler.ScheduledCommand;
-import com.google.gwt.event.dom.client.KeyPressEvent;
-import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -72,12 +69,7 @@ public class InputUtil {
         }
       };
     }
-    tb.addKeyPressHandler(new KeyPressHandler() {
-      @Override
-      public void onKeyPress(KeyPressEvent event) {
-        event.stopPropagation();
-      }
-    });
+    tb.addKeyPressHandler(event -> event.stopPropagation());
     tb.sinkEvents(Event.ONPASTE);
     tb.setVisibleLength(40);
     return tb;
@@ -85,12 +77,9 @@ public class InputUtil {
 
   private static void handlePaste(final TextBox tb, Event event) {
     if (event.getTypeInt() == Event.ONPASTE) {
-      Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-        @Override
-        public void execute() {
-          if (getValue(tb).length() != 0) {
-            tb.setEnabled(true);
-          }
+      Scheduler.get().scheduleDeferred(() -> {
+        if (getValue(tb).length() != 0) {
+          tb.setEnabled(true);
         }
       });
     }

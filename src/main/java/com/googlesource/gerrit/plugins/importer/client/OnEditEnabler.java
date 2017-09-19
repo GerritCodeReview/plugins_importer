@@ -15,11 +15,8 @@
 package com.googlesource.gerrit.plugins.importer.client;
 
 import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.FocusEvent;
-import com.google.gwt.event.dom.client.FocusHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.event.dom.client.KeyPressEvent;
@@ -88,12 +85,7 @@ public class OnEditEnabler implements KeyPressHandler, KeyDownHandler,
     // up to date with non-user updates of the text (calls to
     // setText()...) and also up to date with user changes which
     // occured after enabling "widget".
-    tb.addFocusHandler(new FocusHandler() {
-        @Override
-        public void onFocus(FocusEvent event) {
-          strings.put(tb, tb.getText().trim());
-        }
-      });
+    tb.addFocusHandler(event -> strings.put(tb, tb.getText().trim()));
 
     // CTRL-V Pastes in Chrome seem only detectable via BrowserEvents or
     // KeyDownEvents, the latter is better.
@@ -144,12 +136,9 @@ public class OnEditEnabler implements KeyPressHandler, KeyDownHandler,
         ! ((FocusWidget) e.getSource()).isEnabled() ) {
       if (e.getSource() instanceof ValueBoxBase) {
         final TextBoxBase box = ((TextBoxBase) e.getSource());
-        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-          @Override
-          public void execute() {
-            if (box.getValue().trim().equals(originalValue)) {
-              widget.setEnabled(false);
-            }
+        Scheduler.get().scheduleDeferred(() -> {
+          if (box.getValue().trim().equals(originalValue)) {
+            widget.setEnabled(false);
           }
         });
       }
@@ -168,16 +157,13 @@ public class OnEditEnabler implements KeyPressHandler, KeyDownHandler,
 
   private void onTextBoxBase(final TextBoxBase tb) {
     // The text appears to not get updated until the handlers complete.
-    Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-      @Override
-      public void execute() {
-        String orig = strings.get(tb);
-        if (orig == null) {
-          orig = "";
-        }
-        if (! orig.equals(tb.getText().trim())) {
-          widget.setEnabled(true);
-        }
+    Scheduler.get().scheduleDeferred(() -> {
+      String orig = strings.get(tb);
+      if (orig == null) {
+        orig = "";
+      }
+      if (! orig.equals(tb.getText().trim())) {
+        widget.setEnabled(true);
       }
     });
   }

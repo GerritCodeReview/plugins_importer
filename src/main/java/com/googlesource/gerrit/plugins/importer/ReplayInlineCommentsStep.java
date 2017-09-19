@@ -197,7 +197,7 @@ class ReplayInlineCommentsStep {
                 c.side == Side.PARENT ? (short) 0 : (short) 1,
                 c.message,
                 serverId,
-                c.unresolved);
+                c.unresolved == null ? false : c.unresolved);
       } else if (parent != null) {
         e.parentUuid = parent;
       }
@@ -214,7 +214,7 @@ class ReplayInlineCommentsStep {
     }
 
     Iterables.addAll(del, drafts.values());
-    ChangeUpdate update = updateFactory.create(ctrl, TimeUtil.nowTs());
+    ChangeUpdate update = updateFactory.create(ctrl.getNotes(), ctrl.getUser(), TimeUtil.nowTs());
     update.setPatchSetId(ps.getId());
 
     commentsUtil.deleteComments(db, update, del);

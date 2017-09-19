@@ -18,14 +18,18 @@ import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.api.access.PluginPermission;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
-import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.permissions.GlobalPermission;
+import com.google.gerrit.server.permissions.PermissionBackend;
+import com.google.gerrit.server.permissions.PermissionBackendException;
+import com.google.gerrit.server.permissions.PermissionBackend.WithUser;
 import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
@@ -54,6 +58,7 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
 
   private final ImportProject.Factory importProjectFactory;
   private final Provider<CurrentUser> currentUserProvider;
+  private final PermissionBackend permissionBackend;
   private final String pluginName;
 
   private Writer err;
@@ -62,9 +67,11 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
   CopyProject(
       ImportProject.Factory importProjectFactory,
       Provider<CurrentUser> currentUserProvider,
+      PermissionBackend permissionBackend,
       @PluginName String pluginName) {
     this.importProjectFactory = importProjectFactory;
     this.currentUserProvider = currentUserProvider;
+    this.permissionBackend = permissionBackend;
     this.pluginName = pluginName;
   }
 
@@ -72,7 +79,7 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
   public ImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException {
+      UpdateException, ConfigInvalidException, PermissionBackendException {
     if (Strings.isNullOrEmpty(input.name)) {
       throw new BadRequestException("name is required");
     }
@@ -91,13 +98,15 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
     return new UiAction.Description()
         .setLabel("Copy...")
         .setTitle(String.format("Copy project %s", rsrc.getName()))
-        .setVisible(canCopy());
+        .setVisible(canCopy(rsrc));
   }
 
-  private boolean canCopy() {
-    CapabilityControl ctl = currentUserProvider.get().getCapabilities();
-    return ctl.canAdministrateServer()
-        || ctl.canPerform(pluginName + "-" + CopyProjectCapability.ID);
+  private boolean canCopy(ProjectResource rsrc) {
+    WithUser withUser = permissionBackend.user(currentUserProvider.get());
+    return withUser.testOrFalse(GlobalPermission.ADMINISTRATE_SERVER)
+        || (withUser.testOrFalse(
+            new PluginPermission(pluginName, CopyProjectCapability.ID))
+            && rsrc.getControl().isOwner());
   }
 
   void setErr(PrintWriter err) {
