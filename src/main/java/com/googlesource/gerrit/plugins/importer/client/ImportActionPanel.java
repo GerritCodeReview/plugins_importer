@@ -14,7 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer.client;
 
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -23,17 +22,11 @@ public class ImportActionPanel extends FlowPanel {
 
   ImportActionPanel(final String project, final boolean copy) {
     setStyleName("importer-action-panel");
-    add(new Button("Resume...", new ClickHandler() {
-      @Override
-      public void onClick(ClickEvent event) {
-        (new ResumeImportDialog(project, copy)).center();
-      }
-    }));
-    add(new Button("Complete...", new ClickHandler() {
-      @Override
-      public void onClick(ClickEvent event) {
-        (new CompleteImportDialog(project, copy)).center();
-      }
-    }));
+    add(new Button("Resume...",
+        (ClickHandler) event -> (new ResumeImportDialog(project, copy))
+            .center()));
+    add(new Button("Complete...",
+        (ClickHandler) event -> (new CompleteImportDialog(project, copy))
+            .center()));
   }
 }
