@@ -60,7 +60,6 @@ public class GroupsCollection implements
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public ImportGroup create(ConfigResource parent, IdString id)
       throws RestApiException {
     return importGroupFactory.create(new AccountGroup.NameKey(id.get()));

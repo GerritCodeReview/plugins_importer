@@ -20,6 +20,7 @@ import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.validators.ValidationException;
@@ -90,7 +91,7 @@ public class ProjectCommand extends SshCommand {
       }
       ImportStatistic stats = importer.apply(new ConfigResource(), input);
       stdout.print("Created Changes: " + stats.numChangesCreated + "\n");
-    } catch (RestApiException e) {
+    } catch (PermissionBackendException | RestApiException e) {
       throw die(e.getMessage());
     }
   }

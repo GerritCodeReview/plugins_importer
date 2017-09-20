@@ -18,6 +18,7 @@ import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.api.access.PluginPermission;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
@@ -25,8 +26,11 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.server.CurrentUser;
-import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.permissions.GlobalPermission;
+import com.google.gerrit.server.permissions.PermissionBackend;
+import com.google.gerrit.server.permissions.PermissionBackendException;
+import com.google.gerrit.server.permissions.PermissionBackend.WithUser;
 import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
@@ -95,7 +99,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
   public ResumeImportStatistic apply(ImportProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException,
       GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException {
+      UpdateException, ConfigInvalidException, PermissionBackendException {
     if (copy) {
       input.validateResumeCopy();
     } else {
@@ -114,6 +118,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     private final ProjectsCollection projectsCollection;
     private final ResumeProjectImport resumeProjectImport;
     private final Provider<CurrentUser> currentUserProvider;
+    private final PermissionBackend permissionBackend;
     private final String pluginName;
 
     @Inject
@@ -121,10 +126,12 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
         ProjectsCollection projectsCollection,
         ResumeProjectImport resumeProjectImport,
         Provider<CurrentUser> currentUserProvider,
+        PermissionBackend permissionBackend,
         @PluginName String pluginName) {
       this.projectsCollection = projectsCollection;
       this.resumeProjectImport = resumeProjectImport;
       this.currentUserProvider = currentUserProvider;
+      this.permissionBackend = permissionBackend;
       this.pluginName = pluginName;
     }
 
@@ -132,7 +139,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
         throws RestApiException, IOException, OrmException, ValidationException,
         GitAPIException, NoSuchChangeException, NoSuchAccountException,
-        UpdateException, ConfigInvalidException {
+        UpdateException, ConfigInvalidException, PermissionBackendException {
       ImportProjectResource projectResource =
           projectsCollection.parse(new ConfigResource(),
               IdString.fromDecoded(rsrc.getName()));
@@ -148,9 +155,10 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     }
 
     private boolean canResumeImport(ProjectResource rsrc) {
-      CapabilityControl ctl = currentUserProvider.get().getCapabilities();
-      return ctl.canAdministrateServer()
-          || (ctl.canPerform(pluginName + "-" + ImportCapability.ID)
+      WithUser withUser = permissionBackend.user(currentUserProvider.get());
+      return withUser.testOrFalse(GlobalPermission.ADMINISTRATE_SERVER)
+          || (withUser.testOrFalse(
+              new PluginPermission(pluginName, ImportCapability.ID))
               && rsrc.getControl().isOwner());
     }
 
