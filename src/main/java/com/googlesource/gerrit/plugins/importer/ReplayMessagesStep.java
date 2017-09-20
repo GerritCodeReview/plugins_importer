@@ -92,7 +92,8 @@ class ReplayMessagesStep {
           : null;
       if (msg.author != null) {
         Account.Id userId = accountUtil.resolveUser(api, msg.author);
-        ChangeUpdate update = updateFactory.create(control(change, userId), ts);
+        ChangeControl ctrl = control(change, userId);
+        ChangeUpdate update = updateFactory.create(ctrl.getNotes(), ctrl.getUser(), ts);
         ChangeMessage cmsg = new ChangeMessage(msgKey, userId, ts, psId);
         cmsg.setMessage(msg.message);
         cmUtil.addChangeMessage(db, update, cmsg);

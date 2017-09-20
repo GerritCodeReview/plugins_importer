@@ -214,7 +214,7 @@ class ReplayInlineCommentsStep {
     }
 
     Iterables.addAll(del, drafts.values());
-    ChangeUpdate update = updateFactory.create(ctrl, TimeUtil.nowTs());
+    ChangeUpdate update = updateFactory.create(ctrl.getNotes(), ctrl.getUser(), TimeUtil.nowTs());
     update.setPatchSetId(ps.getId());
 
     commentsUtil.deleteComments(db, update, del);

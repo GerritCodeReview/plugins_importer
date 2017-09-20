@@ -18,7 +18,6 @@ import com.google.common.base.MoreObjects;
 import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
-import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.ApprovalInfo;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.LabelInfo;
@@ -29,8 +28,8 @@ import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.notedb.ChangeUpdate;
-import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -57,7 +56,7 @@ class AddApprovalsStep {
   private final ChangeUpdate.Factory updateFactory;
   private final ReviewDb db;
   private final IdentifiedUser.GenericFactory genericUserFactory;
-  private final ChangeControl.GenericFactory changeControlFactory;
+  private final ChangeData.Factory changeDataFactory;
   private final Change change;
   private final ChangeInfo changeInfo;
   private final boolean resume;
@@ -67,7 +66,7 @@ class AddApprovalsStep {
       ChangeUpdate.Factory updateFactory,
       ReviewDb db,
       IdentifiedUser.GenericFactory genericUserFactory,
-      ChangeControl.GenericFactory changeControlFactory,
+      ChangeData.Factory changeDataFactory,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
       @Assisted boolean resume) {
@@ -75,7 +74,7 @@ class AddApprovalsStep {
     this.updateFactory = updateFactory;
     this.db = db;
     this.genericUserFactory = genericUserFactory;
-    this.changeControlFactory = changeControlFactory;
+    this.changeDataFactory = changeDataFactory;
     this.change = change;
     this.changeInfo = changeInfo;
     this.resume = resume;
@@ -96,8 +95,8 @@ class AddApprovalsStep {
       if (label.all != null) {
         for (ApprovalInfo a : label.all) {
           Account.Id user = accountUtil.resolveUser(api, a);
-          ChangeControl ctrl = control(change, a);
-          LabelType labelType = ctrl.getLabelTypes().byLabel(labelName);
+          ChangeData cd = changeDataFactory.create(db, change);
+          LabelType labelType = cd.getLabelTypes().byLabel(labelName);
           if(labelType == null) {
             log.warn(String.format("Label '%s' not found in target system."
                 + " This label was referenced by an approval provided from '%s'"
@@ -112,7 +111,7 @@ class AddApprovalsStep {
           approvals.add(new PatchSetApproval(new PatchSetApproval.Key(change
               .currentPatchSetId(), user, labelType.getLabelId()), shortValue,
               MoreObjects.firstNonNull(a.date, TimeUtil.nowTs())));
-          ChangeUpdate update = updateFactory.create(ctrl);
+          ChangeUpdate update = updateFactory.create(cd.notes(), genericUserFactory.create(user));
           if (shortValue != 0) {
             update.putApproval(labelName, shortValue);
           } else {
@@ -123,20 +122,5 @@ class AddApprovalsStep {
       }
     }
     db.patchSetApprovals().insert(approvals);
-  }
-
-  private ChangeControl control(Change change, AccountInfo acc)
-      throws NoSuchChangeException {
-    return control(change, new Account.Id(acc._accountId));
-  }
-
-  private ChangeControl control(Change change, Account.Id id)
-      throws NoSuchChangeException {
-    try {
-      return changeControlFactory.controlFor(db, change,
-          genericUserFactory.create(id));
-    } catch (OrmException e) {
-      throw new NoSuchChangeException(change.getId());
-    }
   }
 }

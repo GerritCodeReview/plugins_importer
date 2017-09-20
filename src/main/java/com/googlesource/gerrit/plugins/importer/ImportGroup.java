@@ -41,6 +41,7 @@ import com.google.gerrit.server.account.GroupCache;
 import com.google.gerrit.server.account.GroupIncludeCache;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.config.GerritServerConfig;
+import com.google.gerrit.server.group.InternalGroup;
 import com.google.gerrit.server.validators.GroupCreationValidationListener;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmDuplicateKeyException;
@@ -60,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @RequiresCapability(ImportCapability.ID)
@@ -179,7 +181,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     return groupCache.get(new AccountGroup.NameKey(groupName));
   }
 
-  private AccountGroup getGroupByUUID(String uuid) {
+  private Optional<InternalGroup> getGroupByUUID(String uuid) {
     return groupCache.get(new AccountGroup.UUID(uuid));
   }
 
@@ -191,7 +193,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     args.groupDescription = groupInfo.description;
     args.visibleToAll = cfg.getBoolean("groups", "newGroupsVisibleToAll", false);
     if (!groupInfo.ownerId.equals(groupInfo.id)) {
-      args.ownerGroupId = getGroupByUUID(groupInfo.ownerId).getId();
+      args.ownerGroupId = getGroupByUUID(groupInfo.ownerId).get().getId();
     }
     Set<Account.Id> initialMembers = new HashSet<>();
     for (AccountInfo member : groupInfo.members) {
@@ -221,7 +223,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       throw new ResourceConflictException(info.name);
     }
     db.accountGroups().insert(Collections.singleton(group));
-    groupCache.evict(group);
+    groupCache.evict(group.getGroupUUID(), group.getId(), group.getNameKey());
 
     if (!info.id.equals(info.ownerId)) {
       if (getGroupByUUID(info.ownerId) == null) {
@@ -244,7 +246,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     addMembers(group.getId(), info.members);
     addGroups(input, group.getId(), info.name, info.includes);
 
-    groupCache.evict(group);
+    groupCache.evict(group.getGroupUUID(), group.getId(), group.getNameKey());
 
     return group;
   }

@@ -112,6 +112,8 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
           case REJECTED:
           case REJECTED_CURRENT_BRANCH:
           case RENAMED:
+          case REJECTED_MISSING_OBJECT:
+          case REJECTED_OTHER_REASON:
           default:
             throw new IOException(String.format(
                 "Failed to delete %s, RefUpdate.Result = %s", ref, result));

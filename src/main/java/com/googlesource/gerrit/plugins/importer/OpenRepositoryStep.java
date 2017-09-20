@@ -89,7 +89,7 @@ class OpenRepositoryStep {
       PermissionBackendException {
     CreateProjectArgs args = new CreateProjectArgs();
     args.setProjectName(name);
-    args.newParent = projectsCollection.get().parse(parent.get()).getControl();
+    args.newParent = projectsCollection.get().parse(parent.get()).getNameKey();
     for (ProjectCreationValidationListener l : projectCreationValidationListeners) {
       try {
         l.validateNewProject(args);
