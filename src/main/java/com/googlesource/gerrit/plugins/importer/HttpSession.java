@@ -67,9 +67,7 @@ public class HttpSession {
             new TrustManager[] {new DummyX509TrustManager()};
         context = SSLContext.getInstance("TLS");
         context.init(null, trustAllCerts, null);
-      } catch (KeyManagementException e) {
-        throw new IOException(e.getMessage());
-      } catch (NoSuchAlgorithmException e) {
+      } catch (KeyManagementException | NoSuchAlgorithmException e) {
         throw new IOException(e.getMessage());
       }
 
