@@ -209,6 +209,8 @@ class ReplayInlineCommentsStep {
             c.range.endLine,
             c.range.endCharacter));
         e.lineNbr = c.range.endLine;
+      } else {
+        e.lineNbr = c.line;
       }
       ups.add(e);
     }
