@@ -210,7 +210,7 @@ class ReplayInlineCommentsStep {
             c.range.endCharacter));
         e.lineNbr = c.range.endLine;
       } else {
-        e.lineNbr = c.line;
+        e.lineNbr = c.line == null ? 0 : c.line;
       }
       ups.add(e);
     }
