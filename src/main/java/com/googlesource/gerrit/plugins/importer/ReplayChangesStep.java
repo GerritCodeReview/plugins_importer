@@ -25,6 +25,7 @@ import com.google.gerrit.extensions.restapi.Url;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.Sequences;
 import com.google.gerrit.server.update.UpdateException;
@@ -39,7 +40,6 @@ import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -220,7 +220,7 @@ class ReplayChangesStep {
   private Change findChange(ChangeInfo c) throws OrmException {
     List<Change> changes = ChangeData.asChanges(
         queryProvider.get().byBranchKey(
-            new Branch.NameKey(targetProject, fullName(c.branch)),
+            new Branch.NameKey(targetProject, RefNames.fullName(c.branch)),
             new Change.Key(c.changeId)));
     if (changes.isEmpty()) {
       return null;
@@ -236,7 +236,7 @@ class ReplayChangesStep {
 
     Change change =
         new Change(new Change.Key(c.changeId), changeId, accountUtil.resolveUser(api, c.owner),
-            new Branch.NameKey(targetProject, fullName(c.branch)), c.created);
+            new Branch.NameKey(targetProject, RefNames.fullName(c.branch)), c.created);
     change.setStatus(Change.Status.forChangeStatus(c.status));
     change.setTopic(c.topic);
     change.setLastUpdatedOn(c.updated);
@@ -251,12 +251,5 @@ class ReplayChangesStep {
       change.setLastUpdatedOn(c.updated);
     }
     db.changes().upsert(Collections.singleton(change));
-  }
-
-  private static String fullName(String branch) {
-    if (branch.startsWith(Constants.R_HEADS)) {
-      return branch;
-    }
-    return Constants.R_HEADS + branch;
   }
 }
