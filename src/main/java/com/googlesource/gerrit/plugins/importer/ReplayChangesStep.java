@@ -254,7 +254,7 @@ class ReplayChangesStep {
   }
 
   private static String fullName(String branch) {
-    if (branch.startsWith(Constants.R_HEADS)) {
+    if (branch.startsWith(Constants.R_REFS)) {
       return branch;
     }
     return Constants.R_HEADS + branch;
