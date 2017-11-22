@@ -111,7 +111,7 @@ interface GerritApi {
         // either of the compared version is not valid
         return -1;
       }
-      if (major == o.major) {
+      if (Objects.equal(major, o.major)) {
         if (Objects.equal(minor, o.minor)) {
           if (Objects.equal(patch, o.patch)) {
             return 0;
