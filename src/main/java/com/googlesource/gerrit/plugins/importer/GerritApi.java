@@ -14,7 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import com.google.common.base.Objects;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.common.GroupInfo;
@@ -111,9 +110,9 @@ interface GerritApi {
         // either of the compared version is not valid
         return -1;
       }
-      if (major == o.major) {
-        if (Objects.equal(minor, o.minor)) {
-          if (Objects.equal(patch, o.patch)) {
+      if (major.equals(o.major)) {
+        if (minor.equals(o.minor)) {
+          if (patch.equals(o.patch)) {
             return 0;
           }
           if (o.patch == null) {
