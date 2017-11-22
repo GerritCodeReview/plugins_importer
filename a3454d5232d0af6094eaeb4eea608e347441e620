@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "209fdfc1_ceaa5f85",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2017-11-22T01:25:57Z",
+      "side": 1,
+      "message": "Can we just remove this method and instead use RefNames.fullname from core?",
+      "range": {
+        "startLine": 256,
+        "startChar": 2,
+        "endLine": 261,
+        "endChar": 3
+      },
+      "revId": "a3454d5232d0af6094eaeb4eea608e347441e620",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
