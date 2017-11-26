@@ -82,22 +82,25 @@ interface GerritApi {
     final Integer major;
     final Integer minor;
     final Integer patch;
+    final Integer patch2;
     final String qualifier;
 
     Version(String formatted) {
       this.formatted = formatted;
 
-      Matcher m = Pattern.compile("(\\d+)\\.(\\d+)(\\.(\\d+))?(-(.+))?")
+      Matcher m = Pattern.compile("(\\d+)\\.(\\d+)(?:\\.(\\d+)(?:\\.(\\d+))?)?(?:-(.+))?")
           .matcher(formatted);
       if (m.matches()) {
         this.major = Integer.parseInt(m.group(1));
         this.minor = Integer.parseInt(m.group(2));
-        this.patch = m.group(3) != null ? Integer.parseInt(m.group(4)) : null;
-        this.qualifier = m.group(5) != null ? m.group(6) : null;
+        this.patch = m.group(3) != null ? Integer.parseInt(m.group(3)) : null;
+        this.patch2 = m.group(4) != null ? Integer.parseInt(m.group(4)) : null;
+        this.qualifier = m.group(5) != null ? m.group(5) : null;
       } else {
         this.major = null;
         this.minor = null;
         this.patch = null;
+        this.patch2 = null;
         this.qualifier = null;
       }
     }
