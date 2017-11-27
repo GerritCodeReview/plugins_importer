@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f054cd7_c34fb9a7",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GerritApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1010516
+      },
+      "writtenOn": "2017-11-27T06:42:14Z",
+      "side": 1,
+      "message": "If you have 1.2.3 - is it guaranteed that 3 will match the first set of parentheses, or can it be matched against the second set?\n\nConsider moving this inside the parentheses of patch.\n\nSee my change here: https://gerrit-review.googlesource.com/c/plugins/importer/+/144450\n\nI also removed irrelevant capture groups by using (?:, though this could be done in a separate patch.",
+      "range": {
+        "startLine": 91,
+        "startChar": 62,
+        "endLine": 91,
+        "endChar": 74
+      },
+      "revId": "98ac769d630b8d152bf742a05e93d671c3d71d67",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
