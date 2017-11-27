@@ -22,6 +22,30 @@
       "revId": "98ac769d630b8d152bf742a05e93d671c3d71d67",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ecf72f55_7771049a",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GerritApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1032595
+      },
+      "writtenOn": "2017-11-27T09:44:44Z",
+      "side": 1,
+      "message": "3 is going to be matched with the previous parentheses.\n\nThis is the result:\n1 1\n2 2\n3 .3\n4 3\n5 null\n6 null\n\nYes I agree that the irrelevant groups can be ignored. But this should probably includes patch2 (or revision here).",
+      "parentUuid": "6f054cd7_c34fb9a7",
+      "range": {
+        "startLine": 91,
+        "startChar": 62,
+        "endLine": 91,
+        "endChar": 74
+      },
+      "revId": "98ac769d630b8d152bf742a05e93d671c3d71d67",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
