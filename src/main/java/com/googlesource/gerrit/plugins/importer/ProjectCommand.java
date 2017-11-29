@@ -83,6 +83,9 @@ public class ProjectCommand extends SshCommand {
       input.parent = parent;
     }
 
+    Thread.currentThread().setName(
+        Thread.currentThread().getName().replaceAll("\\s(--pass|-p)([\\s+\\=])\\S+", " $1$2***"));
+
     try {
       ImportProject importer = importProjectFactory.create(new Project.NameKey(project));
       if (!quiet) {
