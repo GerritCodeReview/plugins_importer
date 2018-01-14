@@ -177,7 +177,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     }
   }
 
-  private AccountGroup getGroupByName(String groupName) {
+  private Optional<InternalGroup> getGroupByName(String groupName) {
     return groupCache.get(new AccountGroup.NameKey(groupName));
   }
 

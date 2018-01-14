@@ -173,11 +173,6 @@ class ReplayChangesStep {
       throws IOException, OrmException, NoSuchAccountException,
       NoSuchChangeException, RestApiException, IllegalArgumentException,
       UpdateException, ConfigInvalidException {
-    if (c.status == ChangeStatus.DRAFT) {
-      // no import of draft changes
-      return;
-    }
-
     Change change = resume ? findChange(c) : null;
     boolean resumeChange;
     if (change == null) {

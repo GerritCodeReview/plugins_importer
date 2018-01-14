@@ -88,10 +88,6 @@ class ReplayRevisionsStep {
     try {
       PatchSetInfo info = null;
       for (RevisionInfo r : revisions) {
-        if (r.draft != null && r.draft) {
-          // no import of draft patch sets
-          continue;
-        }
         PatchSet ps = new PatchSet(new PatchSet.Id(change.getId(), r._number));
         String newRef = ps.getId().toRefName();
         ObjectId newId = repo.resolve(newRef);
@@ -121,7 +117,6 @@ class ReplayRevisionsStep {
         ps.setUploader(accountUtil.resolveUser(api, r.uploader));
         ps.setCreatedOn(r.created);
         ps.setRevision(new RevId(commit.name()));
-        ps.setDraft(r.draft != null && r.draft);
 
         info = patchSetInfoFactory.get(rw, commit, ps.getId());
         if (info.getRevId().equals(changeInfo.currentRevision)) {
