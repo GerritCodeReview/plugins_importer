@@ -24,6 +24,7 @@ import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gerrit.sshd.CommandMetaData;
+import com.google.gerrit.sshd.SensitiveData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
@@ -51,6 +52,7 @@ public class ProjectCommand extends SshCommand {
       usage = "user on remote system")
   private String user;
 
+  @SensitiveData
   @Option(name = "--pass", aliases = {"-p"}, required = true, metaVar = "-|PASS",
       usage = "password of remote user")
   private String pass;
