@@ -64,6 +64,7 @@ class Module extends FactoryModule {
     bind(ConfigureRepositoryStep.class);
     bind(ConfigureProjectStep.class);
     bind(GitFetchStep.class);
+    bind(GitGarbageCollectionStep.class);
     bind(AccountUtil.class);
     factory(ImportProject.Factory.class);
     factory(ReplayChangesStep.Factory.class);

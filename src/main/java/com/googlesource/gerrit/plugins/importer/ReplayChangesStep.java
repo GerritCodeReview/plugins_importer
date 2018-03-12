@@ -14,6 +14,17 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Iterators;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.data.GlobalCapability;
@@ -28,27 +39,16 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.Sequences;
-import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.index.change.ChangeIndexer;
 import com.google.gerrit.server.notedb.NotesMigration;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.InternalChangeQuery;
+import com.google.gerrit.server.update.UpdateException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.ProgressMonitor;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 class ReplayChangesStep {
 
@@ -88,6 +88,7 @@ class ReplayChangesStep {
   private final ResumeImportStatistic importStatistic;
   private final ProgressMonitor pm;
   private final boolean isNoteDbEnabled;
+  private final GitGarbageCollectionStep gitGcStep;
 
   @Inject
   ReplayChangesStep(
@@ -103,6 +104,7 @@ class ReplayChangesStep {
       Provider<InternalChangeQuery> queryProvider,
       Sequences sequences,
       NotesMigration migration,
+      GitGarbageCollectionStep gitGcStep,
       @Assisted @Nullable String fromGerrit,
       @Assisted GerritApi api,
       @Assisted Repository repo,
@@ -133,6 +135,7 @@ class ReplayChangesStep {
     this.importStatistic = importStatistic;
     this.pm = pm;
     this.isNoteDbEnabled = migration.enabled();
+    this.gitGcStep = gitGcStep;
   }
 
   void replay() throws IOException, OrmException,
@@ -141,6 +144,7 @@ class ReplayChangesStep {
     int start = 0;
     int limit = GlobalCapability.DEFAULT_MAX_QUERY_LIMIT;
     pm.beginTask("Replay Changes", ProgressMonitor.UNKNOWN);
+    int n=0;
     for(;;) {
       List<ChangeInfo> changes = api.queryChanges(srcProject.get(),
           start, limit);
@@ -153,6 +157,10 @@ class ReplayChangesStep {
         for (ChangeInfo c : changes) {
           try {
             replayChange(rw, c);
+            n++;
+            if (n % 5000 == 0) {
+              gitGcStep.run(Collections.singletonList(targetProject));
+            }
           } catch (Exception e) {
             log.error(String.format("Failed to replay change %s.",
                 Url.decode(c.id)), e);
