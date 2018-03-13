@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "31c1b2e0_fe44fe57",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1004034
+      },
+      "writtenOn": "2018-03-13T19:38:42Z",
+      "side": 1,
+      "message": "this number I estimated from what you posted on the mailing list and I cited in this commit\u0027s commit message. You said with running gc every 30 minutes you could reduce import time from 6 to 1 hours for a repository with 15k changes. If it took 1 hour this means you ran GC twice for 15k changes. This change now runs GC every 5000 changes which seems to be more gc runs than what you reported.\n\nMaybe we should make this a configuration option.",
+      "parentUuid": "710ff019_536911fd",
+      "range": {
+        "startLine": 161,
+        "startChar": 16,
+        "endLine": 161,
+        "endChar": 29
+      },
+      "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b30ccb8e_0b2ed0ed",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2018-03-13T02:13:06Z",
       "side": 1,
       "message": "I didn\u0027t know to much about Gerrit source, so I\u0027m not sure whether this could be an issue.\nIf a project is GC by multiple threads, then \"efs/meta/config in ***: LOCK_FAILURE\" error may occur, we should handle this possible concurrent scene.",
+      "range": {
+        "startLine": 162,
+        "startChar": 14,
+        "endLine": 162,
+        "endChar": 70
+      },
+      "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8fc8a27_9a2a18b6",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1004034
+      },
+      "writtenOn": "2018-03-13T19:38:42Z",
+      "side": 1,
+      "message": "GarbageCollection [1] ensures that at most one concurrent thread runs GC on the same project, if another thread tries to schedule another gc concurrently this additional run will be skipped\n\n[1] https://gerrit.googlesource.com/gerrit/+/stable-2.14/gerrit-server/src/main/java/com/google/gerrit/server/git/GarbageCollection.java#76",
+      "parentUuid": "b30ccb8e_0b2ed0ed",
       "range": {
         "startLine": 162,
         "startChar": 14,
