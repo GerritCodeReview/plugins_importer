@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "5a61b3ad_e05b3ed3",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2018-03-13T21:06:32Z",
+      "side": 1,
+      "message": "Reformat issue?",
+      "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "710ff019_536911fd",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 3
@@ -37,6 +54,30 @@
       "side": 1,
       "message": "this number I estimated from what you posted on the mailing list and I cited in this commit\u0027s commit message. You said with running gc every 30 minutes you could reduce import time from 6 to 1 hours for a repository with 15k changes. If it took 1 hour this means you ran GC twice for 15k changes. This change now runs GC every 5000 changes which seems to be more gc runs than what you reported.\n\nMaybe we should make this a configuration option.",
       "parentUuid": "710ff019_536911fd",
+      "range": {
+        "startLine": 161,
+        "startChar": 16,
+        "endLine": 161,
+        "endChar": 29
+      },
+      "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bba1ba08_f8977cf0",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2018-03-13T21:06:32Z",
+      "side": 1,
+      "message": "\u003e Maybe we should make this a configuration option.\n\n+1.",
+      "parentUuid": "31c1b2e0_fe44fe57",
       "range": {
         "startLine": 161,
         "startChar": 16,
