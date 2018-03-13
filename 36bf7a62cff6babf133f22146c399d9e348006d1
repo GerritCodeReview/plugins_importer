@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "710ff019_536911fd",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1062730
+      },
+      "writtenOn": "2018-03-13T02:13:06Z",
+      "side": 1,
+      "message": "Every 5000 changes may be not the best time to execute GC. \nProject changs\u003e5000 is not a common situation, maybe 1000 should be better?\nI suppose we can call \u0027GC\u0027 before \"for (ChangeInfo c : changes){**}\" (the first GC is most important), then call GC every 1000 or 2000 changes.",
+      "range": {
+        "startLine": 161,
+        "startChar": 16,
+        "endLine": 161,
+        "endChar": 29
+      },
+      "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b30ccb8e_0b2ed0ed",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1062730
+      },
+      "writtenOn": "2018-03-13T02:13:06Z",
+      "side": 1,
+      "message": "I didn\u0027t know to much about Gerrit source, so I\u0027m not sure whether this could be an issue.\nIf a project is GC by multiple threads, then \"efs/meta/config in ***: LOCK_FAILURE\" error may occur, we should handle this possible concurrent scene.",
+      "range": {
+        "startLine": 162,
+        "startChar": 14,
+        "endLine": 162,
+        "endChar": 70
+      },
+      "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
