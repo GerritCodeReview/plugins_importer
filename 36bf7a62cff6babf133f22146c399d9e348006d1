@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "236c2cd2_d83125e7",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/GitGarbageCollectionStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2018-03-13T23:46:07Z",
+      "side": 1,
+      "message": "Does this class justify its existence? Compare:\n\n  gitGcStep.run(Collections.singletonList(targetProject));\n\nwith using this code inline:\n\n  garbageCollectionFactory.create().run(Collections.singletonList(targetProject));",
+      "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5a61b3ad_e05b3ed3",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
         "patchSetId": 3
@@ -16,6 +33,23 @@
       "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a1ad8231_095a18fc",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2018-03-13T23:46:07Z",
+      "side": 1,
+      "message": "This is not formatted with google-java-format",
+      "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     },
     {
       "key": {
@@ -102,6 +136,30 @@
       "side": 1,
       "message": "ok, where should this configuration option be stored ?",
       "parentUuid": "bba1ba08_f8977cf0",
+      "range": {
+        "startLine": 161,
+        "startChar": 16,
+        "endLine": 161,
+        "endChar": 29
+      },
+      "revId": "36bf7a62cff6babf133f22146c399d9e348006d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e8a62d9_f7321de6",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/ReplayChangesStep.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1003873
+      },
+      "writtenOn": "2018-03-13T23:46:07Z",
+      "side": 1,
+      "message": "Looks like this plugin does not have any configuration currently [1], no config.md.\n\nAs usual, we have a choice between having a plugin specific subsection in gerrit.config:\n\n  [plugin \"importer\"]\n    gcChangeLimit \u003d 5000\n\nor have a plugin specific config file, importer.config:\n\n  [gc]\n    changeLimit \u003d 5000\n\n[1] https://gerrit.googlesource.com/plugins/importer/+/36bf7a62cff6babf133f22146c399d9e348006d1/src/main/resources/Documentation/",
+      "parentUuid": "baaddac5_ef0101df",
       "range": {
         "startLine": 161,
         "startChar": 16,
