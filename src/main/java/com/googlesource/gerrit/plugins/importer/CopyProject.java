@@ -28,6 +28,7 @@ import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
@@ -72,7 +73,7 @@ class CopyProject implements RestModifyView<ProjectResource, Input>, UiAction<Pr
   public ImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException, GitAPIException,
           NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException {
+          PermissionBackendException, PatchListNotAvailableException {
     if (Strings.isNullOrEmpty(input.name)) {
       throw new BadRequestException("name is required");
     }

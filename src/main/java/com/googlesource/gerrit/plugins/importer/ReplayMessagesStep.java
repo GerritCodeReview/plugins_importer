@@ -24,9 +24,10 @@ import com.google.gerrit.reviewdb.client.ChangeMessage;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.ChangeMessagesUtil;
+import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
+import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.notedb.ChangeUpdate;
-import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
@@ -47,7 +48,7 @@ class ReplayMessagesStep {
   private final ChangeMessagesUtil cmUtil;
   private final ReviewDb db;
   private final IdentifiedUser.GenericFactory genericUserFactory;
-  private final ChangeControl.GenericFactory changeControlFactory;
+  private final ChangeNotes.Factory changeNotesFactory;
   private final Change change;
   private final ChangeInfo changeInfo;
   private final boolean resume;
@@ -58,7 +59,7 @@ class ReplayMessagesStep {
       ChangeUpdate.Factory updateFactory,
       ChangeMessagesUtil cmUtil,
       IdentifiedUser.GenericFactory genericUserFactory,
-      ChangeControl.GenericFactory changeControlFactory,
+      ChangeNotes.Factory changeNotesFactory,
       ReviewDb db,
       @Assisted Change change,
       @Assisted ChangeInfo changeInfo,
@@ -68,7 +69,7 @@ class ReplayMessagesStep {
     this.cmUtil = cmUtil;
     this.db = db;
     this.genericUserFactory = genericUserFactory;
-    this.changeControlFactory = changeControlFactory;
+    this.changeNotesFactory = changeNotesFactory;
     this.change = change;
     this.changeInfo = changeInfo;
     this.resume = resume;
@@ -89,8 +90,9 @@ class ReplayMessagesStep {
           msg._revisionNumber != null ? new PatchSet.Id(change.getId(), msg._revisionNumber) : null;
       if (msg.author != null) {
         Account.Id userId = accountUtil.resolveUser(api, msg.author);
-        ChangeControl ctrl = control(change, userId);
-        ChangeUpdate update = updateFactory.create(ctrl.getNotes(), ctrl.getUser(), ts);
+        ChangeNotes notes = changeNotesFactory.createChecked(db, change);
+        CurrentUser user = genericUserFactory.create(userId);
+        ChangeUpdate update = updateFactory.create(notes, user, ts);
         ChangeMessage cmsg = new ChangeMessage(msgKey, userId, ts, psId);
         cmsg.setMessage(msg.message);
         cmUtil.addChangeMessage(db, update, cmsg);
@@ -102,14 +104,6 @@ class ReplayMessagesStep {
         cmsg.setMessage(msg.message);
         db.changeMessages().insert(Collections.singleton(cmsg));
       }
-    }
-  }
-
-  private ChangeControl control(Change change, Account.Id id) throws NoSuchChangeException {
-    try {
-      return changeControlFactory.controlFor(db, change, genericUserFactory.create(id));
-    } catch (OrmException e) {
-      throw new NoSuchChangeException(change.getId());
     }
   }
 }

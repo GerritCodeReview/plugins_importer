@@ -29,6 +29,7 @@ import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.Sequences;
 import com.google.gerrit.server.index.change.ChangeIndexer;
 import com.google.gerrit.server.notedb.NotesMigration;
+import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.InternalChangeQuery;
@@ -134,7 +135,8 @@ class ReplayChangesStep {
 
   void replay()
       throws IOException, OrmException, NoSuchAccountException, NoSuchChangeException,
-          RestApiException, UpdateException, ConfigInvalidException {
+          RestApiException, UpdateException, ConfigInvalidException,
+          PatchListNotAvailableException {
     int start = 0;
     int limit = GlobalCapability.DEFAULT_MAX_QUERY_LIMIT;
     pm.beginTask("Replay Changes", ProgressMonitor.UNKNOWN);
@@ -166,7 +168,8 @@ class ReplayChangesStep {
 
   private void replayChange(RevWalk rw, ChangeInfo c)
       throws IOException, OrmException, NoSuchAccountException, NoSuchChangeException,
-          RestApiException, IllegalArgumentException, UpdateException, ConfigInvalidException {
+          RestApiException, IllegalArgumentException, UpdateException, ConfigInvalidException,
+          PatchListNotAvailableException {
     Change change = resume ? findChange(c) : null;
     boolean resumeChange;
     if (change == null) {

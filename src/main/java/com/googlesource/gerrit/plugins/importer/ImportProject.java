@@ -28,6 +28,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
@@ -164,7 +165,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   public ImportStatistic apply(ConfigResource rsrc, Input input)
       throws RestApiException, OrmException, IOException, ValidationException, GitAPIException,
           NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException {
+          PermissionBackendException, PatchListNotAvailableException {
     if (input == null) {
       input = new Input();
     }
@@ -180,7 +181,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   public ResumeImportStatistic resume(String user, String pass, boolean force, File importStatus)
       throws RestApiException, OrmException, IOException, GitAPIException, NoSuchChangeException,
           NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException {
+          PermissionBackendException, PatchListNotAvailableException {
     LockFile lockFile = lockForImport();
     try {
       ImportProjectInfo info = ImportJson.parse(importStatus);
@@ -203,7 +204,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   private ResumeImportStatistic apply(LockFile lockFile, Input input, ImportProjectInfo info)
       throws RestApiException, OrmException, IOException, GitAPIException, NoSuchChangeException,
           NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException {
+          PermissionBackendException, PatchListNotAvailableException {
     boolean resume = info != null;
     api = apiFactory.create(input.from, input.user, input.pass);
 

@@ -28,6 +28,7 @@ import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
@@ -85,7 +86,7 @@ class ResumeCopyProject
   public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException, GitAPIException,
           NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException {
+          PermissionBackendException, PatchListNotAvailableException {
     ImportProjectResource projectResource =
         projectsCollection.parse(new ConfigResource(), IdString.fromDecoded(rsrc.getName()));
     ResumeProjectImport.Input in = new ResumeProjectImport.Input();
