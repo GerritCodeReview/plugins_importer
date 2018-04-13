@@ -29,6 +29,7 @@ import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
@@ -96,7 +97,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
   public ResumeImportStatistic apply(ImportProjectResource rsrc, Input input)
       throws RestApiException, IOException, OrmException, ValidationException, GitAPIException,
           NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException {
+          PermissionBackendException, PatchListNotAvailableException {
     if (copy) {
       input.validateResumeCopy();
     } else {
@@ -136,7 +137,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
         throws RestApiException, IOException, OrmException, ValidationException, GitAPIException,
             NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-            PermissionBackendException {
+            PermissionBackendException, PatchListNotAvailableException {
       ImportProjectResource projectResource =
           projectsCollection.parse(new ConfigResource(), IdString.fromDecoded(rsrc.getName()));
       return resumeProjectImport.apply(projectResource, input);

@@ -41,9 +41,10 @@ import com.google.gerrit.server.CommentsUtil;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.PatchSetUtil;
 import com.google.gerrit.server.config.GerritServerId;
+import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchListCache;
-import com.google.gerrit.server.project.ChangeControl;
+import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
@@ -71,7 +72,7 @@ class ReplayInlineCommentsStep {
   private final AccountUtil accountUtil;
   private final ReviewDb db;
   private final IdentifiedUser.GenericFactory genericUserFactory;
-  private final ChangeControl.GenericFactory changeControlFactory;
+  private final ChangeNotes.Factory changeNotesFactory;
   private final ChangeUpdate.Factory updateFactory;
   private final CommentsUtil commentsUtil;
   private final PatchListCache patchListCache;
@@ -87,7 +88,7 @@ class ReplayInlineCommentsStep {
       AccountUtil accountUtil,
       ReviewDb db,
       IdentifiedUser.GenericFactory genericUserFactory,
-      ChangeControl.GenericFactory changeControlFactory,
+      ChangeNotes.Factory changeNotesFactory,
       ChangeUpdate.Factory updateFactory,
       CommentsUtil commentsUtil,
       PatchListCache patchListCache,
@@ -100,7 +101,7 @@ class ReplayInlineCommentsStep {
     this.accountUtil = accountUtil;
     this.db = db;
     this.genericUserFactory = genericUserFactory;
-    this.changeControlFactory = changeControlFactory;
+    this.changeNotesFactory = changeNotesFactory;
     this.updateFactory = updateFactory;
     this.commentsUtil = commentsUtil;
     this.patchListCache = patchListCache;
@@ -114,9 +115,9 @@ class ReplayInlineCommentsStep {
 
   void replay()
       throws RestApiException, OrmException, IOException, NoSuchChangeException,
-          NoSuchAccountException, ConfigInvalidException {
-    ChangeControl ctrl = control(change, change.getOwner());
-    for (PatchSet ps : ChangeUtil.PS_ID_ORDER.sortedCopy(psUtil.byChange(db, ctrl.getNotes()))) {
+          NoSuchAccountException, ConfigInvalidException, PatchListNotAvailableException {
+    ChangeNotes notes = changeNotesFactory.createChecked(db, change);
+    for (PatchSet ps : ChangeUtil.PS_ID_ORDER.sortedCopy(psUtil.byChange(db, notes))) {
       Iterable<CommentInfo> comments = api.getComments(changeInfo._number, ps.getRevision().get());
       if (resume) {
         if (comments == null) {
@@ -173,10 +174,10 @@ class ReplayInlineCommentsStep {
   }
 
   private void insertComments(PatchSet ps, Account.Id author, Collection<CommentInfo> comments)
-      throws OrmException, IOException, NoSuchChangeException {
-    ChangeControl ctrl = control(change, author);
+      throws OrmException, IOException, NoSuchChangeException, PatchListNotAvailableException {
+    ChangeNotes notes = changeNotesFactory.createChecked(db, change);
 
-    Map<String, Comment> drafts = scanDraftComments(ctrl, ps);
+    Map<String, Comment> drafts = scanDraftComments(notes, ps, author);
 
     List<Comment> del = Lists.newArrayList();
     List<Comment> ups = Lists.newArrayList();
@@ -211,7 +212,8 @@ class ReplayInlineCommentsStep {
     }
 
     Iterables.addAll(del, drafts.values());
-    ChangeUpdate update = updateFactory.create(ctrl.getNotes(), ctrl.getUser(), TimeUtil.nowTs());
+    ChangeUpdate update =
+        updateFactory.create(notes, genericUserFactory.create(author), TimeUtil.nowTs());
     update.setPatchSetId(ps.getId());
 
     commentsUtil.deleteComments(db, update, del);
@@ -219,22 +221,12 @@ class ReplayInlineCommentsStep {
     update.commit();
   }
 
-  private Map<String, Comment> scanDraftComments(ChangeControl ctrl, PatchSet ps)
+  private Map<String, Comment> scanDraftComments(ChangeNotes notes, PatchSet ps, Account.Id account)
       throws OrmException {
     Map<String, Comment> drafts = Maps.newHashMap();
-    for (Comment c :
-        commentsUtil.draftByPatchSetAuthor(
-            db, ps.getId(), ((IdentifiedUser) ctrl.getUser()).getAccountId(), ctrl.getNotes())) {
+    for (Comment c : commentsUtil.draftByPatchSetAuthor(db, ps.getId(), account, notes)) {
       drafts.put(c.key.uuid, c);
     }
     return drafts;
-  }
-
-  private ChangeControl control(Change change, Account.Id id) throws NoSuchChangeException {
-    try {
-      return changeControlFactory.controlFor(db, change, genericUserFactory.create(id));
-    } catch (OrmException e) {
-      throw new NoSuchChangeException(change.getId());
-    }
   }
 }

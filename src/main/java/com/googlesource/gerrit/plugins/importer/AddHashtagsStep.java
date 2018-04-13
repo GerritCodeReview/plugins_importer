@@ -24,7 +24,7 @@ import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.change.ChangeTriplet;
 import com.google.gerrit.server.change.SetHashtagsOp;
-import com.google.gerrit.server.project.ChangeControl;
+import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.update.BatchUpdate;
 import com.google.gerrit.server.update.UpdateException;
@@ -45,7 +45,7 @@ class AddHashtagsStep {
   private static final Logger log = LoggerFactory.getLogger(AddHashtagsStep.class);
 
   private final CurrentUser currentUser;
-  private final ChangeControl.GenericFactory changeControlFactory;
+  private final ChangeNotes.Factory changeNotesFactory;
   private final Change change;
   private final ChangeInfo changeInfo;
   private final boolean resume;
@@ -56,7 +56,7 @@ class AddHashtagsStep {
   @Inject
   AddHashtagsStep(
       CurrentUser currentUser,
-      ChangeControl.GenericFactory changeControlFactory,
+      ChangeNotes.Factory changeNotesFactory,
       Provider<ReviewDb> db,
       BatchUpdate.Factory batchUpdateFactory,
       SetHashtagsOp.Factory hashtagsFactory,
@@ -64,7 +64,7 @@ class AddHashtagsStep {
       @Assisted ChangeInfo changeInfo,
       @Assisted boolean resume) {
     this.currentUser = currentUser;
-    this.changeControlFactory = changeControlFactory;
+    this.changeNotesFactory = changeNotesFactory;
     this.db = db;
     this.batchUpdateFactory = batchUpdateFactory;
     this.hashtagsFactory = hashtagsFactory;
@@ -76,12 +76,13 @@ class AddHashtagsStep {
   void add()
       throws IllegalArgumentException, OrmException, NoSuchChangeException, UpdateException,
           RestApiException {
-    ChangeControl ctrl = changeControlFactory.controlFor(db.get(), change, currentUser);
+
+    ChangeNotes notes = changeNotesFactory.createChecked(db.get(), change);
 
     try {
       if (resume) {
         HashtagsInput input = new HashtagsInput();
-        input.remove = ctrl.getNotes().load().getHashtags();
+        input.remove = notes.load().getHashtags();
         try (BatchUpdate bu =
             batchUpdateFactory.create(
                 db.get(), change.getProject(), currentUser, TimeUtil.nowTs())) {
