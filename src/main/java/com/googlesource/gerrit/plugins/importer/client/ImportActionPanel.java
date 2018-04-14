@@ -22,11 +22,12 @@ public class ImportActionPanel extends FlowPanel {
 
   ImportActionPanel(final String project, final boolean copy) {
     setStyleName("importer-action-panel");
-    add(new Button("Resume...",
-        (ClickHandler) event -> (new ResumeImportDialog(project, copy))
-            .center()));
-    add(new Button("Complete...",
-        (ClickHandler) event -> (new CompleteImportDialog(project, copy))
-            .center()));
+    add(
+        new Button(
+            "Resume...", (ClickHandler) event -> (new ResumeImportDialog(project, copy)).center()));
+    add(
+        new Button(
+            "Complete...",
+            (ClickHandler) event -> (new CompleteImportDialog(project, copy)).center()));
   }
 }

@@ -23,6 +23,5 @@ public class ResumeCopyProjectInput extends JavaScriptObject {
     return (ResumeCopyProjectInput) createObject();
   }
 
-  protected ResumeCopyProjectInput() {
-  }
+  protected ResumeCopyProjectInput() {}
 }

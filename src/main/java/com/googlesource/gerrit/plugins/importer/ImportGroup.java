@@ -48,14 +48,7 @@ import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-
 import com.googlesource.gerrit.plugins.importer.ImportGroup.Input;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.Config;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +56,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.lib.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RequiresCapability(ImportCapability.ID)
 class ImportGroup implements RestModifyView<ConfigResource, Input> {
@@ -118,8 +115,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   @Override
   public Response<String> apply(ConfigResource rsrc, Input input)
-      throws NoSuchAccountException, OrmException, IOException,
-      RestApiException, ConfigInvalidException {
+      throws NoSuchAccountException, OrmException, IOException, RestApiException,
+          ConfigInvalidException {
     GroupInfo groupInfo;
     this.api = apiFactory.create(input.from, input.user, input.pass);
     groupInfo = api.getGroup(group.get());
@@ -130,22 +127,24 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   }
 
   private void validate(Input input, GroupInfo groupInfo)
-      throws IOException, OrmException, NoSuchAccountException,
-      RestApiException, ConfigInvalidException {
+      throws IOException, OrmException, NoSuchAccountException, RestApiException,
+          ConfigInvalidException {
     if (!isInternalGroup(new AccountGroup.UUID(groupInfo.id))) {
-      throw new MethodNotAllowedException(String.format(
-          "Group with name %s is not an internal group and cannot be imported",
-          groupInfo.name));
+      throw new MethodNotAllowedException(
+          String.format(
+              "Group with name %s is not an internal group and cannot be imported",
+              groupInfo.name));
     }
     if (getGroupByUUID(groupInfo.id) != null) {
-      throw new ResourceConflictException(String.format(
-          "Group with UUID %s already exists", groupInfo.id));
+      throw new ResourceConflictException(
+          String.format("Group with UUID %s already exists", groupInfo.id));
     }
     if (!groupInfo.id.equals(groupInfo.ownerId))
       if (!input.importOwnerGroup && getGroupByUUID(groupInfo.ownerId) == null) {
-        throw new PreconditionFailedException(String.format(
-            "Owner group %s with UUID %s does not exist",
-            getGroupName(groupInfo.ownerId), groupInfo.ownerId));
+        throw new PreconditionFailedException(
+            String.format(
+                "Owner group %s with UUID %s does not exist",
+                getGroupName(groupInfo.ownerId), groupInfo.ownerId));
       }
     if (groupInfo.members != null) {
       for (AccountInfo member : groupInfo.members) {
@@ -160,9 +159,10 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       if (groupInfo.includes != null) {
         for (GroupInfo include : groupInfo.includes) {
           if (getGroupByUUID(include.id) == null) {
-            throw new PreconditionFailedException(String.format(
-                "Included group %s with UUID %s does not exist",
-                getGroupName(include.id), include.id));
+            throw new PreconditionFailedException(
+                String.format(
+                    "Included group %s with UUID %s does not exist",
+                    getGroupName(include.id), include.id));
           }
         }
       }
@@ -186,8 +186,8 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   }
 
   private CreateGroupArgs toCreateGroupArgs(GroupInfo groupInfo)
-      throws IOException, OrmException, NoSuchAccountException,
-      RestApiException, ConfigInvalidException {
+      throws IOException, OrmException, NoSuchAccountException, RestApiException,
+          ConfigInvalidException {
     CreateGroupArgs args = new CreateGroupArgs();
     args.setGroupName(groupInfo.name);
     args.groupDescription = groupInfo.description;
@@ -204,12 +204,13 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   }
 
   private AccountGroup createGroup(Input input, GroupInfo info)
-      throws OrmException, NoSuchAccountException, IOException,
-      RestApiException, ConfigInvalidException {
+      throws OrmException, NoSuchAccountException, IOException, RestApiException,
+          ConfigInvalidException {
     String uniqueName = getUniqueGroupName(info.name);
     if (!info.name.equals(uniqueName)) {
-      log.warn(String.format("Group %s with UUID %s is imported with name %s",
-          info.name, info.id, uniqueName));
+      log.warn(
+          String.format(
+              "Group %s with UUID %s is imported with name %s", info.name, info.id, uniqueName));
       info.name = uniqueName;
     }
     AccountGroup group = createAccountGroup(info);
@@ -230,12 +231,14 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
         if (isInternalGroup(new AccountGroup.UUID(info.ownerId))) {
           String ownerGroupName = getGroupName(info.ownerId);
           if (input.importOwnerGroup) {
-            importGroupFactory.create(new AccountGroup.NameKey(ownerGroupName))
+            importGroupFactory
+                .create(new AccountGroup.NameKey(ownerGroupName))
                 .apply(new ConfigResource(), input);
           } else {
-            throw new IllegalStateException(String.format(
-                "Cannot set non-existing group %s as owner of group %s.",
-                ownerGroupName, info.name));
+            throw new IllegalStateException(
+                String.format(
+                    "Cannot set non-existing group %s as owner of group %s.",
+                    ownerGroupName, info.name));
           }
         }
       }
@@ -269,23 +272,21 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       }
     }
     return getUniqueGroupName(String.format("%s_imported", name), true);
-
   }
+
   private AccountGroup createAccountGroup(GroupInfo info) throws OrmException {
     AccountGroup.Id groupId = new AccountGroup.Id(db.nextAccountGroupId());
     AccountGroup.UUID uuid = new AccountGroup.UUID(info.id);
     AccountGroup group =
-        new AccountGroup(new AccountGroup.NameKey(info.name), groupId, uuid,
-            TimeUtil.nowTs());
-    group.setVisibleToAll(cfg.getBoolean("groups", "newGroupsVisibleToAll",
-        false));
+        new AccountGroup(new AccountGroup.NameKey(info.name), groupId, uuid, TimeUtil.nowTs());
+    group.setVisibleToAll(cfg.getBoolean("groups", "newGroupsVisibleToAll", false));
     group.setDescription(info.description);
     return group;
   }
 
   private void addMembers(AccountGroup.Id groupId, List<AccountInfo> members)
-      throws OrmException, NoSuchAccountException, IOException,
-      RestApiException, ConfigInvalidException {
+      throws OrmException, NoSuchAccountException, IOException, RestApiException,
+          ConfigInvalidException {
     List<AccountGroupMember> memberships = new ArrayList<>();
     for (AccountInfo member : members) {
       Account.Id userId = accountUtil.resolveUser(api, member);
@@ -300,23 +301,24 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     }
   }
 
-  private void addGroups(Input input, AccountGroup.Id groupId, String groupName,
-      List<GroupInfo> includedGroups)
-          throws NoSuchAccountException, OrmException, IOException,
-          RestApiException, ConfigInvalidException {
+  private void addGroups(
+      Input input, AccountGroup.Id groupId, String groupName, List<GroupInfo> includedGroups)
+      throws NoSuchAccountException, OrmException, IOException, RestApiException,
+          ConfigInvalidException {
     List<AccountGroupById> includeList = new ArrayList<>();
     for (GroupInfo includedGroup : includedGroups) {
       if (isInternalGroup(new AccountGroup.UUID(includedGroup.id))) {
         if (getGroupByUUID(includedGroup.id) == null) {
           String includedGroupName = getGroupName(includedGroup.id);
           if (input.importIncludedGroups) {
-            importGroupFactory.create(
-                new AccountGroup.NameKey(includedGroupName)).apply(
-                new ConfigResource(), input);
+            importGroupFactory
+                .create(new AccountGroup.NameKey(includedGroupName))
+                .apply(new ConfigResource(), input);
           } else {
-            throw new IllegalStateException(String.format(
-                "Cannot include non-existing group %s into group %s.",
-                includedGroupName, groupName));
+            throw new IllegalStateException(
+                String.format(
+                    "Cannot include non-existing group %s into group %s.",
+                    includedGroupName, groupName));
           }
         }
       }
@@ -332,8 +334,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     }
   }
 
-  private String getGroupName(String uuid) throws BadRequestException,
-      IOException, OrmException {
+  private String getGroupName(String uuid) throws BadRequestException, IOException, OrmException {
     return api.getGroup(uuid).name;
   }
 }

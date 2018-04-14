@@ -15,7 +15,16 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.CharMatcher;
-
+import java.io.IOException;
+import java.net.URI;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
@@ -23,18 +32,6 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-
-import java.io.IOException;
-import java.net.URI;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 public class HttpSession {
 
@@ -58,13 +55,12 @@ public class HttpSession {
     if (client == null) {
       URI uri = URI.create(url);
       BasicCredentialsProvider creds = new BasicCredentialsProvider();
-      creds.setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
-          new UsernamePasswordCredentials(user, pass));
+      creds.setCredentials(
+          new AuthScope(uri.getHost(), uri.getPort()), new UsernamePasswordCredentials(user, pass));
 
       SSLContext context;
       try {
-        final TrustManager[] trustAllCerts =
-            new TrustManager[] {new DummyX509TrustManager()};
+        final TrustManager[] trustAllCerts = new TrustManager[] {new DummyX509TrustManager()};
         context = SSLContext.getInstance("TLS");
         context.init(null, trustAllCerts, null);
       } catch (KeyManagementException | NoSuchAlgorithmException e) {
@@ -73,14 +69,13 @@ public class HttpSession {
 
       SSLConnectionSocketFactory sf;
       sf = new SSLConnectionSocketFactory(context, new DummyHostnameVerifier());
-      client = HttpClients
-          .custom()
-          .setSSLSocketFactory(sf)
-          .setDefaultCredentialsProvider(creds)
-          .setMaxConnPerRoute(10)
-          .setMaxConnTotal(1024)
-          .build();
-
+      client =
+          HttpClients.custom()
+              .setSSLSocketFactory(sf)
+              .setDefaultCredentialsProvider(creds)
+              .setMaxConnPerRoute(10)
+              .setMaxConnTotal(1024)
+              .build();
     }
     return client;
   }
@@ -109,5 +104,4 @@ public class HttpSession {
       return true;
     }
   }
-
 }

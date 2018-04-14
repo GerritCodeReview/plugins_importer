@@ -27,7 +27,9 @@ import com.google.gerrit.server.patch.PatchSetInfoFactory;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -38,19 +40,13 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 class ReplayRevisionsStep {
 
   interface Factory {
-    ReplayRevisionsStep create(Repository repo, RevWalk rw, Change change,
-        ChangeInfo changeInfo);
+    ReplayRevisionsStep create(Repository repo, RevWalk rw, Change change, ChangeInfo changeInfo);
   }
 
-  private static final Logger log = LoggerFactory
-      .getLogger(ReplayRevisionsStep.class);
+  private static final Logger log = LoggerFactory.getLogger(ReplayRevisionsStep.class);
 
   private final AccountUtil accountUtil;
   private final ReviewDb db;
@@ -61,7 +57,8 @@ class ReplayRevisionsStep {
   private final ChangeInfo changeInfo;
 
   @Inject
-  public ReplayRevisionsStep(AccountUtil accountUtil,
+  public ReplayRevisionsStep(
+      AccountUtil accountUtil,
       ReviewDb db,
       PatchSetInfoFactory patchSetInfoFactory,
       @Assisted Repository repo,
@@ -78,8 +75,8 @@ class ReplayRevisionsStep {
   }
 
   void replay(GerritApi api)
-      throws IOException, OrmException, NoSuchAccountException,
-      RestApiException, ConfigInvalidException {
+      throws IOException, OrmException, NoSuchAccountException, RestApiException,
+          ConfigInvalidException {
     List<RevisionInfo> revisions = new ArrayList<>(changeInfo.revisions.values());
     sortRevisionInfoByNumber(revisions);
     List<PatchSet> patchSets = new ArrayList<>();
@@ -105,10 +102,11 @@ class ReplayRevisionsStep {
           }
           // a patch set with the same number was created both in the source
           // and in the target system
-          log.warn(String.format(
-              "Project %s was modified in target system: "
-                  + "Skip replay revision for patch set %s.",
-              change.getProject().get(), ps.getId().toString()));
+          log.warn(
+              String.format(
+                  "Project %s was modified in target system: "
+                      + "Skip replay revision for patch set %s.",
+                  change.getProject().get(), ps.getId().toString()));
           continue;
         }
 
@@ -128,15 +126,17 @@ class ReplayRevisionsStep {
 
       if (change.currentPatchSetId() == null) {
         if (changeInfo.currentRevision != null) {
-          log.warn(String.format(
-              "Current revision %s of change %s not found."
-              + " Setting lastest revision %s as current patch set.",
-              changeInfo.currentRevision, changeInfo.id, info.getRevId()));
+          log.warn(
+              String.format(
+                  "Current revision %s of change %s not found."
+                      + " Setting lastest revision %s as current patch set.",
+                  changeInfo.currentRevision, changeInfo.id, info.getRevId()));
         } else {
-          log.warn(String.format(
-              "Change %s has no current revision."
-              + " Setting lastest revision %s as current patch set.",
-              changeInfo.id, info.getRevId()));
+          log.warn(
+              String.format(
+                  "Change %s has no current revision."
+                      + " Setting lastest revision %s as current patch set.",
+                  changeInfo.id, info.getRevId()));
         }
         change.setCurrentPatchSet(info);
       }
@@ -149,16 +149,14 @@ class ReplayRevisionsStep {
   }
 
   private static String imported(String ref) {
-    return ConfigureRepositoryStep.R_IMPORTS
-        + ref.substring(Constants.R_REFS.length());
+    return ConfigureRepositoryStep.R_IMPORTS + ref.substring(Constants.R_REFS.length());
   }
 
   private static void sortRevisionInfoByNumber(List<RevisionInfo> list) {
     list.sort((a, b) -> a._number - b._number);
   }
 
-  private void updateRef(Repository repo, PatchSet ps)
-      throws IOException {
+  private void updateRef(Repository repo, PatchSet ps) throws IOException {
     String ref = ps.getId().toRefName();
     RefUpdate ru = repo.updateRef(ref);
     ru.setExpectedOldObjectId(ObjectId.zeroId());
@@ -179,8 +177,8 @@ class ReplayRevisionsStep {
       case REJECTED_MISSING_OBJECT:
       case REJECTED_OTHER_REASON:
       default:
-        throw new IOException(String.format(
-            "Failed to create ref %s, RefUpdate.Result = %s", ref, result));
+        throw new IOException(
+            String.format("Failed to create ref %s, RefUpdate.Result = %s", ref, result));
     }
   }
 }

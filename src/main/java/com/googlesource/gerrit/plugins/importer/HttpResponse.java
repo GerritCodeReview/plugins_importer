@@ -15,15 +15,13 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Preconditions;
-
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.eclipse.jgit.util.IO;
-import org.eclipse.jgit.util.RawParseUtils;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.ByteBuffer;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.eclipse.jgit.util.IO;
+import org.eclipse.jgit.util.RawParseUtils;
 
 public class HttpResponse implements AutoCloseable {
 
@@ -61,15 +59,8 @@ public class HttpResponse implements AutoCloseable {
 
   public String getEntityContent() throws IOException {
     Preconditions.checkNotNull(response, "Response is not initialized.");
-    Preconditions.checkNotNull(response.getEntity(),
-        "Response.Entity is not initialized.");
-    ByteBuffer buf = IO.readWholeStream(
-        response.getEntity().getContent(),
-        1024);
-    return RawParseUtils.decode(
-        buf.array(),
-        buf.arrayOffset(),
-        buf.limit())
-        .trim();
+    Preconditions.checkNotNull(response.getEntity(), "Response.Entity is not initialized.");
+    ByteBuffer buf = IO.readWholeStream(response.getEntity().getContent(), 1024);
+    return RawParseUtils.decode(buf.array(), buf.arrayOffset(), buf.limit()).trim();
   }
 }

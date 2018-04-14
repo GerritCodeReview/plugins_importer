@@ -34,12 +34,10 @@ import com.google.gerrit.server.account.GetSshKeys;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 public class LocalApi implements GerritApi {
   private final com.google.gerrit.extensions.api.GerritApi gApi;
@@ -57,8 +55,7 @@ public class LocalApi implements GerritApi {
   }
 
   @Override
-  public ProjectInfo getProject(String projectName) throws IOException,
-      BadRequestException {
+  public ProjectInfo getProject(String projectName) throws IOException, BadRequestException {
     try {
       return gApi.projects().name(projectName).get();
     } catch (RestApiException e) {
@@ -67,13 +64,11 @@ public class LocalApi implements GerritApi {
   }
 
   @Override
-  public List<ChangeInfo> queryChanges(String projectName, int start,
-      int limit) throws IOException,
-      BadRequestException {
+  public List<ChangeInfo> queryChanges(String projectName, int start, int limit)
+      throws IOException, BadRequestException {
     try {
 
-      QueryRequest query = gApi.changes()
-          .query("project:" + projectName);
+      QueryRequest query = gApi.changes().query("project:" + projectName);
       query
           .withStart(start)
           .withOptions(
@@ -83,7 +78,7 @@ public class LocalApi implements GerritApi {
               ListChangesOption.CURRENT_REVISION,
               ListChangesOption.ALL_REVISIONS,
               ListChangesOption.ALL_COMMITS);
-      if(limit > 0) {
+      if (limit > 0) {
         query.withLimit(limit);
       }
       return query.get();
@@ -93,8 +88,8 @@ public class LocalApi implements GerritApi {
   }
 
   @Override
-  public GroupInfo getGroup(String groupName) throws IOException,
-      BadRequestException, OrmException {
+  public GroupInfo getGroup(String groupName)
+      throws IOException, BadRequestException, OrmException {
     try {
       return gApi.groups().id(groupName).get();
     } catch (RestApiException e) {
@@ -106,8 +101,7 @@ public class LocalApi implements GerritApi {
   public Iterable<CommentInfo> getComments(int changeId, String rev)
       throws IOException, OrmException, BadRequestException {
     try {
-      Map<String, List<CommentInfo>> result =
-          gApi.changes().id(changeId).revision(rev).comments();
+      Map<String, List<CommentInfo>> result = gApi.changes().id(changeId).revision(rev).comments();
 
       for (Map.Entry<String, List<CommentInfo>> e : result.entrySet()) {
         for (CommentInfo i : e.getValue()) {
@@ -122,12 +116,11 @@ public class LocalApi implements GerritApi {
   }
 
   @Override
-  public List<SshKeyInfo> getSshKeys(String userId) throws BadRequestException,
-      IOException, OrmException, ConfigInvalidException {
+  public List<SshKeyInfo> getSshKeys(String userId)
+      throws BadRequestException, IOException, OrmException, ConfigInvalidException {
     try {
       AccountResource rsrc =
-          accounts.parse(TopLevelResource.INSTANCE,
-              IdString.fromDecoded(userId));
+          accounts.parse(TopLevelResource.INSTANCE, IdString.fromDecoded(userId));
       return getSshKeys.apply(rsrc);
     } catch (ResourceNotFoundException | AuthException | PermissionBackendException e) {
       throw new BadRequestException(e.getMessage());

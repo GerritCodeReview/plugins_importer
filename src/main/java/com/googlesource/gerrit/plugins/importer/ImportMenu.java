@@ -25,7 +25,6 @@ import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-
 import java.util.List;
 
 public class ImportMenu implements TopMenu {
@@ -60,9 +59,10 @@ public class ImportMenu implements TopMenu {
   }
 
   private boolean canImport() {
-    return permissionBackend.user(userProvider).testOrFalse(
-      new PluginPermission(pluginName, ImportCapability.ID)) ||
-      permissionBackend.user(userProvider).testOrFalse(ADMINISTRATE_SERVER);
+    return permissionBackend
+            .user(userProvider)
+            .testOrFalse(new PluginPermission(pluginName, ImportCapability.ID))
+        || permissionBackend.user(userProvider).testOrFalse(ADMINISTRATE_SERVER);
   }
 
   @Override

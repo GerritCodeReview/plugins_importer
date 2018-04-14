@@ -21,14 +21,12 @@ import com.google.gerrit.server.config.GerritServerConfig;
 import com.google.gerrit.server.config.SitePaths;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
+import java.io.IOException;
+import java.nio.file.Path;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
-
-import java.io.IOException;
-import java.nio.file.Path;
 
 @Singleton
 class ConfigureRepositoryStep {
@@ -38,9 +36,7 @@ class ConfigureRepositoryStep {
   private final Path gitDir;
 
   @Inject
-  ConfigureRepositoryStep(
-      SitePaths site,
-      @GerritServerConfig Config cfg) {
+  ConfigureRepositoryStep(SitePaths site, @GerritServerConfig Config cfg) {
     this.gitDir = site.resolve(cfg.getString("gerrit", null, "basePath"));
   }
 
@@ -49,13 +45,10 @@ class ConfigureRepositoryStep {
     pm.beginTask("Configure repository", 1);
     StoredConfig config = repo.getConfig();
     if (originUrl != null) {
-      config.setString("remote", "origin", "url", originUrl
-          .concat("/a/")
-          .concat(name.get()));
+      config.setString("remote", "origin", "url", originUrl.concat("/a/").concat(name.get()));
     } else {
-      config.setString("remote", "origin", "url",
-          this.gitDir.resolve(name.get() + ".git").toString());
-
+      config.setString(
+          "remote", "origin", "url", this.gitDir.resolve(name.get() + ".git").toString());
     }
     config.setString("remote", "origin", "fetch", "+refs/*:" + R_IMPORTS + "*");
     config.setString("http", null, "sslVerify", Boolean.FALSE.toString());

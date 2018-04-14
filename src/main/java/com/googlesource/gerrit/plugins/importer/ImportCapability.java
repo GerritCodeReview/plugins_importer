@@ -17,7 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
 
 public class ImportCapability extends CapabilityDefinition {
-  public final static String ID = "import";
+  public static final String ID = "import";
 
   @Override
   public String getDescription() {

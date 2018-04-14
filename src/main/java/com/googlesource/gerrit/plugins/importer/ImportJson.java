@@ -27,18 +27,15 @@ import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-
 import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
-
-import org.eclipse.jgit.internal.storage.file.LockFile;
-import org.eclipse.jgit.lib.ProgressMonitor;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import org.eclipse.jgit.internal.storage.file.LockFile;
+import org.eclipse.jgit.lib.ProgressMonitor;
 
 @Singleton
 public class ImportJson {
@@ -47,15 +44,12 @@ public class ImportJson {
   private final AccountLoader.Factory accountLoaderFactory;
 
   @Inject
-  ImportJson(
-      Provider<CurrentUser> currentUser,
-      AccountLoader.Factory accountLoaderFactory) {
+  ImportJson(Provider<CurrentUser> currentUser, AccountLoader.Factory accountLoaderFactory) {
     this.currentUser = currentUser;
     this.accountLoaderFactory = accountLoaderFactory;
   }
 
-  public ImportProjectInfo format(Input input, ImportProjectInfo info)
-      throws OrmException {
+  public ImportProjectInfo format(Input input, ImportProjectInfo info) throws OrmException {
     if (info == null) {
       info = new ImportProjectInfo();
       info.from = input.from;
@@ -72,15 +66,14 @@ public class ImportJson {
     AccountLoader accountLoader = accountLoaderFactory.create(true);
     ImportInfo importInfo = new ImportInfo();
     importInfo.timestamp = new Timestamp(TimeUtil.nowMs());
-    importInfo.user =
-        accountLoader.get(((IdentifiedUser) currentUser.get()).getAccountId());
+    importInfo.user = accountLoader.get(((IdentifiedUser) currentUser.get()).getAccountId());
     importInfo.remoteUser = remoteUser;
     accountLoader.fill();
     return importInfo;
   }
 
-  public static void persist(LockFile lockFile, ImportProjectInfo info,
-      ProgressMonitor pm) throws IOException {
+  public static void persist(LockFile lockFile, ImportProjectInfo info, ProgressMonitor pm)
+      throws IOException {
     pm.beginTask("Persist parameters", 1);
     String s = OutputFormat.JSON_COMPACT.newGson().toJson(info);
     try (OutputStream out = lockFile.getOutputStream()) {
@@ -94,8 +87,9 @@ public class ImportJson {
 
   public static ImportProjectInfo parse(File f) throws IOException {
     try (FileReader r = new FileReader(f)) {
-      return OutputFormat.JSON_COMPACT.newGson().fromJson(r,
-          new TypeToken<ImportProjectInfo>() {}.getType());
+      return OutputFormat.JSON_COMPACT
+          .newGson()
+          .fromJson(r, new TypeToken<ImportProjectInfo>() {}.getType());
     }
   }
 }

@@ -28,20 +28,21 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
+import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
-
 import com.googlesource.gerrit.plugins.importer.GerritApi.Version;
 import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
-
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
@@ -51,10 +52,6 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 
 @RequiresCapability(ImportCapability.ID)
 class ImportProject implements RestModifyView<ConfigResource, Input> {
@@ -165,9 +162,9 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
 
   @Override
   public ImportStatistic apply(ConfigResource rsrc, Input input)
-      throws RestApiException, OrmException, IOException, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException, PermissionBackendException {
+      throws RestApiException, OrmException, IOException, ValidationException, GitAPIException,
+          NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
+          PermissionBackendException {
     if (input == null) {
       input = new Input();
     }
@@ -180,10 +177,10 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     }
   }
 
-  public ResumeImportStatistic resume(String user, String pass, boolean force,
-      File importStatus) throws RestApiException, OrmException, IOException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException, PermissionBackendException {
+  public ResumeImportStatistic resume(String user, String pass, boolean force, File importStatus)
+      throws RestApiException, OrmException, IOException, GitAPIException, NoSuchChangeException,
+          NoSuchAccountException, UpdateException, ConfigInvalidException,
+          PermissionBackendException {
     LockFile lockFile = lockForImport();
     try {
       ImportProjectInfo info = ImportJson.parse(importStatus);
@@ -203,11 +200,10 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     }
   }
 
-  private ResumeImportStatistic apply(LockFile lockFile, Input input,
-      ImportProjectInfo info) throws RestApiException, OrmException,
-      IOException, GitAPIException, NoSuchChangeException,
-      NoSuchAccountException, UpdateException, ConfigInvalidException,
-      PermissionBackendException {
+  private ResumeImportStatistic apply(LockFile lockFile, Input input, ImportProjectInfo info)
+      throws RestApiException, OrmException, IOException, GitAPIException, NoSuchChangeException,
+          NoSuchAccountException, UpdateException, ConfigInvalidException,
+          PermissionBackendException {
     boolean resume = info != null;
     api = apiFactory.create(input.from, input.user, input.pass);
 
@@ -217,49 +213,49 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       input.validateImport();
       Version v = api.getVersion();
       if (v.compareTo(v2_11_2) < 0) {
-        throw new BadRequestException(String.format(
-            "The version of the source Gerrit server %s is too old. "
-            + "Its version is %s, but required is a version >= %s.",
-            input.from, v.formatted, v2_11_2));
+        throw new BadRequestException(
+            String.format(
+                "The version of the source Gerrit server %s is too old. "
+                    + "Its version is %s, but required is a version >= %s.",
+                input.from, v.formatted, v2_11_2));
       }
     }
 
-    ProgressMonitor pm = err != null ? new TextProgressMonitor(err) :
-        NullProgressMonitor.INSTANCE;
+    ProgressMonitor pm = err != null ? new TextProgressMonitor(err) : NullProgressMonitor.INSTANCE;
 
     ResumeImportStatistic statistic = new ResumeImportStatistic();
     try {
-      srcProject = !Strings.isNullOrEmpty(input.name)
-          ? new Project.NameKey(input.name) : targetProject;
+      srcProject =
+          !Strings.isNullOrEmpty(input.name) ? new Project.NameKey(input.name) : targetProject;
       checkProjectInSource(pm);
       setParentProjectName(input, pm);
       checkPreconditions(pm);
-      try (Repository repo = openRepoStep.open(targetProject, resume, pm,
-          parent)) {
+      try (Repository repo = openRepoStep.open(targetProject, resume, pm, parent)) {
         ImportJson.persist(lockFile, importJson.format(input, info), pm);
         configRepoStep.configure(repo, srcProject, input.from, pm);
         gitFetchStep.fetch(input.user, input.pass, repo, pm);
         configProjectStep.configure(targetProject, parent, pm);
-        replayChangesFactory.create(input.from, api, repo,
-            srcProject, targetProject, force, resume, statistic, pm).replay();
+        replayChangesFactory
+            .create(input.from, api, repo, srcProject, targetProject, force, resume, statistic, pm)
+            .replay();
         if (!copy) {
-          importGroupsStepFactory.create(input.from, input.user, input.pass,
-              targetProject, pm).importGroups();
+          importGroupsStepFactory
+              .create(input.from, input.user, input.pass, targetProject, pm)
+              .importGroups();
         }
       }
-      importLog.onImport((IdentifiedUser) currentUser.get(), srcProject,
-          targetProject, input.from);
+      importLog.onImport((IdentifiedUser) currentUser.get(), srcProject, targetProject, input.from);
     } catch (BadRequestException e) {
       throw e;
     } catch (Exception e) {
-      importLog.onImport((IdentifiedUser) currentUser.get(), srcProject,
-          targetProject, input.from, e);
-      String msg = input.from != null
-          ? format("Unable to transfer project '%s' from"
-              + " source gerrit host '%s'.",
-              srcProject.get(), input.from)
-          : format("Unable to copy project '%s'.",
-              srcProject.get());
+      importLog.onImport(
+          (IdentifiedUser) currentUser.get(), srcProject, targetProject, input.from, e);
+      String msg =
+          input.from != null
+              ? format(
+                  "Unable to transfer project '%s' from" + " source gerrit host '%s'.",
+                  srcProject.get(), input.from)
+              : format("Unable to copy project '%s'.", srcProject.get());
       log.error(msg, e);
       throw e;
     }
@@ -267,8 +263,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     return statistic;
   }
 
-  private void checkProjectInSource(ProgressMonitor pm)
-      throws IOException, BadRequestException {
+  private void checkProjectInSource(ProgressMonitor pm) throws IOException, BadRequestException {
     pm.beginTask("Check source project", 1);
     api.getProject(srcProject.get());
     updateAndEnd(pm);
@@ -281,8 +276,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       if (!Strings.isNullOrEmpty(input.parent)) {
         parent = new Project.NameKey(input.parent);
       } else {
-        parent = new Project.NameKey(
-            api.getProject(srcProject.get()).parent);
+        parent = new Project.NameKey(api.getProject(srcProject.get()).parent);
       }
     }
     updateAndEnd(pm);
@@ -297,8 +291,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
     }
     ProjectState p = projectCache.get(parent);
     if (p == null) {
-      throw new BadRequestException(format(
-          "Parent project '%s' does not exist in target.", parent.get()));
+      throw new BadRequestException(
+          format("Parent project '%s' does not exist in target.", parent.get()));
     }
     updateAndEnd(pm);
   }
@@ -310,8 +304,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
       if (lockFile.lock()) {
         return lockFile;
       }
-      throw new ResourceConflictException(
-          "project is being imported from another session");
+      throw new ResourceConflictException("project is being imported from another session");
     } catch (IOException e1) {
       throw new ResourceConflictException("failed to lock project for import");
     }

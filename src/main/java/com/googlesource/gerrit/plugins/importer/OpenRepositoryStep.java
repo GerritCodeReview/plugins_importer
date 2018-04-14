@@ -31,23 +31,21 @@ import com.google.gerrit.server.validators.ValidationException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-
+import java.io.IOException;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
-
-import java.io.IOException;
 
 @Singleton
 class OpenRepositoryStep {
   private final GitRepositoryManager git;
   private final ProjectCache projectCache;
-  private final DynamicSet<ProjectCreationValidationListener>
-      projectCreationValidationListeners;
+  private final DynamicSet<ProjectCreationValidationListener> projectCreationValidationListeners;
   private final Provider<ProjectsCollection> projectsCollection;
 
   @Inject
-  OpenRepositoryStep(GitRepositoryManager git,
+  OpenRepositoryStep(
+      GitRepositoryManager git,
       ProjectCache projectCache,
       DynamicSet<ProjectCreationValidationListener> projectCreationValidationListeners,
       Provider<ProjectsCollection> projectsCollection) {
@@ -57,23 +55,20 @@ class OpenRepositoryStep {
     this.projectsCollection = projectsCollection;
   }
 
-  Repository open(Project.NameKey name, boolean resume, ProgressMonitor pm,
-      Project.NameKey parent)
+  Repository open(Project.NameKey name, boolean resume, ProgressMonitor pm, Project.NameKey parent)
       throws ResourceConflictException, IOException, UnprocessableEntityException,
-      PermissionBackendException {
+          PermissionBackendException {
     pm.beginTask("Open repository", 1);
     try {
       Repository repo = git.openRepository(name);
       if (resume) {
         return repo;
       }
-      throw new ResourceConflictException(format(
-          "repository %s already exists", name.get()));
+      throw new ResourceConflictException(format("repository %s already exists", name.get()));
     } catch (RepositoryNotFoundException e) {
       // Project doesn't exist
       if (resume) {
-        throw new ResourceConflictException(format(
-            "repository %s does not exist", name.get()));
+        throw new ResourceConflictException(format("repository %s does not exist", name.get()));
       }
     }
 
@@ -86,7 +81,7 @@ class OpenRepositoryStep {
 
   private void beforeCreateProject(Project.NameKey name, Project.NameKey parent)
       throws ResourceConflictException, UnprocessableEntityException, IOException,
-      PermissionBackendException {
+          PermissionBackendException {
     CreateProjectArgs args = new CreateProjectArgs();
     args.setProjectName(name);
     args.newParent = projectsCollection.get().parse(parent.get()).getNameKey();

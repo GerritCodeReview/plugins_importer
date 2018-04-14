@@ -18,9 +18,10 @@ import com.google.gwt.core.client.JavaScriptObject;
 
 public class ImportInfo extends JavaScriptObject {
   public final native String timestamp() /*-{ return this.timestamp; }-*/;
+
   public final native AccountInfo user() /*-{ return this.user; }-*/;
+
   public final native String remoteUser() /*-{ return this.remote_user; }-*/;
 
-  protected ImportInfo() {
-  }
+  protected ImportInfo() {}
 }

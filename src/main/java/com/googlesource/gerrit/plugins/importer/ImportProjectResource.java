@@ -18,7 +18,6 @@ import com.google.gerrit.extensions.restapi.RestResource;
 import com.google.gerrit.extensions.restapi.RestView;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.inject.TypeLiteral;
-
 import java.io.File;
 import java.io.IOException;
 

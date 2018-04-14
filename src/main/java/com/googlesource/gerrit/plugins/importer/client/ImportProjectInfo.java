@@ -19,10 +19,12 @@ import com.google.gwt.core.client.JsArray;
 
 public class ImportProjectInfo extends JavaScriptObject {
   public final native String from() /*-{ return this.from; }-*/;
+
   public final native String name() /*-{ return this.name; }-*/;
+
   public final native String parent() /*-{ return this.parent; }-*/;
+
   public final native JsArray<ImportInfo> imports() /*-{ return this.imports; }-*/;
 
-  protected ImportProjectInfo() {
-  }
+  protected ImportProjectInfo() {}
 }

@@ -26,48 +26,71 @@ import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
 @RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "group", description = "Imports a group")
 public class GroupCommand extends SshCommand {
-  @Option(name = "--from", aliases = {"-f"}, required = true, metaVar = "URL",
-      usage = "URL of the remote system from where the group is imported from")
+  @Option(
+    name = "--from",
+    aliases = {"-f"},
+    required = true,
+    metaVar = "URL",
+    usage = "URL of the remote system from where the group is imported from"
+  )
   private String url;
 
-  @Option(name = "--user", aliases = {"-u"}, required = true, metaVar = "NAME",
-      usage = "user on remote system")
+  @Option(
+    name = "--user",
+    aliases = {"-u"},
+    required = true,
+    metaVar = "NAME",
+    usage = "user on remote system"
+  )
   private String user;
 
-  @Option(name = "--pass", aliases = {"-p"}, required = true, metaVar = "-|PASS",
-      usage = "password of remote user")
+  @Option(
+    name = "--pass",
+    aliases = {"-p"},
+    required = true,
+    metaVar = "-|PASS",
+    usage = "password of remote user"
+  )
   private String pass;
 
-  @Option(name = "--import-owner-group", aliases = {"-o"},
-      usage = "whether missing owner groups should be imported automatically")
+  @Option(
+    name = "--import-owner-group",
+    aliases = {"-o"},
+    usage = "whether missing owner groups should be imported automatically"
+  )
   private boolean importOwnerGroup;
 
-  @Option(name = "--import-included-groups", aliases = {"-i"},
-      usage = "whether missing included groups should be imported automatically")
+  @Option(
+    name = "--import-included-groups",
+    aliases = {"-i"},
+    usage = "whether missing included groups should be imported automatically"
+  )
   private boolean importIncludedGroups;
 
-  @Argument(index = 0, required = true, metaVar = "NAME",
-      usage = "name of the group to be imported")
+  @Argument(
+    index = 0,
+    required = true,
+    metaVar = "NAME",
+    usage = "name of the group to be imported"
+  )
   private String group;
 
-  @Inject
-  private ImportGroup.Factory importGroupFactory;
+  @Inject private ImportGroup.Factory importGroupFactory;
 
   @Override
-  protected void run() throws UnloggedFailure, OrmException, IOException,
-      NoSuchAccountException, ConfigInvalidException {
+  protected void run()
+      throws UnloggedFailure, OrmException, IOException, NoSuchAccountException,
+          ConfigInvalidException {
     ImportGroup.Input input = new ImportGroup.Input();
     input.from = url;
     input.user = user;
@@ -76,9 +99,8 @@ public class GroupCommand extends SshCommand {
     input.importIncludedGroups = importIncludedGroups;
 
     try {
-      importGroupFactory.create(new AccountGroup.NameKey(group)).apply(
-          new ConfigResource(), input);
-    } catch (RestApiException e){
+      importGroupFactory.create(new AccountGroup.NameKey(group)).apply(new ConfigResource(), input);
+    } catch (RestApiException e) {
       throw die(e.getMessage());
     }
   }

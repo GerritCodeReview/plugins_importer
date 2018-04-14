@@ -17,7 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
 
 public class CopyProjectCapability extends CapabilityDefinition {
-  public final static String ID = "copyProject";
+  public static final String ID = "copyProject";
 
   @Override
   public String getDescription() {

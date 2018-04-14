@@ -28,17 +28,15 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class GroupsCollection implements
-    ChildCollection<ConfigResource, ImportGroupResource>,
-    AcceptsCreate<ConfigResource> {
+public class GroupsCollection
+    implements ChildCollection<ConfigResource, ImportGroupResource>, AcceptsCreate<ConfigResource> {
 
   private final DynamicMap<RestView<ImportGroupResource>> views;
   private final ImportGroup.Factory importGroupFactory;
 
   @Inject
   GroupsCollection(
-      DynamicMap<RestView<ImportGroupResource>> views,
-      ImportGroup.Factory importGroupFactory) {
+      DynamicMap<RestView<ImportGroupResource>> views, ImportGroup.Factory importGroupFactory) {
     this.views = views;
     this.importGroupFactory = importGroupFactory;
   }
@@ -60,8 +58,7 @@ public class GroupsCollection implements
   }
 
   @Override
-  public ImportGroup create(ConfigResource parent, IdString id)
-      throws RestApiException {
+  public ImportGroup create(ConfigResource parent, IdString id) throws RestApiException {
     return importGroupFactory.create(new AccountGroup.NameKey(id.get()));
   }
 }

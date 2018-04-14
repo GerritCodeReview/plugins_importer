@@ -18,7 +18,10 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.gerrit.extensions.restapi.RawInput;
 import com.google.gerrit.server.OutputFormat;
-
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -27,11 +30,6 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 public class RestSession extends HttpSession {
 
@@ -53,9 +51,9 @@ public class RestSession extends HttpSession {
     HttpPut put = new HttpPut(url + "/a" + endPoint);
     if (content != null) {
       put.addHeader(new BasicHeader("Content-Type", "application/json"));
-      put.setEntity(new StringEntity(
-          OutputFormat.JSON_COMPACT.newGson().toJson(content),
-          Charsets.UTF_8.name()));
+      put.setEntity(
+          new StringEntity(
+              OutputFormat.JSON_COMPACT.newGson().toJson(content), Charsets.UTF_8.name()));
     }
     return new RestResponse(getClient().execute(put));
   }
@@ -64,10 +62,9 @@ public class RestSession extends HttpSession {
     Preconditions.checkNotNull(stream);
     HttpPut put = new HttpPut(url + "/a" + endPoint);
     put.addHeader(new BasicHeader("Content-Type", stream.getContentType()));
-    put.setEntity(new BufferedHttpEntity(
-        new InputStreamEntity(
-            stream.getInputStream(),
-            stream.getContentLength())));
+    put.setEntity(
+        new BufferedHttpEntity(
+            new InputStreamEntity(stream.getInputStream(), stream.getContentLength())));
     return new RestResponse(getClient().execute(put));
   }
 
@@ -79,9 +76,9 @@ public class RestSession extends HttpSession {
     HttpPost post = new HttpPost(url + "/a" + endPoint);
     if (content != null) {
       post.addHeader(new BasicHeader("Content-Type", "application/json"));
-      post.setEntity(new StringEntity(
-          OutputFormat.JSON_COMPACT.newGson().toJson(content),
-          Charsets.UTF_8.name()));
+      post.setEntity(
+          new StringEntity(
+              OutputFormat.JSON_COMPACT.newGson().toJson(content), Charsets.UTF_8.name()));
     }
     return new RestResponse(getClient().execute(post));
   }
