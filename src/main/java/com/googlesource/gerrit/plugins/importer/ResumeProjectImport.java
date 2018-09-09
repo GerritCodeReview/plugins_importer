@@ -27,21 +27,18 @@ import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
+import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-
 import com.googlesource.gerrit.plugins.importer.ResumeProjectImport.Input;
-
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
-
 import java.io.IOException;
 import java.io.Writer;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @RequiresCapability(ImportCapability.ID)
 public class ResumeProjectImport implements RestModifyView<ImportProjectResource, Input> {
@@ -93,24 +90,23 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
 
   @Override
   public ResumeImportStatistic apply(ImportProjectResource rsrc, Input input)
-      throws RestApiException, IOException, OrmException, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException {
+      throws RestApiException, IOException, OrmException, ValidationException, GitAPIException,
+          NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException {
     if (copy) {
       input.validateResumeCopy();
     } else {
       input.validateResumeImport();
     }
 
-    return importProjectFactory.create(rsrc.getName())
+    return importProjectFactory
+        .create(rsrc.getName())
         .setCopy(copy)
         .setErr(err)
-        .resume(input.user, input.pass, input.force,
-            rsrc.getImportStatus());
+        .resume(input.user, input.pass, input.force, rsrc.getImportStatus());
   }
 
-  public static class OnProjects implements
-      RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
+  public static class OnProjects
+      implements RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
     private final ProjectsCollection projectsCollection;
     private final ResumeProjectImport resumeProjectImport;
     private final Provider<CurrentUser> currentUserProvider;
@@ -130,12 +126,10 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
 
     @Override
     public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
-        throws RestApiException, IOException, OrmException, ValidationException,
-        GitAPIException, NoSuchChangeException, NoSuchAccountException,
-        UpdateException, ConfigInvalidException {
+        throws RestApiException, IOException, OrmException, ValidationException, GitAPIException,
+            NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException {
       ImportProjectResource projectResource =
-          projectsCollection.parse(new ConfigResource(),
-              IdString.fromDecoded(rsrc.getName()));
+          projectsCollection.parse(new ConfigResource(), IdString.fromDecoded(rsrc.getName()));
       return resumeProjectImport.apply(projectResource, input);
     }
 
@@ -157,8 +151,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     private boolean isImported(ProjectResource rsrc) {
       try {
         ImportProjectResource projectResource =
-            projectsCollection.parse(new ConfigResource(),
-                IdString.fromDecoded(rsrc.getName()));
+            projectsCollection.parse(new ConfigResource(), IdString.fromDecoded(rsrc.getName()));
         ImportProjectInfo info = projectResource.getInfo();
         if (info.from == null) {
           // no import, but a copy within the same system

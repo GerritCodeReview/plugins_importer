@@ -31,18 +31,15 @@ import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Collections;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 class ReplayMessagesStep {
 
   interface Factory {
-    ReplayMessagesStep create(Change change, ChangeInfo changeInfo,
-        boolean resume);
+    ReplayMessagesStep create(Change change, ChangeInfo changeInfo, boolean resume);
   }
 
   private final AccountUtil accountUtil;
@@ -56,7 +53,8 @@ class ReplayMessagesStep {
   private final boolean resume;
 
   @Inject
-  public ReplayMessagesStep(AccountUtil accountUtil,
+  public ReplayMessagesStep(
+      AccountUtil accountUtil,
       ChangeUpdate.Factory updateFactory,
       ChangeMessagesUtil cmUtil,
       IdentifiedUser.GenericFactory genericUserFactory,
@@ -76,9 +74,9 @@ class ReplayMessagesStep {
     this.resume = resume;
   }
 
-  void replay(GerritApi api) throws NoSuchAccountException,
-      NoSuchChangeException, OrmException, IOException, RestApiException,
-      ConfigInvalidException {
+  void replay(GerritApi api)
+      throws NoSuchAccountException, NoSuchChangeException, OrmException, IOException,
+          RestApiException, ConfigInvalidException {
     for (ChangeMessageInfo msg : changeInfo.messages) {
       ChangeMessage.Key msgKey = new ChangeMessage.Key(change.getId(), msg.id);
       if (resume && db.changeMessages().get(msgKey) != null) {
@@ -87,9 +85,8 @@ class ReplayMessagesStep {
       }
 
       Timestamp ts = msg.date;
-      PatchSet.Id psId = msg._revisionNumber != null
-          ? new PatchSet.Id(change.getId(),  msg._revisionNumber)
-          : null;
+      PatchSet.Id psId =
+          msg._revisionNumber != null ? new PatchSet.Id(change.getId(), msg._revisionNumber) : null;
       if (msg.author != null) {
         Account.Id userId = accountUtil.resolveUser(api, msg.author);
         ChangeUpdate update = updateFactory.create(control(change, userId), ts);
@@ -100,19 +97,16 @@ class ReplayMessagesStep {
       } else {
         // Message create by the GerritPersonIdent user
         ChangeMessage cmsg =
-            new ChangeMessage(new ChangeMessage.Key(change.getId(), msg.id),
-                null, ts, psId);
+            new ChangeMessage(new ChangeMessage.Key(change.getId(), msg.id), null, ts, psId);
         cmsg.setMessage(msg.message);
         db.changeMessages().insert(Collections.singleton(cmsg));
       }
     }
   }
 
-  private ChangeControl control(Change change, Account.Id id)
-      throws NoSuchChangeException {
+  private ChangeControl control(Change change, Account.Id id) throws NoSuchChangeException {
     try {
-      return changeControlFactory.controlFor(db, change,
-        genericUserFactory.create(id));
+      return changeControlFactory.controlFor(db, change, genericUserFactory.create(id));
     } catch (OrmException e) {
       throw new NoSuchChangeException(change.getId());
     }

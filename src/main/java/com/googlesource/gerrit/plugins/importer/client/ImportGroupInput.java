@@ -18,15 +18,18 @@ import com.google.gwt.core.client.JavaScriptObject;
 
 public class ImportGroupInput extends JavaScriptObject {
   final native void from(String f) /*-{ this.from = f; }-*/;
+
   final native void user(String u) /*-{ this.user = u; }-*/;
+
   final native void pass(String p) /*-{ this.pass = p; }-*/;
+
   final native void importOwnerGroup(boolean i) /*-{ this.import_owner_group = i; }-*/;
+
   final native void importIncludedGroups(boolean i) /*-{ this.import_included_groups = i; }-*/;
 
   static ImportGroupInput create() {
     return (ImportGroupInput) createObject();
   }
 
-  protected ImportGroupInput() {
-  }
+  protected ImportGroupInput() {}
 }

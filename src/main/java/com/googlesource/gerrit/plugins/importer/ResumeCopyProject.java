@@ -26,26 +26,23 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectResource;
+import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-
 import com.googlesource.gerrit.plugins.importer.ResumeCopyProject.Input;
-
+import java.io.IOException;
+import java.io.Writer;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
-import java.io.IOException;
-import java.io.Writer;
-
 @RequiresCapability(CopyProjectCapability.ID)
-class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
-    UiAction<ProjectResource> {
+class ResumeCopyProject
+    implements RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
   public static class Input {
     public boolean force;
   }
@@ -79,23 +76,17 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
 
   @Override
   public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
-      throws RestApiException, IOException, OrmException, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException {
+      throws RestApiException, IOException, OrmException, ValidationException, GitAPIException,
+          NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException {
     ImportProjectResource projectResource =
-        projectsCollection.parse(new ConfigResource(),
-            IdString.fromDecoded(rsrc.getName()));
+        projectsCollection.parse(new ConfigResource(), IdString.fromDecoded(rsrc.getName()));
     ResumeProjectImport.Input in = new ResumeProjectImport.Input();
     in.force = input.force;
-    return resumeProjectImport.get()
-        .setCopy(true)
-        .setErr(err)
-        .apply(projectResource, in);
+    return resumeProjectImport.get().setCopy(true).setErr(err).apply(projectResource, in);
   }
 
   @Override
-  public UiAction.Description getDescription(
-      ProjectResource rsrc) {
+  public UiAction.Description getDescription(ProjectResource rsrc) {
     return new UiAction.Description()
         .setLabel("Resume Copy...")
         .setTitle(String.format("Resume copy for project %s", rsrc.getName()))
@@ -112,8 +103,7 @@ class ResumeCopyProject implements RestModifyView<ProjectResource, Input>,
   private boolean isCopied(ProjectResource rsrc) {
     try {
       ImportProjectResource projectResource =
-          projectsCollection.parse(new ConfigResource(),
-              IdString.fromDecoded(rsrc.getName()));
+          projectsCollection.parse(new ConfigResource(), IdString.fromDecoded(rsrc.getName()));
       ImportProjectInfo info = projectResource.getInfo();
       if (info.from != null) {
         // no copy, but an import from another system

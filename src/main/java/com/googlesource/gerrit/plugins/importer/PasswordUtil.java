@@ -18,7 +18,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Strings;
 import com.google.gerrit.sshd.BaseCommand.UnloggedFailure;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,8 +29,7 @@ class PasswordUtil {
   static String readPassword(InputStream in, String pass)
       throws UnsupportedEncodingException, IOException, UnloggedFailure {
     if ("-".equals(pass)) {
-      BufferedReader br = new BufferedReader(
-          new InputStreamReader(in, UTF_8));
+      BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF_8));
       pass = Strings.nullToEmpty(br.readLine());
       if (br.readLine() != null) {
         throw new UnloggedFailure(1, "multi-line password not allowed");

@@ -48,11 +48,6 @@ import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -60,16 +55,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ReplayInlineCommentsStep {
 
   interface Factory {
-    ReplayInlineCommentsStep create(Change change, ChangeInfo changeInfo,
-        GerritApi api, boolean resume);
+    ReplayInlineCommentsStep create(
+        Change change, ChangeInfo changeInfo, GerritApi api, boolean resume);
   }
 
-  private static final Logger log = LoggerFactory
-      .getLogger(ReplayInlineCommentsStep.class);
+  private static final Logger log = LoggerFactory.getLogger(ReplayInlineCommentsStep.class);
 
   private final AccountUtil accountUtil;
   private final ReviewDb db;
@@ -86,7 +83,8 @@ class ReplayInlineCommentsStep {
   private final boolean resume;
 
   @Inject
-  public ReplayInlineCommentsStep(AccountUtil accountUtil,
+  public ReplayInlineCommentsStep(
+      AccountUtil accountUtil,
       ReviewDb db,
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeControl.GenericFactory changeControlFactory,
@@ -116,39 +114,38 @@ class ReplayInlineCommentsStep {
 
   void replay()
       throws RestApiException, OrmException, IOException, NoSuchChangeException,
-      NoSuchAccountException, ConfigInvalidException {
-    ChangeControl ctrl =  control(change, change.getOwner());
-    for (PatchSet ps : ChangeUtil.PS_ID_ORDER
-        .sortedCopy(psUtil.byChange(db, ctrl.getNotes()))) {
-      Iterable<CommentInfo> comments = api.getComments(
-          changeInfo._number, ps.getRevision().get());
+          NoSuchAccountException, ConfigInvalidException {
+    ChangeControl ctrl = control(change, change.getOwner());
+    for (PatchSet ps : ChangeUtil.PS_ID_ORDER.sortedCopy(psUtil.byChange(db, ctrl.getNotes()))) {
+      Iterable<CommentInfo> comments = api.getComments(changeInfo._number, ps.getRevision().get());
       if (resume) {
         if (comments == null) {
           // the revision does not exist in the source system,
           // it must be a revision that was created in the target system after
           // the initial import
-          log.warn(String.format(
-              "Project %s was modified in target system: "
-                  + "Skip replay inline comments for patch set %s"
-                  + " which doesn't exist in the source system.",
-              change.getProject().get(), ps.getId().toString()));
+          log.warn(
+              String.format(
+                  "Project %s was modified in target system: "
+                      + "Skip replay inline comments for patch set %s"
+                      + " which doesn't exist in the source system.",
+                  change.getProject().get(), ps.getId().toString()));
           continue;
         }
 
         comments = filterComments(ps, comments);
       } else if (comments == null) {
-        log.warn(String.format(
-            "Cannot retrieve comments for revision %s, "
-                + "revision not found in source system: "
-                + "Skip replay inline comments for patch set %s of project %s.",
-            ps.getRevision().get(), ps.getId().toString(),
-            change.getProject().get()));
+        log.warn(
+            String.format(
+                "Cannot retrieve comments for revision %s, "
+                    + "revision not found in source system: "
+                    + "Skip replay inline comments for patch set %s of project %s.",
+                ps.getRevision().get(), ps.getId().toString(), change.getProject().get()));
         continue;
       }
 
       Multimap<Account.Id, CommentInfo> commentsByAuthor = ArrayListMultimap.create();
       for (CommentInfo comment : comments) {
-        Account.Id id  = accountUtil.resolveUser(api, comment.author);
+        Account.Id id = accountUtil.resolveUser(api, comment.author);
         commentsByAuthor.put(id, comment);
       }
 
@@ -158,8 +155,8 @@ class ReplayInlineCommentsStep {
     }
   }
 
-  private Iterable<CommentInfo> filterComments(PatchSet ps,
-      Iterable<CommentInfo> comments) throws OrmException {
+  private Iterable<CommentInfo> filterComments(PatchSet ps, Iterable<CommentInfo> comments)
+      throws OrmException {
     Set<String> existingUuids = new HashSet<>();
     for (PatchLineComment c : db.patchComments().byPatchSet(ps.getId())) {
       existingUuids.add(c.getKey().get());
@@ -175,9 +172,8 @@ class ReplayInlineCommentsStep {
     return comments;
   }
 
-  private void insertComments(PatchSet ps, Account.Id author,
-      Collection<CommentInfo> comments) throws OrmException, IOException,
-      NoSuchChangeException {
+  private void insertComments(PatchSet ps, Account.Id author, Collection<CommentInfo> comments)
+      throws OrmException, IOException, NoSuchChangeException {
     ChangeControl ctrl = control(change, author);
 
     Map<String, Comment> drafts = scanDraftComments(ctrl, ps);
@@ -190,8 +186,9 @@ class ReplayInlineCommentsStep {
       Comment e = drafts.remove(Url.decode(c.id));
 
       if (e == null) {
-        e = new Comment(
-            new Comment.Key(Url.decode(c.id), c.path, ps.getId().get()),
+        e =
+            new Comment(
+                new Comment.Key(Url.decode(c.id), c.path, ps.getId().get()),
                 author,
                 c.updated,
                 c.side == Side.PARENT ? (short) 0 : (short) 1,
@@ -203,11 +200,9 @@ class ReplayInlineCommentsStep {
       }
       setCommentRevId(e, patchListCache, change, ps);
       if (c.range != null) {
-        e.setRange(new CommentRange(
-            c.range.startLine,
-            c.range.startCharacter,
-            c.range.endLine,
-            c.range.endCharacter));
+        e.setRange(
+            new CommentRange(
+                c.range.startLine, c.range.startCharacter, c.range.endLine, c.range.endCharacter));
         e.lineNbr = c.range.endLine;
       } else {
         e.lineNbr = c.line == null ? 0 : c.line;
@@ -224,24 +219,22 @@ class ReplayInlineCommentsStep {
     update.commit();
   }
 
-  private Map<String, Comment> scanDraftComments(ChangeControl ctrl,
-      PatchSet ps) throws OrmException {
+  private Map<String, Comment> scanDraftComments(ChangeControl ctrl, PatchSet ps)
+      throws OrmException {
     Map<String, Comment> drafts = Maps.newHashMap();
-    for (Comment c : commentsUtil.draftByPatchSetAuthor(db, ps.getId(),
-            ((IdentifiedUser) ctrl.getUser()).getAccountId(),
-            ctrl.getNotes())) {
+    for (Comment c :
+        commentsUtil.draftByPatchSetAuthor(
+            db, ps.getId(), ((IdentifiedUser) ctrl.getUser()).getAccountId(), ctrl.getNotes())) {
       drafts.put(c.key.uuid, c);
     }
     return drafts;
   }
 
-  private ChangeControl control(Change change, Account.Id id)
-      throws NoSuchChangeException {
+  private ChangeControl control(Change change, Account.Id id) throws NoSuchChangeException {
     try {
-      return changeControlFactory.controlFor(db, change,
-          genericUserFactory.create(id));
+      return changeControlFactory.controlFor(db, change, genericUserFactory.create(id));
     } catch (OrmException e) {
-       throw new NoSuchChangeException(change.getId());
-     }
+      throw new NoSuchChangeException(change.getId());
+    }
   }
 }

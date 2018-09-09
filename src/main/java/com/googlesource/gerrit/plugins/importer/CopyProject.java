@@ -26,28 +26,24 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
+import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-
 import com.googlesource.gerrit.plugins.importer.CopyProject.Input;
-
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @Singleton
 @RequiresCapability(CopyProjectCapability.ID)
-class CopyProject implements RestModifyView<ProjectResource, Input>,
-    UiAction<ProjectResource> {
+class CopyProject implements RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
   public static class Input {
     public String name;
   }
@@ -70,9 +66,8 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
 
   @Override
   public ImportStatistic apply(ProjectResource rsrc, Input input)
-      throws RestApiException, OrmException, IOException, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException {
+      throws RestApiException, OrmException, IOException, ValidationException, GitAPIException,
+          NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException {
     if (Strings.isNullOrEmpty(input.name)) {
       throw new BadRequestException("name is required");
     }
@@ -80,7 +75,8 @@ class CopyProject implements RestModifyView<ProjectResource, Input>,
     ImportProject.Input in = new ImportProject.Input();
     in.name = rsrc.getName();
 
-    return importProjectFactory.create(new Project.NameKey(input.name))
+    return importProjectFactory
+        .create(new Project.NameKey(input.name))
         .setCopy(true)
         .setErr(err)
         .apply(new ConfigResource(), in);

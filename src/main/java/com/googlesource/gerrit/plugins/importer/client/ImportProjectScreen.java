@@ -49,14 +49,24 @@ public class ImportProjectScreen extends VerticalPanel {
   ImportProjectScreen() {
     setStyleName("importer-import-panel");
 
-    fromTxt = addTextBox(this, "From*", "URL of the remote system from where the project should be imported");
+    fromTxt =
+        addTextBox(
+            this, "From*", "URL of the remote system from where the project should be imported");
     srcNameTxt = addTextBox(this, "Project Name in Source*", "name of project in source system");
-    targetNameTxt = addTextBox(this, "Target Project Name", "name of project in target system"
-        + " (if not specified it is assumed to be the same name as in the source system)");
+    targetNameTxt =
+        addTextBox(
+            this,
+            "Target Project Name",
+            "name of project in target system"
+                + " (if not specified it is assumed to be the same name as in the source system)");
     userTxt = addTextBox(this, "Remote User*", "user on remote system");
     passTxt = addPasswordTextBox(this, "Password*", "password of remote user");
-    parentTxt = addTextBox(this, "Parent", "name of parent project in target system"
-        + "(if not specified it is assumed to be the same parent as in the source system)");
+    parentTxt =
+        addTextBox(
+            this,
+            "Parent",
+            "name of parent project in target system"
+                + "(if not specified it is assumed to be the same parent as in the source system)");
 
     HorizontalPanel buttons = new HorizontalPanel();
     add(buttons);
@@ -73,8 +83,8 @@ public class ImportProjectScreen extends VerticalPanel {
   }
 
   private void doImport() {
-    final String targetName = getValue(targetNameTxt).length() == 0
-        ? getValue(srcNameTxt) : getValue(targetNameTxt);
+    final String targetName =
+        getValue(targetNameTxt).length() == 0 ? getValue(srcNameTxt) : getValue(targetNameTxt);
 
     ImportProjectInput in = ImportProjectInput.create();
     in.from(getValue(fromTxt));
@@ -83,36 +93,40 @@ public class ImportProjectScreen extends VerticalPanel {
     in.pass(getValue(passTxt));
     in.parent(getValue(parentTxt));
 
-    new RestApi("config").id("server").view(Plugin.get().getName(), "projects")
-        .id(targetName).put(in, new AsyncCallback<ImportStatisticInfo>() {
+    new RestApi("config")
+        .id("server")
+        .view(Plugin.get().getName(), "projects")
+        .id(targetName)
+        .put(
+            in,
+            new AsyncCallback<ImportStatisticInfo>() {
 
-      @Override
-      public void onSuccess(ImportStatisticInfo result) {
-        clearForm();
-        Plugin.get().go("/admin/projects/" + targetName);
+              @Override
+              public void onSuccess(ImportStatisticInfo result) {
+                clearForm();
+                Plugin.get().go("/admin/projects/" + targetName);
 
-        final DialogBox successDialog = new DialogBox();
-        successDialog.setText("Project Import");
-        successDialog.setAnimationEnabled(true);
+                final DialogBox successDialog = new DialogBox();
+                successDialog.setText("Project Import");
+                successDialog.setAnimationEnabled(true);
 
-        Panel p = new VerticalPanel();
-        p.setStyleName("importer-message-panel");
-        p.add(new Label("The project was imported."));
-        p.add(new Label("Created Changes: " + result.numChangesCreated()));
-        Button okButton = new Button("OK");
-        okButton.addClickHandler(event -> successDialog.hide());
+                Panel p = new VerticalPanel();
+                p.setStyleName("importer-message-panel");
+                p.add(new Label("The project was imported."));
+                p.add(new Label("Created Changes: " + result.numChangesCreated()));
+                Button okButton = new Button("OK");
+                okButton.addClickHandler(event -> successDialog.hide());
 
-        p.add(okButton);
-        successDialog.add(p);
+                p.add(okButton);
+                successDialog.add(p);
 
-        successDialog.center();
-        successDialog.show();
-      }
+                successDialog.center();
+                successDialog.show();
+              }
 
-      @Override
-      public void onFailure(Throwable caught) {
-      }
-    });
+              @Override
+              public void onFailure(Throwable caught) {}
+            });
   }
 
   private void clearForm() {

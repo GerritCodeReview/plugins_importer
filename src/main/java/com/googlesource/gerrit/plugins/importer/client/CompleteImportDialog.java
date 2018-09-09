@@ -33,7 +33,7 @@ public class CompleteImportDialog extends AutoCenterDialogBox {
   private final Button completeButton;
 
   public CompleteImportDialog(final String project, final boolean copy) {
-    super(/* auto hide */false, /* modal */true);
+    super(/* auto hide */ false, /* modal */ true);
     setGlassEnabled(true);
     setText("Complete Project " + (copy ? "Copy" : "Import"));
 
@@ -41,40 +41,43 @@ public class CompleteImportDialog extends AutoCenterDialogBox {
 
     completeButton = new Button();
     completeButton.setText("Complete");
-    completeButton.addClickHandler(event -> {
-      hide();
+    completeButton.addClickHandler(
+        event -> {
+          hide();
 
-      new RestApi("config").id("server")
-          .view(Plugin.get().getName(), "projects").id(project)
-          .delete(new AsyncCallback<NoContent>() {
-            @Override
-            public void onSuccess(NoContent result) {
-              Plugin.get().go("/x/" + Plugin.get().getName() + "/list");
+          new RestApi("config")
+              .id("server")
+              .view(Plugin.get().getName(), "projects")
+              .id(project)
+              .delete(
+                  new AsyncCallback<NoContent>() {
+                    @Override
+                    public void onSuccess(NoContent result) {
+                      Plugin.get().go("/x/" + Plugin.get().getName() + "/list");
 
-              final DialogBox successDialog = new DialogBox();
-              successDialog.setText("Project "
-                  + (copy ? "Copy" : "Import") + " Completed");
-              successDialog.setAnimationEnabled(true);
+                      final DialogBox successDialog = new DialogBox();
+                      successDialog.setText("Project " + (copy ? "Copy" : "Import") + " Completed");
+                      successDialog.setAnimationEnabled(true);
 
-              Panel p = new VerticalPanel();
-              p.setStyleName("importer-message-panel");
-              p.add(new Label("The project "
-                + (copy ? "copy" : "import") + " was completed."));
-              Button okButton = new Button("OK");
-              okButton.addClickHandler(event -> successDialog.hide());
+                      Panel p = new VerticalPanel();
+                      p.setStyleName("importer-message-panel");
+                      p.add(
+                          new Label(
+                              "The project " + (copy ? "copy" : "import") + " was completed."));
+                      Button okButton = new Button("OK");
+                      okButton.addClickHandler(event -> successDialog.hide());
 
-              p.add(okButton);
-              successDialog.add(p);
+                      p.add(okButton);
+                      successDialog.add(p);
 
-              successDialog.center();
-              successDialog.show();
-            }
+                      successDialog.center();
+                      successDialog.show();
+                    }
 
-            @Override
-            public void onFailure(Throwable caught) {
-            }
-          });
-    });
+                    @Override
+                    public void onFailure(Throwable caught) {}
+                  });
+        });
     buttons.add(completeButton);
 
     cancelButton = new Button();
@@ -84,8 +87,8 @@ public class CompleteImportDialog extends AutoCenterDialogBox {
     buttons.add(cancelButton);
 
     FlowPanel center = new FlowPanel();
-    Label msg = new Label("Complete " + (copy ? "copy" : "import")
-        + " of project '" + project + "'");
+    Label msg =
+        new Label("Complete " + (copy ? "copy" : "import") + " of project '" + project + "'");
     msg.addStyleName("importer-complete-message");
     center.add(msg);
 

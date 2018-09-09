@@ -34,15 +34,13 @@ import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class AddApprovalsStep {
 
@@ -50,8 +48,7 @@ class AddApprovalsStep {
     AddApprovalsStep create(Change change, ChangeInfo changeInfo, boolean resume);
   }
 
-  private static final Logger log = LoggerFactory
-      .getLogger(ReplayInlineCommentsStep.class);
+  private static final Logger log = LoggerFactory.getLogger(ReplayInlineCommentsStep.class);
 
   private final AccountUtil accountUtil;
   private final ChangeUpdate.Factory updateFactory;
@@ -63,7 +60,8 @@ class AddApprovalsStep {
   private final boolean resume;
 
   @Inject
-  public AddApprovalsStep(AccountUtil accountUtil,
+  public AddApprovalsStep(
+      AccountUtil accountUtil,
       ChangeUpdate.Factory updateFactory,
       ReviewDb db,
       IdentifiedUser.GenericFactory genericUserFactory,
@@ -81,12 +79,11 @@ class AddApprovalsStep {
     this.resume = resume;
   }
 
-  void add(GerritApi api) throws OrmException, NoSuchChangeException,
-      IOException, NoSuchAccountException, RestApiException,
-      ConfigInvalidException {
+  void add(GerritApi api)
+      throws OrmException, NoSuchChangeException, IOException, NoSuchAccountException,
+          RestApiException, ConfigInvalidException {
     if (resume) {
-      db.patchSetApprovals().delete(
-          db.patchSetApprovals().byChange(change.getId()));
+      db.patchSetApprovals().delete(db.patchSetApprovals().byChange(change.getId()));
     }
 
     List<PatchSetApproval> approvals = new ArrayList<>();
@@ -98,20 +95,25 @@ class AddApprovalsStep {
           Account.Id user = accountUtil.resolveUser(api, a);
           ChangeControl ctrl = control(change, a);
           LabelType labelType = ctrl.getLabelTypes().byLabel(labelName);
-          if(labelType == null) {
-            log.warn(String.format("Label '%s' not found in target system."
-                + " This label was referenced by an approval provided from '%s'"
-                + " for change '%s'."
-                + " This approval will be skipped. In order to import this"
-                + " approval configure the missing label and resume the import"
-                + " with the force option."
-                , labelName, a.username, changeInfo.id));
+          if (labelType == null) {
+            log.warn(
+                String.format(
+                    "Label '%s' not found in target system."
+                        + " This label was referenced by an approval provided from '%s'"
+                        + " for change '%s'."
+                        + " This approval will be skipped. In order to import this"
+                        + " approval configure the missing label and resume the import"
+                        + " with the force option.",
+                    labelName, a.username, changeInfo.id));
             continue;
           }
           short shortValue = a.value != null ? a.value.shortValue() : 0;
-          approvals.add(new PatchSetApproval(new PatchSetApproval.Key(change
-              .currentPatchSetId(), user, labelType.getLabelId()), shortValue,
-              MoreObjects.firstNonNull(a.date, TimeUtil.nowTs())));
+          approvals.add(
+              new PatchSetApproval(
+                  new PatchSetApproval.Key(
+                      change.currentPatchSetId(), user, labelType.getLabelId()),
+                  shortValue,
+                  MoreObjects.firstNonNull(a.date, TimeUtil.nowTs())));
           ChangeUpdate update = updateFactory.create(ctrl);
           if (shortValue != 0) {
             update.putApproval(labelName, shortValue);
@@ -125,16 +127,13 @@ class AddApprovalsStep {
     db.patchSetApprovals().insert(approvals);
   }
 
-  private ChangeControl control(Change change, AccountInfo acc)
-      throws NoSuchChangeException {
+  private ChangeControl control(Change change, AccountInfo acc) throws NoSuchChangeException {
     return control(change, new Account.Id(acc._accountId));
   }
 
-  private ChangeControl control(Change change, Account.Id id)
-      throws NoSuchChangeException {
+  private ChangeControl control(Change change, Account.Id id) throws NoSuchChangeException {
     try {
-      return changeControlFactory.controlFor(db, change,
-          genericUserFactory.create(id));
+      return changeControlFactory.controlFor(db, change, genericUserFactory.create(id));
     } catch (OrmException e) {
       throw new NoSuchChangeException(change.getId());
     }

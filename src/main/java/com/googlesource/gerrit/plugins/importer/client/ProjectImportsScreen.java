@@ -29,7 +29,6 @@ import com.google.gwt.user.client.ui.InlineHyperlink;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -45,18 +44,22 @@ public class ProjectImportsScreen extends VerticalPanel {
   ProjectImportsScreen(final String project) {
     setStyleName("importer-import-panel");
 
-    new RestApi("config").id("server").view(Plugin.get().getPluginName(), "projects")
-        .id(project).get(new AsyncCallback<ImportProjectInfo>() {
-            @Override
-            public void onSuccess(ImportProjectInfo importProjectInfo) {
-              display(project, importProjectInfo);
-            }
+    new RestApi("config")
+        .id("server")
+        .view(Plugin.get().getPluginName(), "projects")
+        .id(project)
+        .get(
+            new AsyncCallback<ImportProjectInfo>() {
+              @Override
+              public void onSuccess(ImportProjectInfo importProjectInfo) {
+                display(project, importProjectInfo);
+              }
 
-            @Override
-            public void onFailure(Throwable caught) {
-              // never invoked
-            }
-          });
+              @Override
+              public void onFailure(Throwable caught) {
+                // never invoked
+              }
+            });
   }
 
   private void display(final String project, ImportProjectInfo info) {
@@ -69,10 +72,8 @@ public class ProjectImportsScreen extends VerticalPanel {
       String srcProjectUrl = projectUrl(info, project);
       t.addRow("From", new Anchor(srcProjectUrl, srcProjectUrl));
     } else {
-      t.addRow("From",
-          new InlineHyperlink(project, "/admin/projects/" + project));
+      t.addRow("From", new InlineHyperlink(project, "/admin/projects/" + project));
     }
-
 
     t.addRow("Parent", info.parent());
     t.addRow("Actions", new ImportActionPanel(project, info.from() == null));

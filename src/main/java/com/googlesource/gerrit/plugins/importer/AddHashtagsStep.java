@@ -24,19 +24,17 @@ import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.change.ChangeTriplet;
 import com.google.gerrit.server.change.SetHashtagsOp;
-import com.google.gerrit.server.update.BatchUpdate;
-import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.update.BatchUpdate;
+import com.google.gerrit.server.update.UpdateException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
-
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
 
 class AddHashtagsStep {
 
@@ -44,8 +42,7 @@ class AddHashtagsStep {
     AddHashtagsStep create(Change change, ChangeInfo changeInfo, boolean resume);
   }
 
-  private static final Logger log = LoggerFactory
-      .getLogger(AddHashtagsStep.class);
+  private static final Logger log = LoggerFactory.getLogger(AddHashtagsStep.class);
 
   private final CurrentUser currentUser;
   private final ChangeControl.GenericFactory changeControlFactory;
@@ -57,7 +54,8 @@ class AddHashtagsStep {
   private final SetHashtagsOp.Factory hashtagsFactory;
 
   @Inject
-  AddHashtagsStep(CurrentUser currentUser,
+  AddHashtagsStep(
+      CurrentUser currentUser,
       ChangeControl.GenericFactory changeControlFactory,
       Provider<ReviewDb> db,
       BatchUpdate.Factory batchUpdateFactory,
@@ -75,38 +73,40 @@ class AddHashtagsStep {
     this.resume = resume;
   }
 
-  void add() throws IllegalArgumentException, OrmException,
-      NoSuchChangeException, UpdateException, RestApiException {
-    ChangeControl ctrl =
-        changeControlFactory.controlFor(db.get(), change, currentUser);
+  void add()
+      throws IllegalArgumentException, OrmException, NoSuchChangeException, UpdateException,
+          RestApiException {
+    ChangeControl ctrl = changeControlFactory.controlFor(db.get(), change, currentUser);
 
     try {
       if (resume) {
         HashtagsInput input = new HashtagsInput();
         input.remove = ctrl.getNotes().load().getHashtags();
-        try (BatchUpdate bu = batchUpdateFactory.create(db.get(),
-            change.getProject(), currentUser, TimeUtil.nowTs())) {
-                  SetHashtagsOp op = hashtagsFactory.create(input);
-                  bu.addOp(change.getId(), op);
-                  bu.execute();
+        try (BatchUpdate bu =
+            batchUpdateFactory.create(
+                db.get(), change.getProject(), currentUser, TimeUtil.nowTs())) {
+          SetHashtagsOp op = hashtagsFactory.create(input);
+          bu.addOp(change.getId(), op);
+          bu.execute();
         }
       }
 
       HashtagsInput input = new HashtagsInput();
       input.add = new HashSet<>(changeInfo.hashtags);
-      try (BatchUpdate bu = batchUpdateFactory.create(db.get(),
-          change.getProject(), currentUser, TimeUtil.nowTs())) {
-                SetHashtagsOp op = hashtagsFactory.create(input);
-                bu.addOp(change.getId(), op);
-                bu.execute();
+      try (BatchUpdate bu =
+          batchUpdateFactory.create(db.get(), change.getProject(), currentUser, TimeUtil.nowTs())) {
+        SetHashtagsOp op = hashtagsFactory.create(input);
+        bu.addOp(change.getId(), op);
+        bu.execute();
       }
     } catch (AuthException e) {
-      log.warn(String.format(
-          "Hashtags cannot be set on change %s because the importing"
-              + " user %s doesn't have permissions to edit hashtags"
-              + " (e.g. assign the 'Edit Hashtags' global capability"
-              + " and resume the import with the force option).",
-          ChangeTriplet.format(change), currentUser.getUserName()));
+      log.warn(
+          String.format(
+              "Hashtags cannot be set on change %s because the importing"
+                  + " user %s doesn't have permissions to edit hashtags"
+                  + " (e.g. assign the 'Edit Hashtags' global capability"
+                  + " and resume the import with the force option).",
+              ChangeTriplet.format(change), currentUser.getUserName()));
     }
   }
 }

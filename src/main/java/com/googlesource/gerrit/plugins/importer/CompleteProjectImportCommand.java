@@ -19,29 +19,27 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;
-
+import java.io.IOException;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.kohsuke.args4j.Argument;
-
-import java.io.IOException;
 
 @RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "complete-project", description = "Completes project import")
 class CompleteProjectImportCommand extends SshCommand {
 
-  @Argument(index = 0, required = true, metaVar = "NAME",
+  @Argument(
+      index = 0,
+      required = true,
+      metaVar = "NAME",
       usage = "name of the project in target system")
   private String project;
 
-  @Inject
-  private CompleteProjectImport completeProjectImport;
+  @Inject private CompleteProjectImport completeProjectImport;
 
-  @Inject
-  private ProjectsCollection projects;
+  @Inject private ProjectsCollection projects;
 
   @Override
-  protected void run() throws UnloggedFailure, RepositoryNotFoundException,
-      IOException {
+  protected void run() throws UnloggedFailure, RepositoryNotFoundException, IOException {
     try {
       ImportProjectResource rsrc = projects.parse(project);
       completeProjectImport.apply(rsrc, new CompleteProjectImport.Input());

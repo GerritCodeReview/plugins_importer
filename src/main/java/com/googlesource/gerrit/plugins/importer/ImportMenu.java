@@ -22,7 +22,6 @@ import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.CapabilityControl;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-
 import java.util.List;
 
 public class ImportMenu implements TopMenu {
@@ -31,9 +30,7 @@ public class ImportMenu implements TopMenu {
   private final List<MenuEntry> menuEntries;
 
   @Inject
-  ImportMenu(
-      @PluginName String pluginName,
-      Provider<CurrentUser> userProvider) {
+  ImportMenu(@PluginName String pluginName, Provider<CurrentUser> userProvider) {
     this.pluginName = pluginName;
     this.userProvider = userProvider;
     menuEntries = Lists.newArrayList();
@@ -55,8 +52,7 @@ public class ImportMenu implements TopMenu {
 
   private boolean canImport() {
     CapabilityControl ctl = userProvider.get().getCapabilities();
-    return ctl.canAdministrateServer()
-        || ctl.canPerform(pluginName + "-" + ImportCapability.ID);
+    return ctl.canAdministrateServer() || ctl.canPerform(pluginName + "-" + ImportCapability.ID);
   }
 
   @Override

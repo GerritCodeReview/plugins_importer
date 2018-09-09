@@ -21,9 +21,6 @@ import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
-import org.kohsuke.args4j.Option;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -31,6 +28,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import org.kohsuke.args4j.Option;
 
 @Singleton
 @RequiresCapability(ImportCapability.ID)
@@ -38,7 +36,9 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
 
   private final ProjectsCollection projects;
 
-  @Option(name = "--match", metaVar = "MATCH",
+  @Option(
+      name = "--match",
+      metaVar = "MATCH",
       usage = "List only projects containing this substring, case insensitive")
   public void setMatch(String match) {
     this.match = match.toLowerCase(Locale.ENGLISH);
@@ -52,8 +52,7 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   }
 
   @Override
-  public Map<String, ImportProjectInfo> apply(ConfigResource rsrc)
-      throws IOException {
+  public Map<String, ImportProjectInfo> apply(ConfigResource rsrc) throws IOException {
     Map<String, ImportProjectInfo> importedProjects = Maps.newTreeMap();
     for (File f : listImportFiles()) {
       importedProjects.put(projects.FS_LAYOUT.resolveProjectName(f), ImportJson.parse(f));
@@ -76,7 +75,6 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   }
 
   private boolean matches(Path p) {
-    return match == null
-        || p.toString().toLowerCase(Locale.ENGLISH).contains(match);
+    return match == null || p.toString().toLowerCase(Locale.ENGLISH).contains(match);
   }
 }

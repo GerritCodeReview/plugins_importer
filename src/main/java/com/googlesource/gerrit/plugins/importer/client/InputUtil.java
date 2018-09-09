@@ -53,21 +53,23 @@ public class InputUtil {
   private static TextBox createTextBox(boolean isPassword) {
     TextBox tb;
     if (isPassword) {
-      tb = new PasswordTextBox() {
-        @Override
-        public void onBrowserEvent(Event event) {
-          super.onBrowserEvent(event);
-          handlePaste(this, event);
-        }
-      };
+      tb =
+          new PasswordTextBox() {
+            @Override
+            public void onBrowserEvent(Event event) {
+              super.onBrowserEvent(event);
+              handlePaste(this, event);
+            }
+          };
     } else {
-      tb = new TextBox() {
-        @Override
-        public void onBrowserEvent(Event event) {
-          super.onBrowserEvent(event);
-          handlePaste(this, event);
-        }
-      };
+      tb =
+          new TextBox() {
+            @Override
+            public void onBrowserEvent(Event event) {
+              super.onBrowserEvent(event);
+              handlePaste(this, event);
+            }
+          };
     }
     tb.addKeyPressHandler(event -> event.stopPropagation());
     tb.sinkEvents(Event.ONPASTE);
@@ -77,11 +79,13 @@ public class InputUtil {
 
   private static void handlePaste(final TextBox tb, Event event) {
     if (event.getTypeInt() == Event.ONPASTE) {
-      Scheduler.get().scheduleDeferred(() -> {
-        if (getValue(tb).length() != 0) {
-          tb.setEnabled(true);
-        }
-      });
+      Scheduler.get()
+          .scheduleDeferred(
+              () -> {
+                if (getValue(tb).length() != 0) {
+                  tb.setEnabled(true);
+                }
+              });
     }
   }
 

@@ -30,16 +30,15 @@ import com.google.gerrit.server.config.ConfigResource;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
 @Singleton
 @RequiresCapability(ImportCapability.ID)
-public class ProjectsCollection implements
-    ChildCollection<ConfigResource, ImportProjectResource>,
-    AcceptsCreate<ConfigResource> {
+public class ProjectsCollection
+    implements ChildCollection<ConfigResource, ImportProjectResource>,
+        AcceptsCreate<ConfigResource> {
 
   class FileSystemLayout {
 
@@ -54,39 +53,40 @@ public class ProjectsCollection implements
     }
 
     String resolveProjectName(File f) throws IOException {
-      if(! f.isFile()) {
-        throw new RuntimeException(format("'%s' is not a file. Project names"
-            + "can only be resolved for existing files, not for directories."
-            , f));
+      if (!f.isFile()) {
+        throw new RuntimeException(
+            format(
+                "'%s' is not a file. Project names"
+                    + "can only be resolved for existing files, not for directories.",
+                f));
       }
 
-      if(! f.getName().endsWith(SUFFIX_IMPORT_STATUS_FILE)) {
-        throw new RuntimeException(format("'%s' is not a valid import status"
-            + "file. Invalid appendix. Should be '%s'.", f,
-            SUFFIX_IMPORT_STATUS_FILE));
+      if (!f.getName().endsWith(SUFFIX_IMPORT_STATUS_FILE)) {
+        throw new RuntimeException(
+            format(
+                "'%s' is not a valid import status" + "file. Invalid appendix. Should be '%s'.",
+                f, SUFFIX_IMPORT_STATUS_FILE));
       }
       String diff = diff(lockRoot, f);
-      return diff.substring(0, diff.length() -
-          SUFFIX_IMPORT_STATUS_FILE.length());
+      return diff.substring(0, diff.length() - SUFFIX_IMPORT_STATUS_FILE.length());
     }
 
     /**
-     * Returns the path between two file instances. The child instance
-     * is expected to be a child of the parent instance.
+     * Returns the path between two file instances. The child instance is expected to be a child of
+     * the parent instance.
+     *
      * @param parent
      * @param child
      * @return The path between parent and child.
-     * @throws IOException in case <code>child</code> is not a child of
-     * <code>parent</code>.
+     * @throws IOException in case <code>child</code> is not a child of <code>parent</code>.
      */
     private String diff(File parent, File child) throws IOException {
       Path parentPath = parent.getAbsoluteFile().toPath();
-      Path childPath= child.getAbsoluteFile().toPath();
+      Path childPath = child.getAbsoluteFile().toPath();
       if (childPath.startsWith(parentPath)) {
         return parentPath.relativize(childPath).toString();
       }
-      throw new IOException(String.format("'%s' is not a child of '%s'.",
-          child, parent));
+      throw new IOException(String.format("'%s' is not a child of '%s'.", child, parent));
     }
   }
 
@@ -120,8 +120,7 @@ public class ProjectsCollection implements
     return parse(id.get());
   }
 
-  public ImportProjectResource parse(String id)
-      throws ResourceNotFoundException {
+  public ImportProjectResource parse(String id) throws ResourceNotFoundException {
     File f = FS_LAYOUT.getImportStatusFile(id);
     if (!f.exists()) {
       throw new ResourceNotFoundException(id);
@@ -137,8 +136,7 @@ public class ProjectsCollection implements
 
   @Override
   @SuppressWarnings("unchecked")
-  public ImportProject create(ConfigResource parent, IdString id)
-      throws RestApiException {
+  public ImportProject create(ConfigResource parent, IdString id) throws RestApiException {
     return importProjectFactory.create(new Project.NameKey(id.get()));
   }
 }

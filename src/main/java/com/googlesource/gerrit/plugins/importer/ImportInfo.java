@@ -15,7 +15,6 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.extensions.common.AccountInfo;
-
 import java.sql.Timestamp;
 
 public class ImportInfo {

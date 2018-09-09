@@ -23,13 +23,11 @@ import com.google.gerrit.extensions.common.SshKeyInfo;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 interface GerritApi {
 
@@ -49,31 +47,29 @@ interface GerritApi {
     }
   }
 
-  public ProjectInfo getProject(String projectName) throws BadRequestException,
-      IOException;
+  public ProjectInfo getProject(String projectName) throws BadRequestException, IOException;
 
   public List<ChangeInfo> queryChanges(String projectName, int start, int limit)
       throws BadRequestException, IOException;
 
-  public GroupInfo getGroup(String groupName) throws BadRequestException,
-      IOException, OrmException;
+  public GroupInfo getGroup(String groupName) throws BadRequestException, IOException, OrmException;
 
   /**
    * Retrieves inline comments of a patch set.
    *
    * @param changeId numeric change ID
    * @param rev the revision
-   * @return Iterable that provides the inline comments, or {@code null} if the
-   *         revision does not exist
+   * @return Iterable that provides the inline comments, or {@code null} if the revision does not
+   *     exist
    * @throws IOException thrown if sending the request fails
-   * @throws BadRequestException thrown if the response is neither
-   *         {@code 200 OK} nor {@code 404 Not Found}
+   * @throws BadRequestException thrown if the response is neither {@code 200 OK} nor {@code 404 Not
+   *     Found}
    */
   public Iterable<CommentInfo> getComments(int changeId, String rev)
       throws BadRequestException, IOException, OrmException;
 
-  public List<SshKeyInfo> getSshKeys(String userId) throws BadRequestException,
-      IOException, OrmException, ConfigInvalidException;
+  public List<SshKeyInfo> getSshKeys(String userId)
+      throws BadRequestException, IOException, OrmException, ConfigInvalidException;
 
   public Version getVersion() throws BadRequestException, IOException;
 
@@ -88,8 +84,8 @@ interface GerritApi {
     Version(String formatted) {
       this.formatted = formatted;
 
-      Matcher m = Pattern.compile("(\\d+)\\.(\\d+)(\\.(\\d+))?(\\.(\\d+))?(-(.+))?")
-          .matcher(formatted);
+      Matcher m =
+          Pattern.compile("(\\d+)\\.(\\d+)(\\.(\\d+))?(\\.(\\d+))?(-(.+))?").matcher(formatted);
       if (m.matches()) {
         this.major = Integer.parseInt(m.group(1));
         this.minor = Integer.parseInt(m.group(2));

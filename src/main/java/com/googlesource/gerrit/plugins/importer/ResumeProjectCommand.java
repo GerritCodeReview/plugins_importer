@@ -19,7 +19,6 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;
-
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
@@ -27,11 +26,19 @@ import org.kohsuke.args4j.Option;
 @CommandMetaData(name = "resume-project", description = "Resumes project import")
 public class ResumeProjectCommand extends SshCommand {
 
-  @Option(name = "--user", aliases = {"-u"}, required = true, metaVar = "NAME",
+  @Option(
+      name = "--user",
+      aliases = {"-u"},
+      required = true,
+      metaVar = "NAME",
       usage = "user on remote system")
   private String user;
 
-  @Option(name = "--pass", aliases = {"-p"}, required = true, metaVar = "-|PASS",
+  @Option(
+      name = "--pass",
+      aliases = {"-p"},
+      required = true,
+      metaVar = "-|PASS",
       usage = "password of remote user")
   private String pass;
 
@@ -41,15 +48,16 @@ public class ResumeProjectCommand extends SshCommand {
   @Option(name = "--quiet", usage = "suppress progress messages")
   private boolean quiet;
 
-  @Argument(index = 0, required = true, metaVar = "NAME",
+  @Argument(
+      index = 0,
+      required = true,
+      metaVar = "NAME",
       usage = "name of the project in target system")
   private String project;
 
-  @Inject
-  private ResumeProjectImport resume;
+  @Inject private ResumeProjectImport resume;
 
-  @Inject
-  private ProjectsCollection projects;
+  @Inject private ProjectsCollection projects;
 
   @Override
   protected void run() throws UnloggedFailure, Failure, Exception {

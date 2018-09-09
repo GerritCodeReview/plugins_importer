@@ -28,14 +28,12 @@ import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.server.OutputFormat;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
-import org.apache.http.HttpStatus;
-
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import org.apache.http.HttpStatus;
 
 class RemoteApi implements GerritApi {
 
@@ -46,35 +44,37 @@ class RemoteApi implements GerritApi {
   }
 
   @Override
-  public ProjectInfo getProject(String projectName) throws IOException,
-      BadRequestException {
+  public ProjectInfo getProject(String projectName) throws IOException, BadRequestException {
     projectName = encode(projectName);
     String endPoint = "/projects/" + projectName;
     try (RestResponse r = checkedGet(endPoint)) {
-      return newGson().fromJson(r.getReader(),
-          new TypeToken<ProjectInfo>() {}.getType());
+      return newGson().fromJson(r.getReader(), new TypeToken<ProjectInfo>() {}.getType());
     }
   }
 
   @Override
-  public List<ChangeInfo> queryChanges(String projectName,
-      int start, int limit) throws IOException, BadRequestException {
+  public List<ChangeInfo> queryChanges(String projectName, int start, int limit)
+      throws IOException, BadRequestException {
     String endPoint =
-        "/changes/?S=" +
-        start + ((limit > 0) ? "&n=" + limit : "") + "&q=project:" + projectName +
-        "&O=" + Integer.toHexString(ListChangesOption.toBits(
-            EnumSet.of(
-                ListChangesOption.DETAILED_LABELS,
-                ListChangesOption.DETAILED_ACCOUNTS,
-                ListChangesOption.MESSAGES,
-                ListChangesOption.CURRENT_REVISION,
-                ListChangesOption.ALL_REVISIONS,
-                ListChangesOption.ALL_COMMITS)));
+        "/changes/?S="
+            + start
+            + ((limit > 0) ? "&n=" + limit : "")
+            + "&q=project:"
+            + projectName
+            + "&O="
+            + Integer.toHexString(
+                ListChangesOption.toBits(
+                    EnumSet.of(
+                        ListChangesOption.DETAILED_LABELS,
+                        ListChangesOption.DETAILED_ACCOUNTS,
+                        ListChangesOption.MESSAGES,
+                        ListChangesOption.CURRENT_REVISION,
+                        ListChangesOption.ALL_REVISIONS,
+                        ListChangesOption.ALL_COMMITS)));
 
     List<ChangeInfo> result;
     try (RestResponse r = checkedGet(endPoint)) {
-      result = newGson().fromJson(r.getReader(),
-            new TypeToken<List<ChangeInfo>>() {}.getType());
+      result = newGson().fromJson(r.getReader(), new TypeToken<List<ChangeInfo>>() {}.getType());
     }
 
     for (ChangeInfo c : result) {
@@ -87,13 +87,11 @@ class RemoteApi implements GerritApi {
   }
 
   @Override
-  public GroupInfo getGroup(String groupName) throws IOException,
-      BadRequestException {
+  public GroupInfo getGroup(String groupName) throws IOException, BadRequestException {
     groupName = encode(groupName);
     String endPoint = "/groups/" + groupName + "/detail";
     try (RestResponse r = checkedGet(endPoint)) {
-      return newGson().fromJson(r.getReader(),
-              new TypeToken<GroupInfo>() {}.getType());
+      return newGson().fromJson(r.getReader(), new TypeToken<GroupInfo>() {}.getType());
     }
   }
 
@@ -107,8 +105,10 @@ class RemoteApi implements GerritApi {
         return null;
       }
       assertOK(HttpMethod.GET, endPoint, r);
-      result = newGson().fromJson(r.getReader(),
-              new TypeToken<Map<String, List<CommentInfo>>>() {}.getType());
+      result =
+          newGson()
+              .fromJson(
+                  r.getReader(), new TypeToken<Map<String, List<CommentInfo>>>() {}.getType());
     }
     for (Map.Entry<String, List<CommentInfo>> e : result.entrySet()) {
       for (CommentInfo i : e.getValue()) {
@@ -122,8 +122,7 @@ class RemoteApi implements GerritApi {
   public List<SshKeyInfo> getSshKeys(String userId) throws BadRequestException, IOException {
     String endPoint = "/accounts/" + userId + "/sshkeys/";
     try (RestResponse r = checkedGet(endPoint)) {
-      return newGson().fromJson(r.getReader(),
-          new TypeToken<List<SshKeyInfo>>() {}.getType());
+      return newGson().fromJson(r.getReader(), new TypeToken<List<SshKeyInfo>>() {}.getType());
     }
   }
 
@@ -131,8 +130,8 @@ class RemoteApi implements GerritApi {
   public Version getVersion() throws BadRequestException, IOException {
     String endPoint = "/config/server/version";
     try (RestResponse r = checkedGet(endPoint)) {
-      return new Version((String)newGson().fromJson(
-          r.getReader(), new TypeToken<String>() {}.getType()));
+      return new Version(
+          (String) newGson().fromJson(r.getReader(), new TypeToken<String>() {}.getType()));
     }
   }
 
@@ -140,8 +139,7 @@ class RemoteApi implements GerritApi {
     return OutputFormat.JSON_COMPACT.newGson();
   }
 
-  private RestResponse checkedGet(String endPoint) throws IOException,
-      BadRequestException {
+  private RestResponse checkedGet(String endPoint) throws IOException, BadRequestException {
     try {
       RestResponse r = restSession.get(endPoint);
       assertOK(HttpMethod.GET, endPoint, r);
@@ -151,22 +149,25 @@ class RemoteApi implements GerritApi {
     }
   }
 
-  private static void assertOK(HttpMethod method, String endPoint,
-      RestResponse r) throws IOException, BadRequestException {
+  private static void assertOK(HttpMethod method, String endPoint, RestResponse r)
+      throws IOException, BadRequestException {
     if (r.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
       throw new BadRequestException(
           "invalid credentials: accessing source system failed with 401 Unauthorized");
     }
     if (r.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-      throw new BadRequestException(String.format(
-          "missing permissions or invalid import entity identifier: Accessing "
-          + "REST endpoint %s on source system failed with 404 Not found", endPoint));
+      throw new BadRequestException(
+          String.format(
+              "missing permissions or invalid import entity identifier: Accessing "
+                  + "REST endpoint %s on source system failed with 404 Not found",
+              endPoint));
     }
 
     if (r.getStatusCode() < 200 || 300 <= r.getStatusCode()) {
-      throw new IOException(String.format(
-          "Unexpected response code for %s on %s : %s", method.name(),
-          endPoint, r.getStatusCode()));
+      throw new IOException(
+          String.format(
+              "Unexpected response code for %s on %s : %s",
+              method.name(), endPoint, r.getStatusCode()));
     }
   }
 

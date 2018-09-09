@@ -42,7 +42,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
   private CheckBox forceCheckBox;
 
   public ResumeImportDialog(final String project, final boolean copy) {
-    super(/* auto hide */false, /* modal */true);
+    super(/* auto hide */ false, /* modal */ true);
     setGlassEnabled(true);
     setText("Resume Project " + (copy ? "Copy" : "Import"));
 
@@ -50,52 +50,57 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
 
     resumeButton = new Button();
     resumeButton.setText("Resume");
-    resumeButton.addClickHandler(event -> {
-        hide();
+    resumeButton.addClickHandler(
+        event -> {
+          hide();
 
-        RestApi restApi;
-        ResumeImportProjectInput in = ResumeImportProjectInput.create();
-        in.force(forceCheckBox.getValue());
-        if (copy) {
-          restApi = new RestApi("projects").id(project)
-              .view(Plugin.get().getName(), "copy.resume");
-        } else {
-          restApi = new RestApi("config").id("server")
-              .view(Plugin.get().getName(), "projects").id(project)
-              .view("resume");
-          in.user(getValue(userTxt));
-          in.pass(getValue(passTxt));
-        }
+          RestApi restApi;
+          ResumeImportProjectInput in = ResumeImportProjectInput.create();
+          in.force(forceCheckBox.getValue());
+          if (copy) {
+            restApi =
+                new RestApi("projects").id(project).view(Plugin.get().getName(), "copy.resume");
+          } else {
+            restApi =
+                new RestApi("config")
+                    .id("server")
+                    .view(Plugin.get().getName(), "projects")
+                    .id(project)
+                    .view("resume");
+            in.user(getValue(userTxt));
+            in.pass(getValue(passTxt));
+          }
 
-        restApi.put(in, new AsyncCallback<ResumeImportStatisticInfo>() {
-              @Override
-              public void onSuccess(ResumeImportStatisticInfo result) {
-                Plugin.get().go("/x/" + Plugin.get().getName() + "/list");
+          restApi.put(
+              in,
+              new AsyncCallback<ResumeImportStatisticInfo>() {
+                @Override
+                public void onSuccess(ResumeImportStatisticInfo result) {
+                  Plugin.get().go("/x/" + Plugin.get().getName() + "/list");
 
-                final DialogBox successDialog = new DialogBox();
-                successDialog.setText("Resume " + (copy ? "Copy" : "Import") + " Import");
-                successDialog.setAnimationEnabled(true);
+                  final DialogBox successDialog = new DialogBox();
+                  successDialog.setText("Resume " + (copy ? "Copy" : "Import") + " Import");
+                  successDialog.setAnimationEnabled(true);
 
-                Panel p = new VerticalPanel();
-                p.setStyleName("importer-message-panel");
-                p.add(new Label("The project " + (copy ? "copy" : "import") + " was resumed."));
-                p.add(new Label("Created Changes: " + result.numChangesCreated()));
-                p.add(new Label("Updated Changes: " + result.numChangesUpdated()));
-                Button okButton = new Button("OK");
-                okButton.addClickHandler(event -> successDialog.hide());
+                  Panel p = new VerticalPanel();
+                  p.setStyleName("importer-message-panel");
+                  p.add(new Label("The project " + (copy ? "copy" : "import") + " was resumed."));
+                  p.add(new Label("Created Changes: " + result.numChangesCreated()));
+                  p.add(new Label("Updated Changes: " + result.numChangesUpdated()));
+                  Button okButton = new Button("OK");
+                  okButton.addClickHandler(event -> successDialog.hide());
 
-                p.add(okButton);
-                successDialog.add(p);
+                  p.add(okButton);
+                  successDialog.add(p);
 
-                successDialog.center();
-                successDialog.show();
-              }
+                  successDialog.center();
+                  successDialog.show();
+                }
 
-              @Override
-              public void onFailure(Throwable caught) {
-              }
-            });
-    });
+                @Override
+                public void onFailure(Throwable caught) {}
+              });
+        });
     buttons.add(resumeButton);
 
     cancelButton = new Button();
@@ -105,8 +110,7 @@ public class ResumeImportDialog extends AutoCenterDialogBox {
     buttons.add(cancelButton);
 
     FlowPanel center = new FlowPanel();
-    Label msg = new Label("Resume " + (copy ? "copy" : "import")
-        + " of project '" + project + "'");
+    Label msg = new Label("Resume " + (copy ? "copy" : "import") + " of project '" + project + "'");
     msg.addStyleName("importer-resume-message");
     center.add(msg);
 

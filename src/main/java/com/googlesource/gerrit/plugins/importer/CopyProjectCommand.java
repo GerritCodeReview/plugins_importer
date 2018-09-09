@@ -21,7 +21,6 @@ import com.google.gerrit.server.project.ProjectsCollection;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;
-
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
@@ -32,19 +31,15 @@ public class CopyProjectCommand extends SshCommand {
   @Option(name = "--quiet", usage = "suppress progress messages")
   private boolean quiet;
 
-  @Argument(index = 0, required = true, metaVar = "NAME",
-      usage = "name of the source project")
+  @Argument(index = 0, required = true, metaVar = "NAME", usage = "name of the source project")
   private String source;
 
-  @Argument(index = 1, required = true, metaVar = "COPY",
-      usage = "name of the project copy")
+  @Argument(index = 1, required = true, metaVar = "COPY", usage = "name of the project copy")
   private String target;
 
-  @Inject
-  private ProjectsCollection projects;
+  @Inject private ProjectsCollection projects;
 
-  @Inject
-  private CopyProject copy;
+  @Inject private CopyProject copy;
 
   @Override
   protected void run() throws UnloggedFailure, Failure, Exception {

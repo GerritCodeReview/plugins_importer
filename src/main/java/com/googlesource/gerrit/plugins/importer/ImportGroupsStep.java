@@ -29,12 +29,10 @@ import com.google.gerrit.server.project.ProjectCache;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.ProgressMonitor;
-
 import java.io.IOException;
 import java.util.Set;
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.lib.ProgressMonitor;
 
 public class ImportGroupsStep {
 
@@ -76,8 +74,9 @@ public class ImportGroupsStep {
     this.pm = pm;
   }
 
-  void importGroups() throws NoSuchAccountException, OrmException, IOException,
-      RestApiException, ConfigInvalidException {
+  void importGroups()
+      throws NoSuchAccountException, OrmException, IOException, RestApiException,
+          ConfigInvalidException {
     ProjectConfig projectConfig = projectCache.get(project).getConfig();
     Set<AccountGroup.UUID> groupUUIDs = projectConfig.getAllGroupUUIDs();
     pm.beginTask("Import Groups", groupUUIDs.size());
@@ -91,9 +90,9 @@ public class ImportGroupsStep {
           input.importOwnerGroup = true;
           input.importIncludedGroups = true;
           try {
-            importGroupFactory.create(
-                new AccountGroup.NameKey(projectConfig.getGroup(groupUUID)
-                    .getName())).apply(new ConfigResource(), input);
+            importGroupFactory
+                .create(new AccountGroup.NameKey(projectConfig.getGroup(groupUUID).getName()))
+                .apply(new ConfigResource(), input);
           } catch (ResourceConflictException | MethodNotAllowedException e) {
             // should not happen
             throw new IllegalStateException(e);

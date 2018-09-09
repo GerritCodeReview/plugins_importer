@@ -16,12 +16,12 @@ package com.googlesource.gerrit.plugins.importer.client;
 
 public class ResumeImportProjectInput extends ResumeCopyProjectInput {
   final native void user(String u) /*-{ this.user = u; }-*/;
+
   final native void pass(String p) /*-{ this.pass = p; }-*/;
 
   static ResumeImportProjectInput create() {
     return (ResumeImportProjectInput) createObject();
   }
 
-  protected ResumeImportProjectInput() {
-  }
+  protected ResumeImportProjectInput() {}
 }

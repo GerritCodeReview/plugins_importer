@@ -38,28 +38,27 @@ class Module extends FactoryModule {
     bind(CapabilityDefinition.class)
         .annotatedWith(Exports.named(CopyProjectCapability.ID))
         .to(CopyProjectCapability.class);
-    install(new RestApiModule() {
-      @Override
-      protected void configure() {
-        DynamicMap.mapOf(binder(), IMPORT_PROJECT_KIND);
-        DynamicMap.mapOf(binder(), IMPORT_GROUP_KIND);
+    install(
+        new RestApiModule() {
+          @Override
+          protected void configure() {
+            DynamicMap.mapOf(binder(), IMPORT_PROJECT_KIND);
+            DynamicMap.mapOf(binder(), IMPORT_GROUP_KIND);
 
-        child(CONFIG_KIND, "projects").to(ProjectsCollection.class);
-        get(IMPORT_PROJECT_KIND).to(GetImportedProject.class);
-        put(IMPORT_PROJECT_KIND, "resume").to(ResumeProjectImport.class);
-        delete(IMPORT_PROJECT_KIND).to(CompleteProjectImport.class);
+            child(CONFIG_KIND, "projects").to(ProjectsCollection.class);
+            get(IMPORT_PROJECT_KIND).to(GetImportedProject.class);
+            put(IMPORT_PROJECT_KIND, "resume").to(ResumeProjectImport.class);
+            delete(IMPORT_PROJECT_KIND).to(CompleteProjectImport.class);
 
-        put(PROJECT_KIND, "copy").to(CopyProject.class);
-        put(PROJECT_KIND, "copy.resume").to(ResumeCopyProject.class);
-        put(PROJECT_KIND, "import.resume").to(ResumeProjectImport.OnProjects.class);
-        post(PROJECT_KIND, "delete").to(CompleteProjectImport.OnProjects.class);
+            put(PROJECT_KIND, "copy").to(CopyProject.class);
+            put(PROJECT_KIND, "copy.resume").to(ResumeCopyProject.class);
+            put(PROJECT_KIND, "import.resume").to(ResumeProjectImport.OnProjects.class);
+            post(PROJECT_KIND, "delete").to(CompleteProjectImport.OnProjects.class);
 
-        child(CONFIG_KIND, "groups").to(GroupsCollection.class);
-      }
-    });
-    bind(LifecycleListener.class)
-      .annotatedWith(UniqueAnnotations.create())
-      .to(ImportLog.class);
+            child(CONFIG_KIND, "groups").to(GroupsCollection.class);
+          }
+        });
+    bind(LifecycleListener.class).annotatedWith(UniqueAnnotations.create()).to(ImportLog.class);
     bind(OpenRepositoryStep.class);
     bind(ConfigureRepositoryStep.class);
     bind(ConfigureProjectStep.class);

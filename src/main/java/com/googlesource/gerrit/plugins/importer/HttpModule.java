@@ -32,7 +32,6 @@ public class HttpModule extends HttpPluginModule {
     DynamicSet.bind(binder(), WebUiPlugin.class)
         .toInstance(new JavaScriptPlugin("complete-project-import.js"));
 
-    DynamicSet.bind(binder(), WebUiPlugin.class)
-        .toInstance(new GwtPlugin("importer"));
+    DynamicSet.bind(binder(), WebUiPlugin.class).toInstance(new GwtPlugin("importer"));
   }
 }
