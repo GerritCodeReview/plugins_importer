@@ -1,7 +1,7 @@
 load(
     "//tools/bzl:plugin.bzl",
-    "PLUGIN_DEPS",
     "GWT_PLUGIN_DEPS",
+    "PLUGIN_DEPS",
 )
 load("//tools/bzl:classpath.bzl", "classpath_collector")
 
