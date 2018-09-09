@@ -32,6 +32,7 @@ import com.google.gerrit.server.account.AccountManager;
 import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.account.AuthRequest;
 import com.google.gerrit.server.account.CreateAccount;
+import com.google.gerrit.server.account.ExternalId;
 import com.google.gerrit.server.account.VersionedAuthorizedKeys;
 import com.google.gerrit.server.config.AuthConfig;
 import com.google.gwtorm.server.OrmException;
@@ -113,7 +114,7 @@ class AccountUtil {
   private Account.Id createAccountByLdapAndAddSshKeys(GerritApi api, AccountInfo acc)
       throws NoSuchAccountException, IOException, OrmException, RestApiException,
           ConfigInvalidException {
-    if (!acc.username.matches(Account.USER_NAME_PATTERN)) {
+    if (!ExternalId.isValidUsername(acc.username)) {
       throw new NoSuchAccountException(String.format("User %s not found", acc.username));
     }
 
