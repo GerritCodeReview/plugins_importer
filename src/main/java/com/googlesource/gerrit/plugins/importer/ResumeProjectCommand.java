@@ -27,21 +27,19 @@ import org.kohsuke.args4j.Option;
 public class ResumeProjectCommand extends SshCommand {
 
   @Option(
-    name = "--user",
-    aliases = {"-u"},
-    required = true,
-    metaVar = "NAME",
-    usage = "user on remote system"
-  )
+      name = "--user",
+      aliases = {"-u"},
+      required = true,
+      metaVar = "NAME",
+      usage = "user on remote system")
   private String user;
 
   @Option(
-    name = "--pass",
-    aliases = {"-p"},
-    required = true,
-    metaVar = "-|PASS",
-    usage = "password of remote user"
-  )
+      name = "--pass",
+      aliases = {"-p"},
+      required = true,
+      metaVar = "-|PASS",
+      usage = "password of remote user")
   private String pass;
 
   @Option(name = "--force", usage = "Whether the resume should be done forcefully.")
@@ -51,11 +49,10 @@ public class ResumeProjectCommand extends SshCommand {
   private boolean quiet;
 
   @Argument(
-    index = 0,
-    required = true,
-    metaVar = "NAME",
-    usage = "name of the project in target system"
-  )
+      index = 0,
+      required = true,
+      metaVar = "NAME",
+      usage = "name of the project in target system")
   private String project;
 
   @Inject private ResumeProjectImport resume;

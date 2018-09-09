@@ -39,59 +39,53 @@ import org.kohsuke.args4j.Option;
 @CommandMetaData(name = "project", description = "Imports a project")
 public class ProjectCommand extends SshCommand {
   @Option(
-    name = "--from",
-    aliases = {"-f"},
-    required = true,
-    metaVar = "URL",
-    usage = "URL of the remote system from where the project should be imported"
-  )
+      name = "--from",
+      aliases = {"-f"},
+      required = true,
+      metaVar = "URL",
+      usage = "URL of the remote system from where the project should be imported")
   private String url;
 
   @Option(
-    name = "--name",
-    required = false,
-    metaVar = "NAME",
-    usage =
-        "name of project in source system (if not specified it is"
-            + " assumed to be the same name as in the target system)"
-  )
+      name = "--name",
+      required = false,
+      metaVar = "NAME",
+      usage =
+          "name of project in source system (if not specified it is"
+              + " assumed to be the same name as in the target system)")
   private String name;
 
   @Option(
-    name = "--user",
-    aliases = {"-u"},
-    required = true,
-    metaVar = "NAME",
-    usage = "user on remote system"
-  )
+      name = "--user",
+      aliases = {"-u"},
+      required = true,
+      metaVar = "NAME",
+      usage = "user on remote system")
   private String user;
 
   @Option(
-    name = "--pass",
-    aliases = {"-p"},
-    required = true,
-    metaVar = "-|PASS",
-    usage = "password of remote user"
-  )
+      name = "--pass",
+      aliases = {"-p"},
+      required = true,
+      metaVar = "-|PASS",
+      usage = "password of remote user")
   private String pass;
 
   @Option(
-    name = "--parent",
-    required = false,
-    metaVar = "NAME",
-    usage = "name of parent project in target system"
-  )
+      name = "--parent",
+      required = false,
+      metaVar = "NAME",
+      usage = "name of parent project in target system")
   private String parent;
 
   @Option(name = "--quiet", usage = "suppress progress messages")
   private boolean quiet;
 
   @Argument(
-    index = 0,
-    required = true,
-    metaVar = "NAME",
-    usage = "name of the project in target system"
-  )
+      index = 0,
+      required = true,
+      metaVar = "NAME",
+      usage = "name of the project in target system")
   private String project;
 
   @Inject private ImportProject.Factory importProjectFactory;

@@ -37,52 +37,46 @@ import org.kohsuke.args4j.Option;
 @CommandMetaData(name = "group", description = "Imports a group")
 public class GroupCommand extends SshCommand {
   @Option(
-    name = "--from",
-    aliases = {"-f"},
-    required = true,
-    metaVar = "URL",
-    usage = "URL of the remote system from where the group is imported from"
-  )
+      name = "--from",
+      aliases = {"-f"},
+      required = true,
+      metaVar = "URL",
+      usage = "URL of the remote system from where the group is imported from")
   private String url;
 
   @Option(
-    name = "--user",
-    aliases = {"-u"},
-    required = true,
-    metaVar = "NAME",
-    usage = "user on remote system"
-  )
+      name = "--user",
+      aliases = {"-u"},
+      required = true,
+      metaVar = "NAME",
+      usage = "user on remote system")
   private String user;
 
   @Option(
-    name = "--pass",
-    aliases = {"-p"},
-    required = true,
-    metaVar = "-|PASS",
-    usage = "password of remote user"
-  )
+      name = "--pass",
+      aliases = {"-p"},
+      required = true,
+      metaVar = "-|PASS",
+      usage = "password of remote user")
   private String pass;
 
   @Option(
-    name = "--import-owner-group",
-    aliases = {"-o"},
-    usage = "whether missing owner groups should be imported automatically"
-  )
+      name = "--import-owner-group",
+      aliases = {"-o"},
+      usage = "whether missing owner groups should be imported automatically")
   private boolean importOwnerGroup;
 
   @Option(
-    name = "--import-included-groups",
-    aliases = {"-i"},
-    usage = "whether missing included groups should be imported automatically"
-  )
+      name = "--import-included-groups",
+      aliases = {"-i"},
+      usage = "whether missing included groups should be imported automatically")
   private boolean importIncludedGroups;
 
   @Argument(
-    index = 0,
-    required = true,
-    metaVar = "NAME",
-    usage = "name of the group to be imported"
-  )
+      index = 0,
+      required = true,
+      metaVar = "NAME",
+      usage = "name of the group to be imported")
   private String group;
 
   @Inject private ImportGroup.Factory importGroupFactory;

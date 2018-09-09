@@ -37,10 +37,9 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
   private final ProjectsCollection projects;
 
   @Option(
-    name = "--match",
-    metaVar = "MATCH",
-    usage = "List only projects containing this substring, case insensitive"
-  )
+      name = "--match",
+      metaVar = "MATCH",
+      usage = "List only projects containing this substring, case insensitive")
   public void setMatch(String match) {
     this.match = match.toLowerCase(Locale.ENGLISH);
   }

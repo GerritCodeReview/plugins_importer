@@ -28,11 +28,10 @@ import org.kohsuke.args4j.Argument;
 class CompleteProjectImportCommand extends SshCommand {
 
   @Argument(
-    index = 0,
-    required = true,
-    metaVar = "NAME",
-    usage = "name of the project in target system"
-  )
+      index = 0,
+      required = true,
+      metaVar = "NAME",
+      usage = "name of the project in target system")
   private String project;
 
   @Inject private CompleteProjectImport completeProjectImport;

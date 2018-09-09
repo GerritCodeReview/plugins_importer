@@ -31,19 +31,17 @@ import org.kohsuke.args4j.Option;
 class ListProjectImportsCommand extends SshCommand {
 
   @Option(
-    name = "--verbose",
-    aliases = {"-v"},
-    required = false,
-    usage = "Print detailed info for each project import"
-  )
+      name = "--verbose",
+      aliases = {"-v"},
+      required = false,
+      usage = "Print detailed info for each project import")
   private boolean verbose;
 
   @Argument(
-    index = 0,
-    required = false,
-    metaVar = "MATCH",
-    usage = "List only projects containing this substring, case insensitive"
-  )
+      index = 0,
+      required = false,
+      metaVar = "MATCH",
+      usage = "List only projects containing this substring, case insensitive")
   private String match;
 
   @Inject private ListImportedProjects list;
