@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "11b6ee8a_d3e75260",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2018-09-09T23:49:38Z",
+      "side": 1,
+      "message": "This is the wrong package. On 2.14 it\u0027s com.google.gerrit.server.account.ExternalId (without the externalids infix).\n\nThe build should be adjusted to use the 2.14.12 API.",
+      "range": {
+        "startLine": 36,
+        "startChar": 7,
+        "endLine": 36,
+        "endChar": 51
+      },
+      "revId": "7e82ee4b1ba64cb542eba403e7485df97a3f7f1d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
