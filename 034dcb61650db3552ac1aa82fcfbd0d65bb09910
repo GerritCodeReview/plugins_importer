@@ -116,6 +116,24 @@
       "revId": "034dcb61650db3552ac1aa82fcfbd0d65bb09910",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7d4eb7e_3b4a37dc",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2018-09-18T04:50:18Z",
+      "side": 1,
+      "message": "The WORKSPACE file on stable-2.14 upgrades to the 2.14.12 API, and that should not be brought in here, so that on stable-2.15 we continue to use the 2.15.2 API.\n\nThe username changes were included in 2.14.12 but have not been include in a 2.15 release, hence if we include the related changes in this file it won\u0027t compile.  We should modify the WORKSPACE file to use 2.15.3-SNAPSHOT and do these changes then.",
+      "parentUuid": "9b4eaee7_1a491486",
+      "revId": "034dcb61650db3552ac1aa82fcfbd0d65bb09910",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
