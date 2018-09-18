@@ -134,6 +134,24 @@
       "revId": "034dcb61650db3552ac1aa82fcfbd0d65bb09910",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b385eeaf_75a948a9",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1010516
+      },
+      "writtenOn": "2018-09-18T04:54:27Z",
+      "side": 1,
+      "message": "I did not use the value from 2.14, I used HEAD of stable-2.15 in the bazlets repo.",
+      "parentUuid": "a7d4eb7e_3b4a37dc",
+      "revId": "034dcb61650db3552ac1aa82fcfbd0d65bb09910",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
