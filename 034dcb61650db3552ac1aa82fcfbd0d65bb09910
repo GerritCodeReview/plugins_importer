@@ -152,6 +152,24 @@
       "revId": "034dcb61650db3552ac1aa82fcfbd0d65bb09910",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0965fe02_2a296e0f",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/importer/AccountUtil.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2018-09-18T05:40:56Z",
+      "side": 1,
+      "message": "OK, but that still wouldn\u0027t work because the WORKSPACE is set to use the released API, not the snapshot.",
+      "parentUuid": "b385eeaf_75a948a9",
+      "revId": "034dcb61650db3552ac1aa82fcfbd0d65bb09910",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
