@@ -17,7 +17,8 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
 
 import com.google.inject.Singleton;
-
+import java.io.IOException;
+import java.util.Map;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -30,20 +31,15 @@ import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
-import java.io.IOException;
-import java.util.Map;
-
 @Singleton
 class GitFetchStep {
 
   void fetch(String user, String password, Repository repo, ProgressMonitor pm)
-      throws InvalidRemoteException, TransportException, GitAPIException,
-      IOException {
+      throws InvalidRemoteException, TransportException, GitAPIException, IOException {
     pm.beginTask("Fetch project", 1);
     FetchCommand fetch = Git.wrap(repo).fetch();
     if (user != null) {
-      fetch.setCredentialsProvider(
-          new UsernamePasswordCredentialsProvider(user, password));
+      fetch.setCredentialsProvider(new UsernamePasswordCredentialsProvider(user, password));
     }
     fetch.setRemote("origin").call();
     updateNonChangeRefs(repo);
@@ -51,8 +47,7 @@ class GitFetchStep {
   }
 
   private void updateNonChangeRefs(Repository repo) throws IOException {
-    Map<String, Ref> refs = repo.getRefDatabase().getRefs(
-        ConfigureRepositoryStep.R_IMPORTS);
+    Map<String, Ref> refs = repo.getRefDatabase().getRefs(ConfigureRepositoryStep.R_IMPORTS);
     for (Map.Entry<String, Ref> e : refs.entrySet()) {
       String name = e.getKey();
       if (name.startsWith("imports/")) {
@@ -86,8 +81,8 @@ class GitFetchStep {
         case REJECTED_MISSING_OBJECT:
         case REJECTED_OTHER_REASON:
         default:
-          throw new IOException(String.format(
-              "Failed to update %s, RefUpdate.Result = %s", targetRef, result));
+          throw new IOException(
+              String.format("Failed to update %s, RefUpdate.Result = %s", targetRef, result));
       }
     }
   }

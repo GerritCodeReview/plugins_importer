@@ -25,7 +25,6 @@ import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
 import com.google.gwt.user.client.ui.InlineHyperlink;
 import com.google.gwt.user.client.ui.VerticalPanel;
-
 import java.util.List;
 
 public class ImportProjectListScreen extends VerticalPanel {
@@ -40,19 +39,21 @@ public class ImportProjectListScreen extends VerticalPanel {
   ImportProjectListScreen() {
     setStyleName("importer-imports-panel");
 
-    new RestApi("config").id("server")
+    new RestApi("config")
+        .id("server")
         .view(Plugin.get().getPluginName(), "projects")
-        .get(new AsyncCallback<NativeMap<ImportProjectInfo>>() {
-          @Override
-          public void onSuccess(NativeMap<ImportProjectInfo> info) {
-            display(info);
-          }
+        .get(
+            new AsyncCallback<NativeMap<ImportProjectInfo>>() {
+              @Override
+              public void onSuccess(NativeMap<ImportProjectInfo> info) {
+                display(info);
+              }
 
-          @Override
-          public void onFailure(Throwable caught) {
-            // never invoked
-          }
-        });
+              @Override
+              public void onFailure(Throwable caught) {
+                // never invoked
+              }
+            });
   }
 
   private void display(NativeMap<ImportProjectInfo> map) {
@@ -82,16 +83,17 @@ public class ImportProjectListScreen extends VerticalPanel {
         fmt.addStyleName(row, 0, "leftMostCell");
       }
 
-      t.setWidget(row, 0, new InlineHyperlink(
-          project, "/x/" + Plugin.get().getName() + "/projects/" + project));
+      t.setWidget(
+          row,
+          0,
+          new InlineHyperlink(project, "/x/" + Plugin.get().getName() + "/projects/" + project));
       t.setText(row, 1, info.from() != null ? "IMPORT" : "COPY");
 
       if (info.from() != null) {
         String srcProjectUrl = projectUrl(info, project);
         t.setWidget(row, 2, new Anchor(srcProjectUrl, srcProjectUrl));
       } else {
-        t.setWidget(row, 2,
-            new InlineHyperlink(project, "/admin/projects/" + project));
+        t.setWidget(row, 2, new InlineHyperlink(project, "/admin/projects/" + project));
       }
 
       List<ImportInfo> importList = Natives.asList(info.imports());

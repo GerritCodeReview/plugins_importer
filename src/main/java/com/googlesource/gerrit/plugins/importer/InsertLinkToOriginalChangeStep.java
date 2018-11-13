@@ -33,7 +33,6 @@ import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-
 import java.io.IOException;
 
 class InsertLinkToOriginalChangeStep {
@@ -52,14 +51,12 @@ class InsertLinkToOriginalChangeStep {
 
   interface Factory {
     InsertLinkToOriginalChangeStep create(
-        @Nullable String fromGerrit,
-        Change change,
-        ChangeInfo changeInfo,
-        boolean resume);
+        @Nullable String fromGerrit, Change change, ChangeInfo changeInfo, boolean resume);
   }
 
   @Inject
-  InsertLinkToOriginalChangeStep(CurrentUser currentUser,
+  InsertLinkToOriginalChangeStep(
+      CurrentUser currentUser,
       ChangeUpdate.Factory updateFactory,
       IdentifiedUser.GenericFactory genericUserFactory,
       ChangeData.Factory changeDataFactory,
@@ -84,14 +81,13 @@ class InsertLinkToOriginalChangeStep {
   }
 
   void insert() throws NoSuchChangeException, OrmException, IOException {
-    insertMessage(change, (resume ? "Resumed import of " : "Imported from ")
-        + changeUrl(changeInfo));
+    insertMessage(
+        change, (resume ? "Resumed import of " : "Imported from ") + changeUrl(changeInfo));
   }
 
   private String changeUrl(ChangeInfo c) {
     StringBuilder url = new StringBuilder();
-    url.append(ensureSlash(
-        MoreObjects.firstNonNull(fromGerrit, canonicalWebUrl)));
+    url.append(ensureSlash(MoreObjects.firstNonNull(fromGerrit, canonicalWebUrl)));
     url.append(c._number);
     return url.toString();
   }
@@ -102,8 +98,10 @@ class InsertLinkToOriginalChangeStep {
     ChangeData cd = changeDataFactory.create(db, change);
     ChangeUpdate update = updateFactory.create(cd.notes(), genericUserFactory.create(userId));
     ChangeMessage cmsg =
-        new ChangeMessage(new ChangeMessage.Key(change.getId(),
-            ChangeUtil.messageUuid()), userId, TimeUtil.nowTs(),
+        new ChangeMessage(
+            new ChangeMessage.Key(change.getId(), ChangeUtil.messageUuid()),
+            userId,
+            TimeUtil.nowTs(),
             change.currentPatchSetId());
     cmsg.setMessage(message);
     cmUtil.addChangeMessage(db, update, cmsg);

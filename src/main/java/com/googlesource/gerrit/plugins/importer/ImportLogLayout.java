@@ -14,14 +14,13 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import org.apache.log4j.Layout;
-import org.apache.log4j.spi.LoggingEvent;
-import org.eclipse.jgit.util.QuotedString;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import org.apache.log4j.Layout;
+import org.apache.log4j.spi.LoggingEvent;
+import org.eclipse.jgit.util.QuotedString;
 
 final class ImportLogLayout extends Layout {
   private final Calendar calendar;
@@ -29,7 +28,7 @@ final class ImportLogLayout extends Layout {
   private final char[] lastTimeString = new char[20];
   private final char[] timeZone;
 
- public ImportLogLayout() {
+  public ImportLogLayout() {
     TimeZone tz = TimeZone.getDefault();
     calendar = Calendar.getInstance(tz);
 
@@ -41,14 +40,12 @@ final class ImportLogLayout extends Layout {
   /**
    * Formats the events in the import log.
    *
-   * A successful project import will result in a log entry like this:
-   *   [2015-03-05 09:13:28,912 +0100] INFO 1000000 admin OK \
-   *   https://some-gerrit-server:8080 srcName targetName
+   * <p>A successful project import will result in a log entry like this: [2015-03-05 09:13:28,912
+   * +0100] INFO 1000000 admin OK \ https://some-gerrit-server:8080 srcName targetName
    *
-   * The log entry for a failed project import will look like this:
-   *   [2015-03-05 12:14:30,180 +0100] ERROR 1000000 admin FAIL \
-   *   https://some-gerrit-server:8080 srcName targetName \
-   *   com.google.gwtorm.server.OrmException: Failed to access the database
+   * <p>The log entry for a failed project import will look like this: [2015-03-05 12:14:30,180
+   * +0100] ERROR 1000000 admin FAIL \ https://some-gerrit-server:8080 srcName targetName \
+   * com.google.gwtorm.server.OrmException: Failed to access the database
    */
   @Override
   public String format(LoggingEvent event) {
@@ -139,6 +136,5 @@ final class ImportLogLayout extends Layout {
   }
 
   @Override
-  public void activateOptions() {
-  }
+  public void activateOptions() {}
 }

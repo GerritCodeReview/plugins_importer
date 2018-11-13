@@ -14,10 +14,8 @@
 
 package com.googlesource.gerrit.plugins.importer.client;
 
-
 public class ResumeImportStatisticInfo extends ImportStatisticInfo {
   public final native int numChangesUpdated() /*-{ return this.num_changes_updated; }-*/;
 
-  protected ResumeImportStatisticInfo() {
-  }
+  protected ResumeImportStatisticInfo() {}
 }

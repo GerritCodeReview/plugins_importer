@@ -33,39 +33,32 @@ import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.ProjectResource;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-
 import com.googlesource.gerrit.plugins.importer.CompleteProjectImport.Input;
-
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-
 @RequiresCapability(ImportCapability.ID)
 class CompleteProjectImport implements RestModifyView<ImportProjectResource, Input> {
-  public static class Input {
-  }
+  public static class Input {}
 
   private final ProjectsCollection projects;
   private final GitRepositoryManager repoManager;
 
   @Inject
-  CompleteProjectImport(
-      ProjectsCollection projects,
-      GitRepositoryManager repoManager) {
+  CompleteProjectImport(ProjectsCollection projects, GitRepositoryManager repoManager) {
     this.projects = projects;
     this.repoManager = repoManager;
   }
 
   @Override
   public Response<?> apply(ImportProjectResource rsrc, Input input)
-      throws ResourceConflictException, RepositoryNotFoundException,
-      IOException {
+      throws ResourceConflictException, RepositoryNotFoundException, IOException {
     LockFile lock = lockForDelete(rsrc.getName());
     try {
       deleteImportRefs(rsrc.getName());
@@ -76,16 +69,14 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     }
   }
 
-  private LockFile lockForDelete(Project.NameKey project)
-      throws ResourceConflictException {
+  private LockFile lockForDelete(Project.NameKey project) throws ResourceConflictException {
     File importStatus = projects.FS_LAYOUT.getImportStatusFile(project.get());
     LockFile lockFile = new LockFile(importStatus);
     try {
       if (lockFile.lock()) {
         return lockFile;
       }
-      throw new ResourceConflictException(
-          "project is being imported from another session");
+      throw new ResourceConflictException("project is being imported from another session");
     } catch (IOException e) {
       throw new ResourceConflictException("failed to lock project for delete");
     }
@@ -94,8 +85,7 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
   private void deleteImportRefs(Project.NameKey project)
       throws RepositoryNotFoundException, IOException {
     try (Repository repo = repoManager.openRepository(project)) {
-      Map<String, Ref> refs = repo.getRefDatabase().getRefs(
-          ConfigureRepositoryStep.R_IMPORTS);
+      Map<String, Ref> refs = repo.getRefDatabase().getRefs(ConfigureRepositoryStep.R_IMPORTS);
       for (Ref ref : refs.values()) {
         RefUpdate ru = repo.updateRef(ref.getName());
         ru.setForceUpdate(true);
@@ -115,15 +105,15 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
           case REJECTED_MISSING_OBJECT:
           case REJECTED_OTHER_REASON:
           default:
-            throw new IOException(String.format(
-                "Failed to delete %s, RefUpdate.Result = %s", ref, result));
+            throw new IOException(
+                String.format("Failed to delete %s, RefUpdate.Result = %s", ref, result));
         }
       }
     }
   }
 
-  public static class OnProjects implements
-      RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
+  public static class OnProjects
+      implements RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
     private final ProjectsCollection projectsCollection;
     private final CompleteProjectImport completeProjectImport;
     private final Provider<CurrentUser> currentUserProvider;
@@ -131,7 +121,8 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     private final PermissionBackend permissionBackend;
 
     @Inject
-    public OnProjects(ProjectsCollection projectsCollection,
+    public OnProjects(
+        ProjectsCollection projectsCollection,
         CompleteProjectImport completeProjectImport,
         Provider<CurrentUser> currentUserProvider,
         @PluginName String pluginName,
@@ -145,11 +136,10 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
 
     @Override
     public Response<?> apply(ProjectResource rsrc, Input input)
-        throws ResourceNotFoundException, ResourceConflictException,
-        RepositoryNotFoundException, IOException {
+        throws ResourceNotFoundException, ResourceConflictException, RepositoryNotFoundException,
+            IOException {
       ImportProjectResource projectResource =
-          projectsCollection.parse(new ConfigResource(),
-              IdString.fromDecoded(rsrc.getName()));
+          projectsCollection.parse(new ConfigResource(), IdString.fromDecoded(rsrc.getName()));
       return completeProjectImport.apply(projectResource, input);
     }
 
@@ -158,16 +148,18 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
       UiAction.Description desc = new UiAction.Description();
 
       try {
-        ImportProjectResource importRsrc = projectsCollection.parse(new ConfigResource(),
-            IdString.fromDecoded(rsrc.getName()));
+        ImportProjectResource importRsrc =
+            projectsCollection.parse(new ConfigResource(), IdString.fromDecoded(rsrc.getName()));
         if (importRsrc.getInfo().from != null) {
           desc.setLabel("Complete Import...")
-              .setTitle("Complete the project import."
-                  + " After completion, resume is not possible anymore.");
+              .setTitle(
+                  "Complete the project import."
+                      + " After completion, resume is not possible anymore.");
         } else {
           desc.setLabel("Complete Copy...")
-              .setTitle("Complete the project copy."
-                  + " After completion, resume is not possible anymore.");
+              .setTitle(
+                  "Complete the project copy."
+                      + " After completion, resume is not possible anymore.");
         }
         desc.setVisible(canCompleteImport(rsrc));
       } catch (IOException | ResourceNotFoundException e) {
@@ -178,10 +170,11 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     }
 
     private boolean canCompleteImport(ProjectResource rsrc) {
-      return permissionBackend.user(currentUserProvider).testOrFalse(ADMINISTRATE_SERVER) ||
-        (permissionBackend.user(currentUserProvider).testOrFalse(
-          new PluginPermission(pluginName, ImportCapability.ID))
-            && rsrc.getControl().isOwner());
+      return permissionBackend.user(currentUserProvider).testOrFalse(ADMINISTRATE_SERVER)
+          || (permissionBackend
+                  .user(currentUserProvider)
+                  .testOrFalse(new PluginPermission(pluginName, ImportCapability.ID))
+              && rsrc.getControl().isOwner());
     }
   }
 }

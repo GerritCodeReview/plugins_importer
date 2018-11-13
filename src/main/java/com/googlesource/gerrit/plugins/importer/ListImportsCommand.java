@@ -21,27 +21,30 @@ import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;
-
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.Option;
-
 import java.io.IOException;
 import java.util.Map;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.Option;
 
 @RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "list-projects", description = "Lists project imports")
 class ListProjectImportsCommand extends SshCommand {
 
-  @Option(name = "--verbose", aliases = {"-v"}, required = false,
+  @Option(
+      name = "--verbose",
+      aliases = {"-v"},
+      required = false,
       usage = "Print detailed info for each project import")
   private boolean verbose;
 
-  @Argument(index = 0, required = false, metaVar = "MATCH",
+  @Argument(
+      index = 0,
+      required = false,
+      metaVar = "MATCH",
       usage = "List only projects containing this substring, case insensitive")
   private String match;
 
-  @Inject
-  private ListImportedProjects list;
+  @Inject private ListImportedProjects list;
 
   @Override
   protected void run() throws IOException {
@@ -58,8 +61,7 @@ class ListProjectImportsCommand extends SshCommand {
         stdout.println("  parent: " + info.parent);
         stdout.println(format("  %-23s %s:%s", "time", "user", "remote-user"));
         for (ImportInfo i : info.imports) {
-          stdout.println(
-              format("  %-23s %s:%s", i.timestamp, i.user.username, i.remoteUser));
+          stdout.println(format("  %-23s %s:%s", i.timestamp, i.user.username, i.remoteUser));
         }
         stdout.println();
       }

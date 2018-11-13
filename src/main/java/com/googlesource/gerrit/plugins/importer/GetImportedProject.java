@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.inject.Singleton;
-
 import java.io.IOException;
 
 @Singleton

@@ -33,18 +33,17 @@ import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.account.AuthRequest;
 import com.google.gerrit.server.account.CreateAccount;
 import com.google.gerrit.server.account.VersionedAuthorizedKeys;
+import com.google.gerrit.server.account.externalids.ExternalId;
 import com.google.gerrit.server.config.AuthConfig;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 class AccountUtil {
@@ -76,12 +75,13 @@ class AccountUtil {
   }
 
   Account.Id resolveUser(GerritApi api, AccountInfo acc)
-      throws NoSuchAccountException, IOException, OrmException,
-      RestApiException, ConfigInvalidException {
+      throws NoSuchAccountException, IOException, OrmException, RestApiException,
+          ConfigInvalidException {
     if (acc.username == null) {
-      throw new NoSuchAccountException(String.format(
-          "User %s <%s> (%s) doesn't have a username and cannot be looked up.",
-          acc.name, acc.email, acc._accountId));
+      throw new NoSuchAccountException(
+          String.format(
+              "User %s <%s> (%s) doesn't have a username and cannot be looked up.",
+              acc.name, acc.email, acc._accountId));
     }
     AccountState a = accountCache.getByUsername(acc.username);
 
@@ -103,19 +103,19 @@ class AccountUtil {
       }
     }
     if (!Objects.equals(a.getAccount().getPreferredEmail(), acc.email)) {
-      log.warn(String.format(
-          "Email mismatch for user %s: expected %s but found %s",
-          acc.username, acc.email, a.getAccount().getPreferredEmail()));
+      log.warn(
+          String.format(
+              "Email mismatch for user %s: expected %s but found %s",
+              acc.username, acc.email, a.getAccount().getPreferredEmail()));
     }
     return a.getAccount().getId();
   }
 
-  private Account.Id createAccountByLdapAndAddSshKeys(GerritApi api,
-      AccountInfo acc) throws NoSuchAccountException, IOException, OrmException,
-          RestApiException, ConfigInvalidException {
-    if (!acc.username.matches(Account.USER_NAME_PATTERN)) {
-      throw new NoSuchAccountException(String.format("User %s not found",
-          acc.username));
+  private Account.Id createAccountByLdapAndAddSshKeys(GerritApi api, AccountInfo acc)
+      throws NoSuchAccountException, IOException, OrmException, RestApiException,
+          ConfigInvalidException {
+    if (!ExternalId.isValidUsername(acc.username)) {
+      throw new NoSuchAccountException(String.format("User %s not found", acc.username));
     }
 
     try {
@@ -130,8 +130,7 @@ class AccountUtil {
   }
 
   private void addSshKeys(GerritApi api, AccountInfo acc)
-      throws BadRequestException, IOException, OrmException,
-      ConfigInvalidException {
+      throws BadRequestException, IOException, OrmException, ConfigInvalidException {
     List<SshKeyInfo> sshKeys = api.getSshKeys(acc.username);
     AccountState a = accountCache.getByUsername(acc.username);
     for (SshKeyInfo sshKeyInfo : sshKeys) {
@@ -153,8 +152,7 @@ class AccountUtil {
     input.name = acc.name;
 
     AccountInfo accInfo =
-        createAccountFactory.create(username)
-            .apply(TopLevelResource.INSTANCE, input).value();
+        createAccountFactory.create(username).apply(TopLevelResource.INSTANCE, input).value();
     log.info(String.format("Local user '%s' created", username));
 
     Account.Id userId = new Account.Id(accInfo._accountId);

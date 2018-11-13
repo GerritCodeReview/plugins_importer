@@ -1,7 +1,7 @@
 The @PLUGIN@ plugin allows to import projects and groups from a remote
 Gerrit server into the Gerrit server where the plugin is installed.
 
-The imports are done online while both, source and target Gerrit
+The imports are done online while both source and target Gerrit
 server, are running.
 
 The user that does the import must be a member of a group that is
@@ -40,8 +40,7 @@ one Gerrit server to another Gerrit server.
 On project import the configured max object size on the target Gerrit
 server is ignored.
 
-Draft changes, draft patch sets, change edits and draft comments are
-*not* imported.
+Change edits and draft comments are *not* imported.
 
 #### Process
 
@@ -92,9 +91,9 @@ must have the link:access-control.html#capability_modifyAccount[Modify
 Account] or the link:access-control.html#capability_administrateServer[
 Administrate Server] capability assigned on the source system.
 
-If for any reason an user is no longer existent in the LDAP instance but it
+If for any reason a user no longer exists in the LDAP instance but it
 is listed as a change owner, reviewer or as part of a group, a local user
-account is created with the same username. Giving that such user is not longer
+account is created with the same username. Given that such a user is no longer
 active in the system, their account status is set to inactive.
 
 Gerrit internal users (e.g. service users) should be created in the target

@@ -18,37 +18,35 @@ import com.google.common.collect.Iterators;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.data.GlobalCapability;
 import com.google.gerrit.common.errors.NoSuchAccountException;
-import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.Url;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.Sequences;
-import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.index.change.ChangeIndexer;
 import com.google.gerrit.server.notedb.NotesMigration;
+import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.InternalChangeQuery;
+import com.google.gerrit.server.update.UpdateException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
-
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 class ReplayChangesStep {
 
@@ -135,16 +133,16 @@ class ReplayChangesStep {
     this.isNoteDbEnabled = migration.readChanges();
   }
 
-  void replay() throws IOException, OrmException,
-      NoSuchAccountException, NoSuchChangeException, RestApiException,
-      UpdateException, ConfigInvalidException {
+  void replay()
+      throws IOException, OrmException, NoSuchAccountException, NoSuchChangeException,
+          RestApiException, UpdateException, ConfigInvalidException,
+          PatchListNotAvailableException {
     int start = 0;
     int limit = GlobalCapability.DEFAULT_MAX_QUERY_LIMIT;
     pm.beginTask("Replay Changes", ProgressMonitor.UNKNOWN);
-    for(;;) {
-      List<ChangeInfo> changes = api.queryChanges(srcProject.get(),
-          start, limit);
-      if(changes.isEmpty()) {
+    for (; ; ) {
+      List<ChangeInfo> changes = api.queryChanges(srcProject.get(), start, limit);
+      if (changes.isEmpty()) {
         break;
       }
       start += changes.size();
@@ -154,14 +152,13 @@ class ReplayChangesStep {
           try {
             replayChange(rw, c);
           } catch (Exception e) {
-            log.error(String.format("Failed to replay change %s.",
-                Url.decode(c.id)), e);
+            log.error(String.format("Failed to replay change %s.", Url.decode(c.id)), e);
             throw e;
           }
           last = c;
           pm.update(1);
         }
-        if(!Boolean.TRUE.equals(last._moreChanges)) {
+        if (!Boolean.TRUE.equals(last._moreChanges)) {
           break;
         }
       }
@@ -170,9 +167,9 @@ class ReplayChangesStep {
   }
 
   private void replayChange(RevWalk rw, ChangeInfo c)
-      throws IOException, OrmException, NoSuchAccountException,
-      NoSuchChangeException, RestApiException, IllegalArgumentException,
-      UpdateException, ConfigInvalidException {
+      throws IOException, OrmException, NoSuchAccountException, NoSuchChangeException,
+          RestApiException, IllegalArgumentException, UpdateException, ConfigInvalidException,
+          PatchListNotAvailableException {
     Change change = resume ? findChange(c) : null;
     boolean resumeChange;
     if (change == null) {
@@ -213,45 +210,43 @@ class ReplayChangesStep {
   }
 
   private Change findChange(ChangeInfo c) throws OrmException {
-    List<Change> changes = ChangeData.asChanges(
-        queryProvider.get().byBranchKey(
-            new Branch.NameKey(targetProject, fullName(c.branch)),
-            new Change.Key(c.changeId)));
+    List<Change> changes =
+        ChangeData.asChanges(
+            queryProvider
+                .get()
+                .byBranchKey(
+                    new Branch.NameKey(targetProject, RefNames.fullName(c.branch)),
+                    new Change.Key(c.changeId)));
     if (changes.isEmpty()) {
       return null;
     }
-    return db.changes().get(
-        Iterators.getOnlyElement(changes.iterator()).getId());
+    return db.changes().get(Iterators.getOnlyElement(changes.iterator()).getId());
   }
 
   private Change createChange(ChangeInfo c)
-      throws OrmException, NoSuchAccountException, IOException,
-      RestApiException, ConfigInvalidException {
+      throws OrmException, NoSuchAccountException, IOException, RestApiException,
+          ConfigInvalidException {
     Change.Id changeId = new Change.Id(sequences.nextChangeId());
 
     Change change =
-        new Change(new Change.Key(c.changeId), changeId, accountUtil.resolveUser(api, c.owner),
-            new Branch.NameKey(targetProject, fullName(c.branch)), c.created);
+        new Change(
+            new Change.Key(c.changeId),
+            changeId,
+            accountUtil.resolveUser(api, c.owner),
+            new Branch.NameKey(targetProject, RefNames.fullName(c.branch)),
+            c.created);
     change.setStatus(Change.Status.forChangeStatus(c.status));
     change.setTopic(c.topic);
     change.setLastUpdatedOn(c.updated);
     return change;
   }
 
-  private void upsertChange(boolean resumeChange, Change change, ChangeInfo c)
-      throws OrmException {
+  private void upsertChange(boolean resumeChange, Change change, ChangeInfo c) throws OrmException {
     if (resumeChange) {
       change.setStatus(Change.Status.forChangeStatus(c.status));
       change.setTopic(c.topic);
       change.setLastUpdatedOn(c.updated);
     }
     db.changes().upsert(Collections.singleton(change));
-  }
-
-  private static String fullName(String branch) {
-    if (branch.startsWith(Constants.R_HEADS)) {
-      return branch;
-    }
-    return Constants.R_HEADS + branch;
   }
 }

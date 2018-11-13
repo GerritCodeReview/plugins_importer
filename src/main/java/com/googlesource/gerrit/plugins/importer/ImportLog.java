@@ -28,7 +28,6 @@ import com.google.gerrit.server.util.PluginLogFile;
 import com.google.gerrit.server.util.SystemLog;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -50,7 +49,8 @@ class ImportLog extends PluginLogFile {
   private final String canonicalWebUrl;
 
   @Inject
-  public ImportLog(SystemLog systemLog,
+  public ImportLog(
+      SystemLog systemLog,
       ServerInformation serverInfo,
       AuditService auditService,
       @CanonicalWebUrl String canonicalWebUrl) {
@@ -59,30 +59,35 @@ class ImportLog extends PluginLogFile {
     this.canonicalWebUrl = canonicalWebUrl;
   }
 
-  public void onImport(IdentifiedUser user, Project.NameKey srcProject,
-      Project.NameKey targetProject, String from) {
+  public void onImport(
+      IdentifiedUser user, Project.NameKey srcProject, Project.NameKey targetProject, String from) {
     onImport(user, srcProject, targetProject, from, null);
   }
 
-  public void onImport(IdentifiedUser user, Project.NameKey srcProject,
-      Project.NameKey targetProject, String from, Exception ex) {
+  public void onImport(
+      IdentifiedUser user,
+      Project.NameKey srcProject,
+      Project.NameKey targetProject,
+      String from,
+      Exception ex) {
     long ts = TimeUtil.nowMs();
-    LoggingEvent event = new LoggingEvent( //
-        Logger.class.getName(), // fqnOfCategoryClass
-        log, // logger
-        ts, // when
-        ex == null // level
-            ? Level.INFO
-            : Level.ERROR,
-        ex == null // message text
-            ? "OK"
-            : "FAIL",
-        Thread.currentThread().getName(), // thread name
-        null, // exception information
-        null, // current NDC string
-        null, // caller location
-        null // MDC properties
-        );
+    LoggingEvent event =
+        new LoggingEvent( //
+            Logger.class.getName(), // fqnOfCategoryClass
+            log, // logger
+            ts, // when
+            ex == null // level
+                ? Level.INFO
+                : Level.ERROR,
+            ex == null // message text
+                ? "OK"
+                : "FAIL",
+            Thread.currentThread().getName(), // thread name
+            null, // exception information
+            null, // current NDC string
+            null, // caller location
+            null // MDC properties
+            );
 
     event.setProperty(ACCOUNT_ID, user.getAccountId().toString());
     event.setProperty(USER_NAME, user.getUserName());
@@ -105,10 +110,9 @@ class ImportLog extends PluginLogFile {
     audit(user, ts, srcProject, from, ex);
   }
 
-  private void audit(IdentifiedUser user, long ts, Project.NameKey project,
-      String from, Exception ex) {
-    ListMultimap<String, Object> params =
-        MultimapBuilder.hashKeys().arrayListValues().build();
+  private void audit(
+      IdentifiedUser user, long ts, Project.NameKey project, String from, Exception ex) {
+    ListMultimap<String, Object> params = MultimapBuilder.hashKeys().arrayListValues().build();
     params.put("class", ImportLog.class);
     params.put("project", project.get());
     params.put("from", from);
@@ -124,7 +128,6 @@ class ImportLog extends PluginLogFile {
             params, // params
             ex != null // result
                 ? ex.toString()
-                : "OK"
-        ));
+                : "OK"));
   }
 }

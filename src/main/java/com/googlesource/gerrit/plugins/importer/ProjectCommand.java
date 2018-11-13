@@ -20,61 +20,81 @@ import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.update.UpdateException;
+import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.update.UpdateException;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-
+import java.io.IOException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
-import java.io.IOException;
-
 @RequiresCapability(ImportCapability.ID)
 @CommandMetaData(name = "project", description = "Imports a project")
 public class ProjectCommand extends SshCommand {
-  @Option(name = "--from", aliases = {"-f"}, required = true, metaVar = "URL",
+  @Option(
+      name = "--from",
+      aliases = {"-f"},
+      required = true,
+      metaVar = "URL",
       usage = "URL of the remote system from where the project should be imported")
   private String url;
 
-  @Option(name = "--name", required = false, metaVar = "NAME",
-      usage = "name of project in source system (if not specified it is"
-          + " assumed to be the same name as in the target system)")
+  @Option(
+      name = "--name",
+      required = false,
+      metaVar = "NAME",
+      usage =
+          "name of project in source system (if not specified it is"
+              + " assumed to be the same name as in the target system)")
   private String name;
 
-  @Option(name = "--user", aliases = {"-u"}, required = true, metaVar = "NAME",
+  @Option(
+      name = "--user",
+      aliases = {"-u"},
+      required = true,
+      metaVar = "NAME",
       usage = "user on remote system")
   private String user;
 
-  @Option(name = "--pass", aliases = {"-p"}, required = true, metaVar = "-|PASS",
+  @Option(
+      name = "--pass",
+      aliases = {"-p"},
+      required = true,
+      metaVar = "-|PASS",
       usage = "password of remote user")
   private String pass;
 
-  @Option(name = "--parent", required = false, metaVar = "NAME",
+  @Option(
+      name = "--parent",
+      required = false,
+      metaVar = "NAME",
       usage = "name of parent project in target system")
   private String parent;
 
   @Option(name = "--quiet", usage = "suppress progress messages")
   private boolean quiet;
 
-  @Argument(index = 0, required = true, metaVar = "NAME",
+  @Argument(
+      index = 0,
+      required = true,
+      metaVar = "NAME",
       usage = "name of the project in target system")
   private String project;
 
-  @Inject
-  private ImportProject.Factory importProjectFactory;
+  @Inject private ImportProject.Factory importProjectFactory;
 
   @Override
   protected void run()
-      throws OrmException, IOException, UnloggedFailure, ValidationException,
-      GitAPIException, NoSuchChangeException, NoSuchAccountException,
-      UpdateException, ConfigInvalidException, PermissionBackendException {
+      throws OrmException, IOException, UnloggedFailure, ValidationException, GitAPIException,
+          NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
+          PermissionBackendException, PatchListNotAvailableException {
     ImportProject.Input input = new ImportProject.Input();
     input.from = url;
     input.name = name;

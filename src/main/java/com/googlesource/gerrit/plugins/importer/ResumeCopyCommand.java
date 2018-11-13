@@ -23,7 +23,6 @@ import com.google.gerrit.server.project.ProjectsCollection;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;
-
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
@@ -37,22 +36,18 @@ public class ResumeCopyCommand extends SshCommand {
   @Option(name = "--quiet", usage = "suppress progress messages")
   private boolean quiet;
 
-  @Argument(index = 0, required = true, metaVar = "NAME",
-      usage = "name of the target project")
+  @Argument(index = 0, required = true, metaVar = "NAME", usage = "name of the target project")
   private String project;
 
-  @Inject
-  private ResumeCopyProject resume;
+  @Inject private ResumeCopyProject resume;
 
-  @Inject
-  private ProjectsCollection projects;
+  @Inject private ProjectsCollection projects;
 
   @Override
   protected void run() throws UnloggedFailure, Failure, Exception {
     try {
       ProjectResource rsrc =
-          projects.parse(TopLevelResource.INSTANCE,
-              IdString.fromDecoded(project));
+          projects.parse(TopLevelResource.INSTANCE, IdString.fromDecoded(project));
       if (!quiet) {
         resume.setErr(stderr);
       }

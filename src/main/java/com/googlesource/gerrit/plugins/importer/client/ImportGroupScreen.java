@@ -52,12 +52,16 @@ public class ImportGroupScreen extends VerticalPanel {
   ImportGroupScreen() {
     setStyleName("importer-import-panel");
 
-    fromTxt = addTextBox(this, "From*", "URL of the remote system from where the group should be imported");
+    fromTxt =
+        addTextBox(
+            this, "From*", "URL of the remote system from where the group should be imported");
     nameTxt = addTextBox(this, "Group Name*", "name of the group");
     userTxt = addTextBox(this, "Remote User*", "user on remote system");
     passTxt = addPasswordTextBox(this, "Password*", "password of remote user");
-    importOwnerGroupCheckBox = addCheckBox(this, "import owner group", "also import missing owner groups");
-    importIncludedGroupsCheckBox = addCheckBox(this, "import included groups", "also import missing included groups");
+    importOwnerGroupCheckBox =
+        addCheckBox(this, "import owner group", "also import missing owner groups");
+    importIncludedGroupsCheckBox =
+        addCheckBox(this, "import included groups", "also import missing included groups");
 
     HorizontalPanel buttons = new HorizontalPanel();
     add(buttons);
@@ -82,35 +86,39 @@ public class ImportGroupScreen extends VerticalPanel {
     in.importIncludedGroups(importIncludedGroupsCheckBox.getValue());
 
     final String groupName = getValue(nameTxt);
-    new RestApi("config").id("server").view(Plugin.get().getName(), "groups")
-        .id(groupName).put(in, new AsyncCallback<JavaScriptObject>() {
+    new RestApi("config")
+        .id("server")
+        .view(Plugin.get().getName(), "groups")
+        .id(groupName)
+        .put(
+            in,
+            new AsyncCallback<JavaScriptObject>() {
 
-      @Override
-      public void onSuccess(JavaScriptObject result) {
-        clearForm();
-        Plugin.get().go("/admin/groups/" + groupName);
+              @Override
+              public void onSuccess(JavaScriptObject result) {
+                clearForm();
+                Plugin.get().go("/admin/groups/" + groupName);
 
-        final DialogBox successDialog = new DialogBox();
-        successDialog.setText("Group Import");
-        successDialog.setAnimationEnabled(true);
+                final DialogBox successDialog = new DialogBox();
+                successDialog.setText("Group Import");
+                successDialog.setAnimationEnabled(true);
 
-        Panel p = new VerticalPanel();
-        p.setStyleName("importer-message-panel");
-        p.add(new Label("The group was imported."));
-        Button okButton = new Button("OK");
-        okButton.addClickHandler(event -> successDialog.hide());
+                Panel p = new VerticalPanel();
+                p.setStyleName("importer-message-panel");
+                p.add(new Label("The group was imported."));
+                Button okButton = new Button("OK");
+                okButton.addClickHandler(event -> successDialog.hide());
 
-        p.add(okButton);
-        successDialog.add(p);
+                p.add(okButton);
+                successDialog.add(p);
 
-        successDialog.center();
-        successDialog.show();
-      }
+                successDialog.center();
+                successDialog.show();
+              }
 
-      @Override
-      public void onFailure(Throwable caught) {
-      }
-    });
+              @Override
+              public void onFailure(Throwable caught) {}
+            });
   }
 
   private void clearForm() {

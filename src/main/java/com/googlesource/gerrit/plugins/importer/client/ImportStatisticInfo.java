@@ -19,6 +19,5 @@ import com.google.gwt.core.client.JavaScriptObject;
 public class ImportStatisticInfo extends JavaScriptObject {
   public final native int numChangesCreated() /*-{ return this.num_changes_created; }-*/;
 
-  protected ImportStatisticInfo() {
-  }
+  protected ImportStatisticInfo() {}
 }

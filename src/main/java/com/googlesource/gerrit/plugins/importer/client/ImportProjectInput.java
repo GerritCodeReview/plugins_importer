@@ -18,15 +18,18 @@ import com.google.gwt.core.client.JavaScriptObject;
 
 public class ImportProjectInput extends JavaScriptObject {
   final native void from(String f) /*-{ this.from = f; }-*/;
+
   final native void name(String n) /*-{ this.name = n; }-*/;
+
   final native void user(String u) /*-{ this.user = u; }-*/;
+
   final native void pass(String p) /*-{ this.pass = p; }-*/;
+
   final native void parent(String p) /*-{ this.parent = p; }-*/;
 
   static ImportProjectInput create() {
     return (ImportProjectInput) createObject();
   }
 
-  protected ImportProjectInput() {
-  }
+  protected ImportProjectInput() {}
 }
