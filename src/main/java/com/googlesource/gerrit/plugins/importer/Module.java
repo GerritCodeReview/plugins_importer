@@ -50,6 +50,9 @@ class Module extends FactoryModule {
             put(IMPORT_PROJECT_KIND, "resume").to(ResumeProjectImport.class);
             delete(IMPORT_PROJECT_KIND).to(CompleteProjectImport.class);
 
+            create(IMPORT_PROJECT_KIND).to(ImportProject.class);
+            create(IMPORT_GROUP_KIND).to(ImportGroup.class);
+
             put(PROJECT_KIND, "copy").to(CopyProject.class);
             put(PROJECT_KIND, "copy.resume").to(ResumeCopyProject.class);
             put(PROJECT_KIND, "import.resume").to(ResumeProjectImport.OnProjects.class);
@@ -64,7 +67,6 @@ class Module extends FactoryModule {
     bind(ConfigureProjectStep.class);
     bind(GitFetchStep.class);
     bind(AccountUtil.class);
-    factory(ImportProject.Factory.class);
     factory(ReplayChangesStep.Factory.class);
     factory(ReplayRevisionsStep.Factory.class);
     factory(ReplayInlineCommentsStep.Factory.class);
@@ -74,6 +76,5 @@ class Module extends FactoryModule {
     factory(InsertLinkToOriginalChangeStep.Factory.class);
     factory(ImportGroupsStep.Factory.class);
     DynamicSet.bind(binder(), TopMenu.class).to(ImportMenu.class);
-    factory(ImportGroup.Factory.class);
   }
 }

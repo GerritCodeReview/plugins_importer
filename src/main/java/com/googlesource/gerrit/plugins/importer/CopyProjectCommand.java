@@ -17,7 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.server.project.ProjectResource;
-import com.google.gerrit.server.project.ProjectsCollection;
+import com.google.gerrit.server.restapi.project.ProjectsCollection;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;

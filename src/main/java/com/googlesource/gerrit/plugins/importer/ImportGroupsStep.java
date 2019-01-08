@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
 
 import com.google.gerrit.common.errors.NoSuchAccountException;
+import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.MethodNotAllowedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -24,8 +25,9 @@ import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.GroupCache;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.git.ProjectConfig;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.ProjectCache;
+import com.google.gerrit.server.project.ProjectConfig;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -47,7 +49,7 @@ public class ImportGroupsStep {
 
   private final ProjectCache projectCache;
   private final GroupCache groupCache;
-  private final ImportGroup.Factory importGroupFactory;
+  private final ImportGroup importGroup;
   private final String fromGerrit;
   private final String user;
   private final String password;
@@ -58,7 +60,7 @@ public class ImportGroupsStep {
   ImportGroupsStep(
       ProjectCache projectCache,
       GroupCache groupCache,
-      ImportGroup.Factory importGroupFactory,
+      ImportGroup importGroup,
       @Assisted("from") String fromGerrit,
       @Assisted("user") String user,
       @Assisted("password") String password,
@@ -66,7 +68,7 @@ public class ImportGroupsStep {
       @Assisted ProgressMonitor pm) {
     this.projectCache = projectCache;
     this.groupCache = groupCache;
-    this.importGroupFactory = importGroupFactory;
+    this.importGroup = importGroup;
     this.fromGerrit = fromGerrit;
     this.user = user;
     this.password = password;
@@ -76,7 +78,7 @@ public class ImportGroupsStep {
 
   void importGroups()
       throws NoSuchAccountException, OrmException, IOException, RestApiException,
-          ConfigInvalidException {
+          ConfigInvalidException, PermissionBackendException {
     ProjectConfig projectConfig = projectCache.get(project).getConfig();
     Set<AccountGroup.UUID> groupUUIDs = projectConfig.getAllGroupUUIDs();
     pm.beginTask("Import Groups", groupUUIDs.size());
@@ -90,9 +92,7 @@ public class ImportGroupsStep {
           input.importOwnerGroup = true;
           input.importIncludedGroups = true;
           try {
-            importGroupFactory
-                .create(new AccountGroup.NameKey(projectConfig.getGroup(groupUUID).getName()))
-                .apply(new ConfigResource(), input);
+            importGroup.apply(new ConfigResource(), IdString.fromDecoded(groupUUID.get()), input);
           } catch (ResourceConflictException | MethodNotAllowedException e) {
             // should not happen
             throw new IllegalStateException(e);

@@ -19,9 +19,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.base.Strings;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.server.config.ConfigResource;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.gwtorm.server.OrmException;
@@ -79,12 +80,12 @@ public class GroupCommand extends SshCommand {
       usage = "name of the group to be imported")
   private String group;
 
-  @Inject private ImportGroup.Factory importGroupFactory;
+  @Inject private ImportGroup importGroup;
 
   @Override
   protected void run()
       throws UnloggedFailure, OrmException, IOException, NoSuchAccountException,
-          ConfigInvalidException {
+          ConfigInvalidException, PermissionBackendException {
     ImportGroup.Input input = new ImportGroup.Input();
     input.from = url;
     input.user = user;
@@ -93,7 +94,7 @@ public class GroupCommand extends SshCommand {
     input.importIncludedGroups = importIncludedGroups;
 
     try {
-      importGroupFactory.create(new AccountGroup.NameKey(group)).apply(new ConfigResource(), input);
+      importGroup.apply(new ConfigResource(), IdString.fromDecoded(group), input);
     } catch (RestApiException e) {
       throw die(e.getMessage());
     }

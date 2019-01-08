@@ -17,15 +17,15 @@ package com.googlesource.gerrit.plugins.importer;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
-import com.google.gerrit.audit.AuditEvent;
-import com.google.gerrit.audit.AuditService;
-import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.extensions.systemstatus.ServerInformation;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.AuditEvent;
 import com.google.gerrit.server.IdentifiedUser;
+import com.google.gerrit.server.audit.AuditService;
 import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.util.PluginLogFile;
 import com.google.gerrit.server.util.SystemLog;
+import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.log4j.Level;
@@ -90,7 +90,7 @@ class ImportLog extends PluginLogFile {
             );
 
     event.setProperty(ACCOUNT_ID, user.getAccountId().toString());
-    event.setProperty(USER_NAME, user.getUserName());
+    event.setProperty(USER_NAME, user.getUserName().get());
 
     if (from != null) {
       event.setProperty(FROM, from);

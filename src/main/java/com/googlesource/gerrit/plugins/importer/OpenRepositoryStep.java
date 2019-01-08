@@ -19,13 +19,13 @@ import static java.lang.String.format;
 
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
-import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
+import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.CreateProjectArgs;
 import com.google.gerrit.server.project.ProjectCache;
-import com.google.gerrit.server.project.ProjectsCollection;
+import com.google.gerrit.server.restapi.project.ProjectsCollection;
 import com.google.gerrit.server.validators.ProjectCreationValidationListener;
 import com.google.gerrit.server.validators.ValidationException;
 import com.google.inject.Inject;
@@ -56,8 +56,7 @@ class OpenRepositoryStep {
   }
 
   Repository open(Project.NameKey name, boolean resume, ProgressMonitor pm, Project.NameKey parent)
-      throws ResourceConflictException, IOException, UnprocessableEntityException,
-          PermissionBackendException {
+      throws RestApiException, IOException, PermissionBackendException {
     pm.beginTask("Open repository", 1);
     try {
       Repository repo = git.openRepository(name);
@@ -80,8 +79,7 @@ class OpenRepositoryStep {
   }
 
   private void beforeCreateProject(Project.NameKey name, Project.NameKey parent)
-      throws ResourceConflictException, UnprocessableEntityException, IOException,
-          PermissionBackendException {
+      throws RestApiException, IOException, PermissionBackendException {
     CreateProjectArgs args = new CreateProjectArgs();
     args.setProjectName(name);
     args.newParent = projectsCollection.get().parse(parent.get()).getNameKey();
@@ -94,7 +92,7 @@ class OpenRepositoryStep {
     }
   }
 
-  private void onProjectCreated(Project.NameKey name) {
+  private void onProjectCreated(Project.NameKey name) throws IOException {
     projectCache.onCreateProject(name);
   }
 }
