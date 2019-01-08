@@ -30,6 +30,7 @@ import com.google.gerrit.server.Sequences;
 import com.google.gerrit.server.index.change.ChangeIndexer;
 import com.google.gerrit.server.notedb.NotesMigration;
 import com.google.gerrit.server.patch.PatchListNotAvailableException;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.InternalChangeQuery;
@@ -133,10 +134,7 @@ class ReplayChangesStep {
     this.isNoteDbEnabled = migration.readChanges();
   }
 
-  void replay()
-      throws IOException, OrmException, NoSuchAccountException, NoSuchChangeException,
-          RestApiException, UpdateException, ConfigInvalidException,
-          PatchListNotAvailableException {
+  void replay() throws Exception {
     int start = 0;
     int limit = GlobalCapability.DEFAULT_MAX_QUERY_LIMIT;
     pm.beginTask("Replay Changes", ProgressMonitor.UNKNOWN);
@@ -169,7 +167,7 @@ class ReplayChangesStep {
   private void replayChange(RevWalk rw, ChangeInfo c)
       throws IOException, OrmException, NoSuchAccountException, NoSuchChangeException,
           RestApiException, IllegalArgumentException, UpdateException, ConfigInvalidException,
-          PatchListNotAvailableException {
+          PatchListNotAvailableException, PermissionBackendException {
     Change change = resume ? findChange(c) : null;
     boolean resumeChange;
     if (change == null) {
@@ -225,7 +223,7 @@ class ReplayChangesStep {
 
   private Change createChange(ChangeInfo c)
       throws OrmException, NoSuchAccountException, IOException, RestApiException,
-          ConfigInvalidException {
+          ConfigInvalidException, PermissionBackendException {
     Change.Id changeId = new Change.Id(sequences.nextChangeId());
 
     Change change =

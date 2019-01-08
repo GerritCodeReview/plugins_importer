@@ -170,9 +170,9 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     }
 
     private boolean canCompleteImport(ProjectResource rsrc) {
-      return permissionBackend.user(currentUserProvider).testOrFalse(ADMINISTRATE_SERVER)
+      return permissionBackend.user(currentUserProvider.get()).testOrFalse(ADMINISTRATE_SERVER)
           || (permissionBackend
-                  .user(currentUserProvider)
+                  .user(currentUserProvider.get())
                   .testOrFalse(new PluginPermission(pluginName, ImportCapability.ID))
               && rsrc.getControl().isOwner());
     }

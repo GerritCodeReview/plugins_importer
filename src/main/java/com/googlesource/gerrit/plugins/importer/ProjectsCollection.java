@@ -19,13 +19,10 @@ import static java.lang.String.format;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.registration.DynamicMap;
-import com.google.gerrit.extensions.restapi.AcceptsCreate;
 import com.google.gerrit.extensions.restapi.ChildCollection;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
-import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestView;
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -36,9 +33,7 @@ import java.nio.file.Path;
 
 @Singleton
 @RequiresCapability(ImportCapability.ID)
-public class ProjectsCollection
-    implements ChildCollection<ConfigResource, ImportProjectResource>,
-        AcceptsCreate<ConfigResource> {
+public class ProjectsCollection implements ChildCollection<ConfigResource, ImportProjectResource> {
 
   class FileSystemLayout {
 
@@ -93,18 +88,15 @@ public class ProjectsCollection
   public final FileSystemLayout FS_LAYOUT = new FileSystemLayout();
 
   private final DynamicMap<RestView<ImportProjectResource>> views;
-  private final ImportProject.Factory importProjectFactory;
   private final Provider<ListImportedProjects> list;
   private final File lockRoot;
 
   @Inject
   ProjectsCollection(
       DynamicMap<RestView<ImportProjectResource>> views,
-      ImportProject.Factory importProjectFactory,
       Provider<ListImportedProjects> list,
       @PluginData File data) {
     this.views = views;
-    this.importProjectFactory = importProjectFactory;
     this.list = list;
     this.lockRoot = data;
   }
@@ -132,10 +124,5 @@ public class ProjectsCollection
   @Override
   public DynamicMap<RestView<ImportProjectResource>> views() {
     return views;
-  }
-
-  @Override
-  public ImportProject create(ConfigResource parent, IdString id) throws RestApiException {
-    return importProjectFactory.create(new Project.NameKey(id.get()));
   }
 }

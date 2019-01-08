@@ -18,34 +18,26 @@ import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updat
 import static java.lang.String.format;
 
 import com.google.common.base.Strings;
-import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
-import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.gerrit.extensions.restapi.RestCollectionCreateView;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.patch.PatchListNotAvailableException;
-import com.google.gerrit.server.permissions.PermissionBackendException;
-import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
-import com.google.gerrit.server.update.UpdateException;
-import com.google.gerrit.server.validators.ValidationException;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import com.googlesource.gerrit.plugins.importer.GerritApi.Version;
 import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.NullProgressMonitor;
 import org.eclipse.jgit.lib.ProgressMonitor;
@@ -55,7 +47,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RequiresCapability(ImportCapability.ID)
-class ImportProject implements RestModifyView<ConfigResource, Input> {
+@Singleton
+class ImportProject
+    implements RestCollectionCreateView<ConfigResource, ImportProjectResource, Input> {
   public static class Input {
     public String from;
     public String name;
@@ -89,10 +83,6 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
         throw new BadRequestException("pass must not be set");
       }
     }
-  }
-
-  interface Factory {
-    ImportProject create(Project.NameKey targetProject);
   }
 
   private static Logger log = LoggerFactory.getLogger(ImportProject.class);
@@ -162,10 +152,8 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   @Override
-  public ImportStatistic apply(ConfigResource rsrc, Input input)
-      throws RestApiException, OrmException, IOException, ValidationException, GitAPIException,
-          NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException, PatchListNotAvailableException {
+  public ImportStatistic apply(ConfigResource parentResource, IdString id, Input input)
+      throws Exception {
     if (input == null) {
       input = new Input();
     }
@@ -179,9 +167,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   public ResumeImportStatistic resume(String user, String pass, boolean force, File importStatus)
-      throws RestApiException, OrmException, IOException, GitAPIException, NoSuchChangeException,
-          NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException, PatchListNotAvailableException {
+      throws Exception {
     LockFile lockFile = lockForImport();
     try {
       ImportProjectInfo info = ImportJson.parse(importStatus);
@@ -202,9 +188,7 @@ class ImportProject implements RestModifyView<ConfigResource, Input> {
   }
 
   private ResumeImportStatistic apply(LockFile lockFile, Input input, ImportProjectInfo info)
-      throws RestApiException, OrmException, IOException, GitAPIException, NoSuchChangeException,
-          NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException, PatchListNotAvailableException {
+      throws Exception {
     boolean resume = info != null;
     api = apiFactory.create(input.from, input.user, input.pass);
 
