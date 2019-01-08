@@ -30,6 +30,7 @@ import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.permissions.PermissionBackend;
+import com.google.gerrit.server.permissions.ProjectPermission;
 import com.google.gerrit.server.project.ProjectResource;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -170,11 +171,13 @@ class CompleteProjectImport implements RestModifyView<ImportProjectResource, Inp
     }
 
     private boolean canCompleteImport(ProjectResource rsrc) {
-      return permissionBackend.user(currentUserProvider).testOrFalse(ADMINISTRATE_SERVER)
-          || (permissionBackend
-                  .user(currentUserProvider)
+      PermissionBackend.WithUser userPermission = permissionBackend.user(currentUserProvider.get());
+      return permissionBackend.user(currentUserProvider.get()).testOrFalse(ADMINISTRATE_SERVER)
+          || (userPermission
                   .testOrFalse(new PluginPermission(pluginName, ImportCapability.ID))
-              && rsrc.getControl().isOwner());
+              && userPermission
+                  .project(rsrc.getNameKey())
+                  .testOrFalse(ProjectPermission.WRITE_CONFIG));
     }
   }
 }

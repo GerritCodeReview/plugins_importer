@@ -17,33 +17,22 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.google.gerrit.server.permissions.GlobalPermission.ADMINISTRATE_SERVER;
 
 import com.google.common.base.Strings;
-import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.api.access.PluginPermission;
 import com.google.gerrit.extensions.restapi.BadRequestException;
-import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.permissions.PermissionBackend;
-import com.google.gerrit.server.permissions.PermissionBackendException;
-import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectResource;
-import com.google.gerrit.server.update.UpdateException;
-import com.google.gerrit.server.validators.ValidationException;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.googlesource.gerrit.plugins.importer.CopyProject.Input;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @RequiresCapability(CopyProjectCapability.ID)
 class CopyProject implements RestModifyView<ProjectResource, Input>, UiAction<ProjectResource> {
@@ -51,7 +40,7 @@ class CopyProject implements RestModifyView<ProjectResource, Input>, UiAction<Pr
     public String name;
   }
 
-  private final ImportProject.Factory importProjectFactory;
+  private final ImportProject importProject;
   private final Provider<CurrentUser> currentUserProvider;
   private final String pluginName;
   private final PermissionBackend permissionBackend;
@@ -59,21 +48,18 @@ class CopyProject implements RestModifyView<ProjectResource, Input>, UiAction<Pr
 
   @Inject
   CopyProject(
-      ImportProject.Factory importProjectFactory,
+      ImportProject importProject,
       Provider<CurrentUser> currentUserProvider,
       @PluginName String pluginName,
       PermissionBackend permissionBackend) {
-    this.importProjectFactory = importProjectFactory;
+    this.importProject = importProject;
     this.currentUserProvider = currentUserProvider;
     this.pluginName = pluginName;
     this.permissionBackend = permissionBackend;
   }
 
   @Override
-  public ImportStatistic apply(ProjectResource rsrc, Input input)
-      throws RestApiException, OrmException, IOException, ValidationException, GitAPIException,
-          NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException, PatchListNotAvailableException {
+  public ImportStatistic apply(ProjectResource rsrc, Input input) throws Exception {
     if (Strings.isNullOrEmpty(input.name)) {
       throw new BadRequestException("name is required");
     }
@@ -97,9 +83,9 @@ class CopyProject implements RestModifyView<ProjectResource, Input>, UiAction<Pr
   }
 
   private boolean canCopy() {
-    return permissionBackend.user(currentUserProvider).testOrFalse(ADMINISTRATE_SERVER)
+    return permissionBackend.user(currentUserProvider.get()).testOrFalse(ADMINISTRATE_SERVER)
         || permissionBackend
-            .user(currentUserProvider)
+            .user(currentUserProvider.get())
             .testOrFalse(new PluginPermission(pluginName, CopyProjectCapability.ID));
   }
 
