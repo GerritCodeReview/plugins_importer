@@ -64,7 +64,7 @@ public class ListImportedProjects implements RestReadView<ConfigResource> {
     Collection<File> importFiles = new HashSet<>();
     File lockRoot = projects.FS_LAYOUT.getLockRoot();
     Path lockRootPath = lockRoot.toPath();
-    for (File f : Files.fileTreeTraverser().preOrderTraversal(lockRoot)) {
+    for (File f : Files.fileTraverser().depthFirstPreOrder(lockRoot)) {
       if (f.isFile()
           && !f.getName().endsWith(".lock")
           && matches(lockRootPath.relativize(f.toPath()))) {

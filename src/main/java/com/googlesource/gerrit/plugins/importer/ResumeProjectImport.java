@@ -17,33 +17,24 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.google.gerrit.server.permissions.GlobalPermission.ADMINISTRATE_SERVER;
 
 import com.google.common.base.Strings;
-import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.api.access.PluginPermission;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
-import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.patch.PatchListNotAvailableException;
 import com.google.gerrit.server.permissions.PermissionBackend;
-import com.google.gerrit.server.permissions.PermissionBackendException;
-import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.permissions.ProjectPermission;
 import com.google.gerrit.server.project.ProjectResource;
-import com.google.gerrit.server.update.UpdateException;
-import com.google.gerrit.server.validators.ValidationException;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.googlesource.gerrit.plugins.importer.ResumeProjectImport.Input;
 import java.io.IOException;
 import java.io.Writer;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
 
 @RequiresCapability(ImportCapability.ID)
 public class ResumeProjectImport implements RestModifyView<ImportProjectResource, Input> {
@@ -73,14 +64,14 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     }
   }
 
-  private final ImportProject.Factory importProjectFactory;
+  private final ImportProject importProject;
 
   private boolean copy;
   private Writer err;
 
   @Inject
-  public ResumeProjectImport(ImportProject.Factory importProjectFactory) {
-    this.importProjectFactory = importProjectFactory;
+  public ResumeProjectImport(ImportProject importProject) {
+    this.importProject = importProject;
   }
 
   ResumeProjectImport setCopy(boolean copy) {
@@ -94,18 +85,15 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
   }
 
   @Override
-  public ResumeImportStatistic apply(ImportProjectResource rsrc, Input input)
-      throws RestApiException, IOException, OrmException, ValidationException, GitAPIException,
-          NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException, PatchListNotAvailableException {
+  public ResumeImportStatistic apply(ImportProjectResource rsrc, Input input) throws Exception {
     if (copy) {
       input.validateResumeCopy();
     } else {
       input.validateResumeImport();
     }
 
-    return importProjectFactory
-        .create(rsrc.getName())
+    return importProject
+        // TODO: Shouldn't this go somewhere?  `rsrc.getName()`
         .setCopy(copy)
         .setErr(err)
         .resume(input.user, input.pass, input.force, rsrc.getImportStatus());
@@ -134,10 +122,7 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     }
 
     @Override
-    public ResumeImportStatistic apply(ProjectResource rsrc, Input input)
-        throws RestApiException, IOException, OrmException, ValidationException, GitAPIException,
-            NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-            PermissionBackendException, PatchListNotAvailableException {
+    public ResumeImportStatistic apply(ProjectResource rsrc, Input input) throws Exception {
       ImportProjectResource projectResource =
           projectsCollection.parse(new ConfigResource(), IdString.fromDecoded(rsrc.getName()));
       return resumeProjectImport.apply(projectResource, input);
@@ -152,11 +137,13 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     }
 
     private boolean canResumeImport(ProjectResource rsrc) {
-      return permissionBackend.user(currentUserProvider).testOrFalse(ADMINISTRATE_SERVER)
-          || (permissionBackend
-                  .user(currentUserProvider)
+      PermissionBackend.WithUser userPermission = permissionBackend.user(currentUserProvider.get());
+      return permissionBackend.user(currentUserProvider.get()).testOrFalse(ADMINISTRATE_SERVER)
+          || (userPermission
                   .testOrFalse(new PluginPermission(pluginName, ImportCapability.ID))
-              && rsrc.getControl().isOwner());
+              && userPermission
+                  .project(rsrc.getNameKey())
+                  .testOrFalse(ProjectPermission.WRITE_CONFIG));
     }
 
     private boolean isImported(ProjectResource rsrc) {

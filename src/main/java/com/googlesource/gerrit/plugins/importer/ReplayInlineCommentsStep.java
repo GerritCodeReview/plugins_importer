@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.client.Side;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -45,7 +44,9 @@ import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.notedb.ChangeUpdate;
 import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.patch.PatchListNotAvailableException;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
+import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -115,7 +116,8 @@ class ReplayInlineCommentsStep {
 
   void replay()
       throws RestApiException, OrmException, IOException, NoSuchChangeException,
-          NoSuchAccountException, ConfigInvalidException, PatchListNotAvailableException {
+          NoSuchAccountException, ConfigInvalidException, PatchListNotAvailableException,
+          PermissionBackendException {
     ChangeNotes notes = changeNotesFactory.createChecked(db, change);
     for (PatchSet ps : ChangeUtil.PS_ID_ORDER.sortedCopy(psUtil.byChange(db, notes))) {
       Iterable<CommentInfo> comments = api.getComments(changeInfo._number, ps.getRevision().get());

@@ -28,6 +28,7 @@ import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.notedb.ChangeUpdate;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
@@ -77,7 +78,7 @@ class ReplayMessagesStep {
 
   void replay(GerritApi api)
       throws NoSuchAccountException, NoSuchChangeException, OrmException, IOException,
-          RestApiException, ConfigInvalidException {
+          RestApiException, ConfigInvalidException, PermissionBackendException {
     for (ChangeMessageInfo msg : changeInfo.messages) {
       ChangeMessage.Key msgKey = new ChangeMessage.Key(change.getId(), msg.id);
       if (resume && db.changeMessages().get(msgKey) != null) {
