@@ -17,13 +17,13 @@ package com.googlesource.gerrit.plugins.importer;
 import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
 
 import com.google.common.base.Charsets;
-import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.OutputFormat;
 import com.google.gerrit.server.account.AccountLoader;
+import com.google.gerrit.server.permissions.PermissionBackendException;
+import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gson.reflect.TypeToken;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -49,7 +49,8 @@ public class ImportJson {
     this.accountLoaderFactory = accountLoaderFactory;
   }
 
-  public ImportProjectInfo format(Input input, ImportProjectInfo info) throws OrmException {
+  public ImportProjectInfo format(Input input, ImportProjectInfo info)
+      throws PermissionBackendException {
     if (info == null) {
       info = new ImportProjectInfo();
       info.from = input.from;
@@ -62,7 +63,7 @@ public class ImportJson {
     return info;
   }
 
-  private ImportInfo createImportInfo(String remoteUser) throws OrmException {
+  private ImportInfo createImportInfo(String remoteUser) throws PermissionBackendException {
     AccountLoader accountLoader = accountLoaderFactory.create(true);
     ImportInfo importInfo = new ImportInfo();
     importInfo.timestamp = new Timestamp(TimeUtil.nowMs());

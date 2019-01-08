@@ -15,7 +15,6 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.MoreObjects;
-import com.google.gerrit.common.TimeUtil;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.common.ApprovalInfo;
@@ -28,8 +27,10 @@ import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.notedb.ChangeUpdate;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -80,7 +81,7 @@ class AddApprovalsStep {
 
   void add(GerritApi api)
       throws OrmException, NoSuchChangeException, IOException, NoSuchAccountException,
-          RestApiException, ConfigInvalidException {
+          RestApiException, ConfigInvalidException, PermissionBackendException {
     if (resume) {
       db.patchSetApprovals().delete(db.patchSetApprovals().byChange(change.getId()));
     }

@@ -15,23 +15,14 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.common.base.Strings;
-import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.ConfigResource;
-import com.google.gerrit.server.patch.PatchListNotAvailableException;
-import com.google.gerrit.server.permissions.PermissionBackendException;
-import com.google.gerrit.server.project.NoSuchChangeException;
-import com.google.gerrit.server.update.UpdateException;
-import com.google.gerrit.server.validators.ValidationException;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-import java.io.IOException;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
@@ -88,13 +79,10 @@ public class ProjectCommand extends SshCommand {
       usage = "name of the project in target system")
   private String project;
 
-  @Inject private ImportProject.Factory importProjectFactory;
+  @Inject private ImportProject importProject;
 
   @Override
-  protected void run()
-      throws OrmException, IOException, UnloggedFailure, ValidationException, GitAPIException,
-          NoSuchChangeException, NoSuchAccountException, UpdateException, ConfigInvalidException,
-          PermissionBackendException, PatchListNotAvailableException {
+  protected void run() throws Exception {
     ImportProject.Input input = new ImportProject.Input();
     input.from = url;
     input.name = name;
@@ -105,11 +93,10 @@ public class ProjectCommand extends SshCommand {
     }
 
     try {
-      ImportProject importer = importProjectFactory.create(new Project.NameKey(project));
       if (!quiet) {
-        importer.setErr(stderr);
+        importProject.setErr(stderr);
       }
-      ImportStatistic stats = importer.apply(new ConfigResource(), input);
+      ImportStatistic stats = importProject.apply(new ConfigResource(), IdString.fromDecoded(project), input);
       stdout.print("Created Changes: " + stats.numChangesCreated + "\n");
     } catch (RestApiException e) {
       throw die(e.getMessage());

@@ -15,30 +15,23 @@
 package com.googlesource.gerrit.plugins.importer;
 
 import com.google.gerrit.extensions.registration.DynamicMap;
-import com.google.gerrit.extensions.restapi.AcceptsCreate;
 import com.google.gerrit.extensions.restapi.ChildCollection;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.NotImplementedException;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
-import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestView;
-import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class GroupsCollection
-    implements ChildCollection<ConfigResource, ImportGroupResource>, AcceptsCreate<ConfigResource> {
+public class GroupsCollection implements ChildCollection<ConfigResource, ImportGroupResource> {
 
   private final DynamicMap<RestView<ImportGroupResource>> views;
-  private final ImportGroup.Factory importGroupFactory;
 
   @Inject
-  GroupsCollection(
-      DynamicMap<RestView<ImportGroupResource>> views, ImportGroup.Factory importGroupFactory) {
+  GroupsCollection(DynamicMap<RestView<ImportGroupResource>> views) {
     this.views = views;
-    this.importGroupFactory = importGroupFactory;
   }
 
   @Override
@@ -55,10 +48,5 @@ public class GroupsCollection
   @Override
   public DynamicMap<RestView<ImportGroupResource>> views() {
     return views;
-  }
-
-  @Override
-  public ImportGroup create(ConfigResource parent, IdString id) throws RestApiException {
-    return importGroupFactory.create(new AccountGroup.NameKey(id.get()));
   }
 }

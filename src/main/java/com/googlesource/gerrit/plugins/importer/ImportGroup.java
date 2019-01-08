@@ -16,19 +16,21 @@ package com.googlesource.gerrit.plugins.importer;
 
 import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
 
-import com.google.gerrit.common.TimeUtil;
+import com.google.common.collect.ImmutableSet;
+import com.google.gerrit.common.data.GroupReference;
 import com.google.gerrit.common.errors.NoSuchAccountException;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.common.AccountInfo;
 import com.google.gerrit.extensions.common.GroupInfo;
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.MethodNotAllowedException;
 import com.google.gerrit.extensions.restapi.PreconditionFailedException;
 import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.gerrit.extensions.restapi.RestCollectionCreateView;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.AccountGroup;
 import com.google.gerrit.reviewdb.client.AccountGroupById;
@@ -39,14 +41,24 @@ import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.CreateGroupArgs;
 import com.google.gerrit.server.account.GroupCache;
 import com.google.gerrit.server.account.GroupIncludeCache;
+import com.google.gerrit.server.account.GroupUUID;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.config.GerritServerConfig;
+import com.google.gerrit.server.group.db.Groups;
+import com.google.gerrit.server.group.db.GroupsUpdate;
 import com.google.gerrit.server.group.InternalGroup;
+import com.google.gerrit.server.group.db.InternalGroupCreation;
+import com.google.gerrit.server.group.db.InternalGroupUpdate;
+import com.google.gerrit.server.permissions.PermissionBackendException;
+import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gerrit.server.validators.GroupCreationValidationListener;
 import com.google.gerrit.server.validators.ValidationException;
+import com.google.gerrit.server.GerritPersonIdent;
+import com.google.gerrit.server.Sequences;
 import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import com.googlesource.gerrit.plugins.importer.ImportGroup.Input;
 import java.io.IOException;
@@ -58,11 +70,12 @@ import java.util.Optional;
 import java.util.Set;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RequiresCapability(ImportCapability.ID)
-class ImportGroup implements RestModifyView<ConfigResource, Input> {
+class ImportGroup implements RestCollectionCreateView<ConfigResource, ImportGroupResource, Input> {
   public static class Input {
     public String from;
     public String user;
@@ -71,20 +84,18 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     public boolean importIncludedGroups;
   }
 
-  interface Factory {
-    ImportGroup create(AccountGroup.NameKey group);
-  }
-
   private static Logger log = LoggerFactory.getLogger(ImportGroup.class);
 
   private final Config cfg;
-  private final ReviewDb db;
+  private final Groups groups;
+  private final GroupsUpdate groupsUpdate;
+  private final Sequences sequences;
+  private final PersonIdent personIdent;
   private final AccountUtil accountUtil;
   private final AccountCache accountCache;
   private final GroupCache groupCache;
   private final GroupIncludeCache groupIncludeCache;
   private final DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners;
-  private final ImportGroup.Factory importGroupFactory;
   private final GerritApi.Factory apiFactory;
   private final AccountGroup.NameKey group;
   private GerritApi api;
@@ -92,31 +103,35 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   @Inject
   ImportGroup(
       @GerritServerConfig Config cfg,
-      ReviewDb db,
+      Groups groups,
+      GroupsUpdate groupsUpdate,
+      Sequences sequences,
+      @GerritPersonIdent PersonIdent personIdent,
       AccountUtil accountUtil,
       AccountCache accountCache,
       GroupCache groupCache,
       GroupIncludeCache groupIncludeCache,
       DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners,
-      ImportGroup.Factory importGroupFactory,
       GerritApi.Factory apiFactory,
       @Assisted AccountGroup.NameKey group) {
     this.cfg = cfg;
-    this.db = db;
+    this.groups = groups;
+    this.groupsUpdate = groupsUpdate;
+    this.sequences = sequences;
+    this.personIdent = personIdent;
     this.accountUtil = accountUtil;
     this.groupCache = groupCache;
     this.accountCache = accountCache;
     this.groupIncludeCache = groupIncludeCache;
     this.groupCreationValidationListeners = groupCreationValidationListeners;
-    this.importGroupFactory = importGroupFactory;
     this.apiFactory = apiFactory;
     this.group = group;
   }
 
   @Override
-  public Response<String> apply(ConfigResource rsrc, Input input)
+  public Response<String> apply(ConfigResource rsrc, IdString id, Input input)
       throws NoSuchAccountException, OrmException, IOException, RestApiException,
-          ConfigInvalidException {
+          ConfigInvalidException, PermissionBackendException {
     GroupInfo groupInfo;
     this.api = apiFactory.create(input.from, input.user, input.pass);
     groupInfo = api.getGroup(group.get());
@@ -128,7 +143,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private void validate(Input input, GroupInfo groupInfo)
       throws IOException, OrmException, NoSuchAccountException, RestApiException,
-          ConfigInvalidException {
+          ConfigInvalidException, PermissionBackendException {
     if (!isInternalGroup(new AccountGroup.UUID(groupInfo.id))) {
       throw new MethodNotAllowedException(
           String.format(
@@ -187,13 +202,13 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
 
   private CreateGroupArgs toCreateGroupArgs(GroupInfo groupInfo)
       throws IOException, OrmException, NoSuchAccountException, RestApiException,
-          ConfigInvalidException {
+          ConfigInvalidException, PermissionBackendException {
     CreateGroupArgs args = new CreateGroupArgs();
     args.setGroupName(groupInfo.name);
     args.groupDescription = groupInfo.description;
     args.visibleToAll = cfg.getBoolean("groups", "newGroupsVisibleToAll", false);
     if (!groupInfo.ownerId.equals(groupInfo.id)) {
-      args.ownerGroupId = getGroupByUUID(groupInfo.ownerId).get().getId();
+      args.ownerGroupUuid = getGroupByUUID(groupInfo.ownerId).get().getGroupUUID();
     }
     Set<Account.Id> initialMembers = new HashSet<>();
     for (AccountInfo member : groupInfo.members) {
@@ -203,9 +218,9 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     return args;
   }
 
-  private AccountGroup createGroup(Input input, GroupInfo info)
+  private void createGroup(Input input, GroupInfo info)
       throws OrmException, NoSuchAccountException, IOException, RestApiException,
-          ConfigInvalidException {
+          ConfigInvalidException, PermissionBackendException {
     String uniqueName = getUniqueGroupName(info.name);
     if (!info.name.equals(uniqueName)) {
       log.warn(
@@ -213,45 +228,59 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
               "Group %s with UUID %s is imported with name %s", info.name, info.id, uniqueName));
       info.name = uniqueName;
     }
-    AccountGroup group = createAccountGroup(info);
-    AccountGroupName gn = new AccountGroupName(group);
-
-    // first insert the group name to validate that the group name hasn't
-    // already been used to create another group
-    try {
-      db.accountGroupNames().insert(Collections.singleton(gn));
-    } catch (OrmDuplicateKeyException e) {
+    
+    // See if this group name is already taken.
+    boolean groupAlreadyExists = false;
+    Optional<GroupReference> existingGroup = groups.getAllGroupReferences().filter(g -> g.getName().equals(info.name)).findFirst();
+    if (existingGroup.isPresent()) {
       throw new ResourceConflictException(info.name);
     }
-    db.accountGroups().insert(Collections.singleton(group));
-    groupCache.evict(group.getGroupUUID(), group.getId(), group.getNameKey());
 
-    if (!info.id.equals(info.ownerId)) {
-      if (getGroupByUUID(info.ownerId) == null) {
-        if (isInternalGroup(new AccountGroup.UUID(info.ownerId))) {
-          String ownerGroupName = getGroupName(info.ownerId);
-          if (input.importOwnerGroup) {
-            importGroupFactory
-                .create(new AccountGroup.NameKey(ownerGroupName))
-                .apply(new ConfigResource(), input);
-          } else {
-            throw new IllegalStateException(
-                String.format(
-                    "Cannot set non-existing group %s as owner of group %s.",
-                    ownerGroupName, info.name));
-          }
-        }
-      }
-      group.setOwnerGroupUUID(new AccountGroup.UUID(info.ownerId));
-      db.accountGroups().upsert(Collections.singleton(group));
+    CreateGroupArgs createGroupArgs = toCreateGroupArgs(info);
+
+    // Note: this block is mostly copied from the REST API for creating a group.
+    AccountGroup.Id groupId = new AccountGroup.Id(sequences.nextGroupId());
+    AccountGroup.UUID uuid =
+        GroupUUID.make(
+            createGroupArgs.getGroupName(),
+            personIdent);
+    InternalGroupCreation groupCreation =
+        InternalGroupCreation.builder()
+            .setGroupUUID(uuid)
+            .setNameKey(createGroupArgs.getGroup())
+            .setId(groupId)
+            .build();
+    InternalGroupUpdate.Builder groupUpdateBuilder =
+        InternalGroupUpdate.builder().setVisibleToAll(createGroupArgs.visibleToAll);
+    if (createGroupArgs.ownerGroupUuid != null) {
+      Optional<InternalGroup> ownerGroup = groupCache.get(createGroupArgs.ownerGroupUuid);
+      ownerGroup.map(InternalGroup::getGroupUUID).ifPresent(groupUpdateBuilder::setOwnerGroupUUID);
     }
+    if (createGroupArgs.groupDescription != null) {
+      groupUpdateBuilder.setDescription(createGroupArgs.groupDescription);
+    }
+    groupUpdateBuilder.setMemberModification(
+        members -> ImmutableSet.copyOf(createGroupArgs.initialMembers));
 
-    addMembers(group.getId(), info.members);
-    addGroups(input, group.getId(), info.name, info.includes);
+    InternalGroup newGroup;
+    try {
+      newGroup = groupsUpdate.createGroup(groupCreation, groupUpdateBuilder.build());
+    } catch (OrmDuplicateKeyException e) {
+      throw new ResourceConflictException(
+          "group '" + createGroupArgs.getGroupName() + "' already exists");
+    }
+    // End note.
 
-    groupCache.evict(group.getGroupUUID(), group.getId(), group.getNameKey());
+    groupCache.evict(newGroup.getGroupUUID());
+    groupCache.evict(newGroup.getId());
+    groupCache.evict(newGroup.getNameKey());
 
-    return group;
+    // TODO: WHAT IS THIS SUPPOSED TO DO? addMembers(group.getId(), info.members);
+    // TODO: WHAT IS THIS SUPPOSED TO DO? addGroups(input, group.getId(), info.name, info.includes);
+
+    groupCache.evict(newGroup.getGroupUUID());
+    groupCache.evict(newGroup.getId());
+    groupCache.evict(newGroup.getNameKey());
   }
 
   private String getUniqueGroupName(String name) {
@@ -274,16 +303,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     return getUniqueGroupName(String.format("%s_imported", name), true);
   }
 
-  private AccountGroup createAccountGroup(GroupInfo info) throws OrmException {
-    AccountGroup.Id groupId = new AccountGroup.Id(db.nextAccountGroupId());
-    AccountGroup.UUID uuid = new AccountGroup.UUID(info.id);
-    AccountGroup group =
-        new AccountGroup(new AccountGroup.NameKey(info.name), groupId, uuid, TimeUtil.nowTs());
-    group.setVisibleToAll(cfg.getBoolean("groups", "newGroupsVisibleToAll", false));
-    group.setDescription(info.description);
-    return group;
-  }
-
+  /* TODO WHAT IS THIS SUPPOSED TO DO?
   private void addMembers(AccountGroup.Id groupId, List<AccountInfo> members)
       throws OrmException, NoSuchAccountException, IOException, RestApiException,
           ConfigInvalidException {
@@ -300,7 +320,9 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       accountCache.evict(accountUtil.resolveUser(api, member));
     }
   }
+  */
 
+  /* TODO WHAT IS THIS SUPPOSED TO DO?
   private void addGroups(
       Input input, AccountGroup.Id groupId, String groupName, List<GroupInfo> includedGroups)
       throws NoSuchAccountException, OrmException, IOException, RestApiException,
@@ -311,9 +333,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
         if (getGroupByUUID(includedGroup.id) == null) {
           String includedGroupName = getGroupName(includedGroup.id);
           if (input.importIncludedGroups) {
-            importGroupFactory
-                .create(new AccountGroup.NameKey(includedGroupName))
-                .apply(new ConfigResource(), input);
+            this.apply(new ConfigResource(), IdString.fromDecoded(includedGroupName), input);
           } else {
             throw new IllegalStateException(
                 String.format(
@@ -333,6 +353,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
       groupIncludeCache.evictParentGroupsOf(new AccountGroup.UUID(member.id));
     }
   }
+  */
 
   private String getGroupName(String uuid) throws BadRequestException, IOException, OrmException {
     return api.getGroup(uuid).name;

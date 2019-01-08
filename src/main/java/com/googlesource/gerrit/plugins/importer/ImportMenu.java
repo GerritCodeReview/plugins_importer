@@ -60,9 +60,9 @@ public class ImportMenu implements TopMenu {
 
   private boolean canImport() {
     return permissionBackend
-            .user(userProvider)
+            .user(userProvider.get())
             .testOrFalse(new PluginPermission(pluginName, ImportCapability.ID))
-        || permissionBackend.user(userProvider).testOrFalse(ADMINISTRATE_SERVER);
+        || permissionBackend.user(userProvider.get()).testOrFalse(ADMINISTRATE_SERVER);
   }
 
   @Override
