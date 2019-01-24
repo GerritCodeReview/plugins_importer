@@ -1,9 +1,9 @@
+load("//tools/bzl:classpath.bzl", "classpath_collector")
 load(
     "//tools/bzl:plugin.bzl",
     "GWT_PLUGIN_DEPS",
     "PLUGIN_DEPS",
 )
-load("//tools/bzl:classpath.bzl", "classpath_collector")
 
 classpath_collector(
     name = "main_classpath_collect",
