@@ -14,8 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static com.google.gerrit.server.permissions.GlobalPermission.ADMINISTRATE_SERVER;
-
 import com.google.common.base.Strings;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
@@ -33,8 +31,11 @@ import com.google.gerrit.server.project.ProjectResource;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.googlesource.gerrit.plugins.importer.ResumeProjectImport.Input;
+
 import java.io.IOException;
 import java.io.Writer;
+
+import static com.google.gerrit.server.permissions.GlobalPermission.ADMINISTRATE_SERVER;
 
 @RequiresCapability(ImportCapability.ID)
 public class ResumeProjectImport implements RestModifyView<ImportProjectResource, Input> {
@@ -93,10 +94,15 @@ public class ResumeProjectImport implements RestModifyView<ImportProjectResource
     }
 
     return importProject
-        // TODO: Shouldn't this go somewhere?  `rsrc.getName()`
         .setCopy(copy)
         .setErr(err)
-        .resume(input.user, input.pass, input.force, rsrc.getImportStatus());
+        .resume(
+            input.user,
+            input.pass,
+            input.force,
+            rsrc.getName(),
+            rsrc.getImportStatus()
+        );
   }
 
   public static class OnProjects

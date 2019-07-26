@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.common.base.MoreObjects;
+
 import java.util.List;
 
 public class ImportProjectInfo {
@@ -21,4 +23,22 @@ public class ImportProjectInfo {
   public String name;
   public String parent;
   public List<ImportInfo> imports;
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("from", from)
+        .add("name", name)
+        .add("parent", parent)
+        .add("imports", stringify(imports))
+        .toString();
+  }
+
+  private String stringify(List<ImportInfo> imports) {
+    return '[' + imports.stream()
+        .map(ImportInfo::toString)
+        .reduce("", (s1, s2) -> s1 + ", " + s2)
+        + ']';
+  }
+
 }

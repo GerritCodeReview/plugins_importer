@@ -24,7 +24,6 @@ import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.RestModifyView;
 import com.google.gerrit.extensions.webui.UiAction;
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.permissions.PermissionBackend;
@@ -71,7 +70,7 @@ class CopyProject implements RestModifyView<ProjectResource, Input>, UiAction<Pr
     return importProject
         .setCopy(true)
         .setErr(err)
-        .apply(new ConfigResource(), IdString.fromDecoded(input.name), in);
+        .apply(new ConfigResource(), IdString.fromDecoded(in.name), in);
   }
 
   @Override

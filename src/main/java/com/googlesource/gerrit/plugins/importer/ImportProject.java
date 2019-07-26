@@ -14,9 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
-import static java.lang.String.format;
-
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
 import com.google.gerrit.extensions.restapi.BadRequestException;
@@ -31,13 +29,8 @@ import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.assistedinject.Assisted;
 import com.googlesource.gerrit.plugins.importer.GerritApi.Version;
 import com.googlesource.gerrit.plugins.importer.ImportProject.Input;
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.NullProgressMonitor;
 import org.eclipse.jgit.lib.ProgressMonitor;
@@ -45,6 +38,13 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
+
+import static com.googlesource.gerrit.plugins.importer.ProgressMonitorUtil.updateAndEnd;
+import static java.lang.String.format;
 
 @RequiresCapability(ImportCapability.ID)
 class ImportProject
@@ -82,6 +82,17 @@ class ImportProject
         throw new BadRequestException("pass must not be set");
       }
     }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("from", from)
+          .add("name", name)
+          .add("user", user)
+          .add("pass", PasswordUtil.mask(pass))
+          .add("parent", parent)
+          .toString();
+    }
   }
 
   private static Logger log = LoggerFactory.getLogger(ImportProject.class);
@@ -100,8 +111,8 @@ class ImportProject
   private final ImportLog importLog;
   private final ProjectsCollection projects;
 
-  private final Project.NameKey targetProject;
   private Project.NameKey srcProject;
+  private Project.NameKey targetProject;
   private Project.NameKey parent;
   private boolean force;
   private GerritApi api;
@@ -122,8 +133,7 @@ class ImportProject
       Provider<CurrentUser> currentUser,
       ImportJson importJson,
       ImportLog importLog,
-      ProjectsCollection projects,
-      @Assisted Project.NameKey targetProject) {
+      ProjectsCollection projects) {
     this.projectCache = projectCache;
     this.openRepoStep = openRepoStep;
     this.configRepoStep = configRepoStep;
@@ -136,8 +146,6 @@ class ImportProject
     this.importJson = importJson;
     this.importLog = importLog;
     this.projects = projects;
-
-    this.targetProject = targetProject;
   }
 
   ImportProject setCopy(boolean copy) {
@@ -156,8 +164,13 @@ class ImportProject
     if (input == null) {
       input = new Input();
     }
-
-    LockFile lockFile = lockForImport();
+    targetProject = new Project.NameKey(id.get());
+    log.info("Importing project {}...", targetProject);
+    log.debug("Input: {}", input);
+    if (input.name == null) {
+      input.name = id.get();
+    }
+    LockFile lockFile = lockForImport(id.get());
     try {
       return apply(lockFile, input, null);
     } finally {
@@ -165,12 +178,19 @@ class ImportProject
     }
   }
 
-  public ResumeImportStatistic resume(String user, String pass, boolean force, File importStatus)
-      throws Exception {
-    LockFile lockFile = lockForImport();
+  public ResumeImportStatistic resume(
+      String user,
+      String pass,
+      boolean force,
+      Project.NameKey targetProject,
+      File importStatus
+  ) throws Exception {
+    log.info("Resuming project import {}...", targetProject);
+    this.targetProject = targetProject;
+    ImportProjectInfo info = ImportJson.parse(importStatus);
+    log.debug("ImportProjectInfo: {}", info);
+    LockFile lockFile = lockForImport(info.from);
     try {
-      ImportProjectInfo info = ImportJson.parse(importStatus);
-
       ImportProject.Input input = new ImportProject.Input();
       input.user = user;
       input.pass = pass;
@@ -208,9 +228,8 @@ class ImportProject
     ProgressMonitor pm = err != null ? new TextProgressMonitor(err) : NullProgressMonitor.INSTANCE;
 
     ResumeImportStatistic statistic = new ResumeImportStatistic();
+    srcProject = new Project.NameKey(input.name);
     try {
-      srcProject =
-          !Strings.isNullOrEmpty(input.name) ? new Project.NameKey(input.name) : targetProject;
       checkProjectInSource(pm);
       setParentProjectName(input, pm);
       checkPreconditions(pm);
@@ -281,8 +300,8 @@ class ImportProject
     updateAndEnd(pm);
   }
 
-  private LockFile lockForImport() throws ResourceConflictException {
-    File importStatus = projects.FS_LAYOUT.getImportStatusFile(targetProject.get());
+  private LockFile lockForImport(String id) throws ResourceConflictException {
+    File importStatus = projects.FS_LAYOUT.getImportStatusFile(id);
     LockFile lockFile = new LockFile(importStatus);
     try {
       if (lockFile.lock()) {

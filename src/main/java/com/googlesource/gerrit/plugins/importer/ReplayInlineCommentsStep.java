@@ -14,8 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static com.google.gerrit.server.CommentsUtil.setCommentRevId;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -50,6 +48,10 @@ import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -57,9 +59,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static com.google.gerrit.server.CommentsUtil.setCommentRevId;
 
 class ReplayInlineCommentsStep {
 

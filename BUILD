@@ -1,4 +1,5 @@
-load("//tools/bzl:plugin.bzl", "gerrit_plugin")
+load("//tools/bzl:junit.bzl", "junit_tests")
+load("//tools/bzl:plugin.bzl", "PLUGIN_DEPS", "PLUGIN_TEST_DEPS", "gerrit_plugin")
 
 gerrit_plugin(
     name = "importer",
@@ -11,4 +12,14 @@ gerrit_plugin(
         "Gerrit-HttpModule: com.googlesource.gerrit.plugins.importer.HttpModule",
     ],
     resources = glob(["src/main/**/*"]),
+)
+
+junit_tests(
+    name = "importer_tests",
+    srcs = glob(["src/test/java/**/*Test.java"]),
+    tags = ["importer"],
+    visibility = ["//visibility:public"],
+    deps = PLUGIN_TEST_DEPS + PLUGIN_DEPS + [
+        ":importer__plugin"
+    ],
 )

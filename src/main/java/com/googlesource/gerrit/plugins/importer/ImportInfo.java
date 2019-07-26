@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
+import com.google.common.base.MoreObjects;
 import com.google.gerrit.extensions.common.AccountInfo;
 import java.sql.Timestamp;
 
@@ -21,4 +22,23 @@ public class ImportInfo {
   public Timestamp timestamp;
   public AccountInfo user;
   public String remoteUser;
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("timestamp", timestamp)
+        .add("user", stringify(user))
+        .add("remoteUser", remoteUser)
+        .toString();
+  }
+
+  private String stringify(AccountInfo user) {
+    return MoreObjects.toStringHelper(user)
+        .add("_accountId", user._accountId)
+        .add("name", user.name)
+        .add("email", user.email)
+        .add("username", user.username)
+        .add("status", user.status)
+        .toString();
+  }
 }

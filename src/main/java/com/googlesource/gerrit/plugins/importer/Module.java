@@ -14,11 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static com.google.gerrit.server.config.ConfigResource.CONFIG_KIND;
-import static com.google.gerrit.server.project.ProjectResource.PROJECT_KIND;
-import static com.googlesource.gerrit.plugins.importer.ImportGroupResource.IMPORT_GROUP_KIND;
-import static com.googlesource.gerrit.plugins.importer.ImportProjectResource.IMPORT_PROJECT_KIND;
-
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.config.CapabilityDefinition;
 import com.google.gerrit.extensions.config.FactoryModule;
@@ -28,6 +23,11 @@ import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.gerrit.extensions.webui.TopMenu;
 import com.google.inject.internal.UniqueAnnotations;
+
+import static com.google.gerrit.server.config.ConfigResource.CONFIG_KIND;
+import static com.google.gerrit.server.project.ProjectResource.PROJECT_KIND;
+import static com.googlesource.gerrit.plugins.importer.ImportGroupResource.IMPORT_GROUP_KIND;
+import static com.googlesource.gerrit.plugins.importer.ImportProjectResource.IMPORT_PROJECT_KIND;
 
 class Module extends FactoryModule {
   @Override

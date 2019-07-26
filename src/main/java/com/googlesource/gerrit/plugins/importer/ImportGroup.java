@@ -14,8 +14,6 @@
 
 package com.googlesource.gerrit.plugins.importer;
 
-import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.gerrit.common.data.GroupReference;
 import com.google.gerrit.common.errors.NoSuchAccountException;
@@ -33,10 +31,9 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestCollectionCreateView;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.AccountGroup;
-import com.google.gerrit.reviewdb.client.AccountGroupById;
-import com.google.gerrit.reviewdb.client.AccountGroupMember;
-import com.google.gerrit.reviewdb.client.AccountGroupName;
-import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.GerritPersonIdent;
+import com.google.gerrit.server.IdentifiedUser;
+import com.google.gerrit.server.Sequences;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.CreateGroupArgs;
 import com.google.gerrit.server.account.GroupCache;
@@ -44,38 +41,34 @@ import com.google.gerrit.server.account.GroupIncludeCache;
 import com.google.gerrit.server.account.GroupUUID;
 import com.google.gerrit.server.config.ConfigResource;
 import com.google.gerrit.server.config.GerritServerConfig;
+import com.google.gerrit.server.group.InternalGroup;
 import com.google.gerrit.server.group.db.Groups;
 import com.google.gerrit.server.group.db.GroupsUpdate;
-import com.google.gerrit.server.group.InternalGroup;
 import com.google.gerrit.server.group.db.InternalGroupCreation;
 import com.google.gerrit.server.group.db.InternalGroupUpdate;
 import com.google.gerrit.server.permissions.PermissionBackendException;
-import com.google.gerrit.server.util.time.TimeUtil;
 import com.google.gerrit.server.validators.GroupCreationValidationListener;
 import com.google.gerrit.server.validators.ValidationException;
-import com.google.gerrit.server.GerritPersonIdent;
-import com.google.gerrit.server.Sequences;
 import com.google.gwtorm.server.OrmDuplicateKeyException;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.assistedinject.Assisted;
 import com.googlesource.gerrit.plugins.importer.ImportGroup.Input;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import static com.google.gerrit.reviewdb.client.AccountGroup.isInternalGroup;
+
 @RequiresCapability(ImportCapability.ID)
-class ImportGroup implements RestCollectionCreateView<ConfigResource, ImportGroupResource, Input> {
+class ImportGroup
+    implements RestCollectionCreateView<ConfigResource, ImportGroupResource, Input> {
   public static class Input {
     public String from;
     public String user;
@@ -88,7 +81,8 @@ class ImportGroup implements RestCollectionCreateView<ConfigResource, ImportGrou
 
   private final Config cfg;
   private final Groups groups;
-  private final GroupsUpdate groupsUpdate;
+  private final GroupsUpdate.Factory groupsUpdateFactory;
+  private final IdentifiedUser.GenericFactory identifiedUserFactory;
   private final Sequences sequences;
   private final PersonIdent personIdent;
   private final AccountUtil accountUtil;
@@ -97,14 +91,14 @@ class ImportGroup implements RestCollectionCreateView<ConfigResource, ImportGrou
   private final GroupIncludeCache groupIncludeCache;
   private final DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners;
   private final GerritApi.Factory apiFactory;
-  private final AccountGroup.NameKey group;
   private GerritApi api;
 
   @Inject
   ImportGroup(
       @GerritServerConfig Config cfg,
       Groups groups,
-      GroupsUpdate groupsUpdate,
+      GroupsUpdate.Factory groupsUpdateFactory,
+      IdentifiedUser.GenericFactory identifiedUserFactory,
       Sequences sequences,
       @GerritPersonIdent PersonIdent personIdent,
       AccountUtil accountUtil,
@@ -112,11 +106,11 @@ class ImportGroup implements RestCollectionCreateView<ConfigResource, ImportGrou
       GroupCache groupCache,
       GroupIncludeCache groupIncludeCache,
       DynamicSet<GroupCreationValidationListener> groupCreationValidationListeners,
-      GerritApi.Factory apiFactory,
-      @Assisted AccountGroup.NameKey group) {
+      GerritApi.Factory apiFactory) {
     this.cfg = cfg;
     this.groups = groups;
-    this.groupsUpdate = groupsUpdate;
+    this.groupsUpdateFactory = groupsUpdateFactory;
+    this.identifiedUserFactory = identifiedUserFactory;
     this.sequences = sequences;
     this.personIdent = personIdent;
     this.accountUtil = accountUtil;
@@ -125,7 +119,6 @@ class ImportGroup implements RestCollectionCreateView<ConfigResource, ImportGrou
     this.groupIncludeCache = groupIncludeCache;
     this.groupCreationValidationListeners = groupCreationValidationListeners;
     this.apiFactory = apiFactory;
-    this.group = group;
   }
 
   @Override
@@ -134,7 +127,7 @@ class ImportGroup implements RestCollectionCreateView<ConfigResource, ImportGrou
           ConfigInvalidException, PermissionBackendException {
     GroupInfo groupInfo;
     this.api = apiFactory.create(input.from, input.user, input.pass);
-    groupInfo = api.getGroup(group.get());
+    groupInfo = api.getGroup(id.get());
     validate(input, groupInfo);
     createGroup(input, groupInfo);
 
@@ -263,6 +256,11 @@ class ImportGroup implements RestCollectionCreateView<ConfigResource, ImportGrou
         members -> ImmutableSet.copyOf(createGroupArgs.initialMembers));
 
     InternalGroup newGroup;
+
+    // TODO: 🤔
+    Account.Id id = new Account.Id(42);
+    IdentifiedUser user = identifiedUserFactory.create(id);
+    GroupsUpdate groupsUpdate = groupsUpdateFactory.create(user);
     try {
       newGroup = groupsUpdate.createGroup(groupCreation, groupUpdateBuilder.build());
     } catch (OrmDuplicateKeyException e) {
