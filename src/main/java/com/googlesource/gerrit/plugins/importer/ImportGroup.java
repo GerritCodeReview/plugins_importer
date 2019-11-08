@@ -135,12 +135,12 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
               "Group with name %s is not an internal group and cannot be imported",
               groupInfo.name));
     }
-    if (getGroupByUUID(groupInfo.id) != null) {
+    if (getGroupByUUID(groupInfo.id).isPresent()) {
       throw new ResourceConflictException(
           String.format("Group with UUID %s already exists", groupInfo.id));
     }
     if (!groupInfo.id.equals(groupInfo.ownerId))
-      if (!input.importOwnerGroup && getGroupByUUID(groupInfo.ownerId) == null) {
+      if (!input.importOwnerGroup && !getGroupByUUID(groupInfo.ownerId).isPresent()) {
         throw new PreconditionFailedException(
             String.format(
                 "Owner group %s with UUID %s does not exist",
@@ -158,7 +158,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     if (!input.importIncludedGroups) {
       if (groupInfo.includes != null) {
         for (GroupInfo include : groupInfo.includes) {
-          if (getGroupByUUID(include.id) == null) {
+          if (!getGroupByUUID(include.id).isPresent()) {
             throw new PreconditionFailedException(
                 String.format(
                     "Included group %s with UUID %s does not exist",
@@ -259,14 +259,14 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
   }
 
   private String getUniqueGroupName(String name, boolean appendIndex) {
-    if (getGroupByName(name) == null) {
+    if (!getGroupByName(name).isPresent()) {
       return name;
     }
     if (appendIndex) {
       int i = 0;
       while (true) {
         String groupName = String.format("%s-%d", name, ++i);
-        if (getGroupByName(groupName) == null) {
+        if (!getGroupByName(groupName).isPresent()) {
           return groupName;
         }
       }
@@ -308,7 +308,7 @@ class ImportGroup implements RestModifyView<ConfigResource, Input> {
     List<AccountGroupById> includeList = new ArrayList<>();
     for (GroupInfo includedGroup : includedGroups) {
       if (isInternalGroup(new AccountGroup.UUID(includedGroup.id))) {
-        if (getGroupByUUID(includedGroup.id) == null) {
+        if (!getGroupByUUID(includedGroup.id).isPresent()) {
           String includedGroupName = getGroupName(includedGroup.id);
           if (input.importIncludedGroups) {
             importGroupFactory
